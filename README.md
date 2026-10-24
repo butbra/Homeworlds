@@ -4,14 +4,23 @@ A complete local two-player implementation of Homeworlds for the browser. Play o
 
 ## Play
 
-1. Select a homeworld or frontier by its name.
-2. Choose an action tab, select a legal order, and apply it.
-3. Use **Undo action** to revise orders before confirming the turn.
-4. **End turn** and pass the device to the other player.
+The playing surface is a starfield with a shared bank on the right. All orders use the pieces on the table:
+
+- **Build:** click a system, then its smallest available bank piece of a color you already own there.
+- **Move:** click your ship, then a connected destination system.
+- **Trade:** click your ship, Trade, then a different bank color of the same size.
+- **Discover:** click your ship, Discover, a bank star, then an empty spot in space.
+- **Capture:** click an enemy ship where you have red power and a ship at least as large.
+- **Sacrifice:** click your ship, then Sacrifice in its context controls.
+- **Catastrophe:** click a star/system, then the catastrophe control for an overpopulated color.
+
+Legal destinations and bank choices are highlighted. Invalid choices explain the rule without changing the position. Drag a system’s grip (or focus it and use arrow keys) to rearrange the map without spending an action. On narrow screens, pan the playing surface horizontally; the bank stays on the right.
+
+Use **Undo action** before **End turn**, then pass the device. **Game menu** contains new game, saves, resignation, and draw controls; **?** opens the rules reference.
 
 Green builds, yellow moves or discovers, red captures, and blue trades. Instead of a basic action, sacrifice a ship for its size in actions of that color. Four pieces of one color in a system permit an optional catastrophe. An empty or destroyed homeworld loses at turn confirmation; simultaneous elimination is a draw.
 
-**New game** supports custom binary stars and a large starting ship for each player, or the suggested first-game setup. Supply limits are enforced. **Resign** awards the opponent a win; **Agree draw** requires both players’ confirmation.
+**New game → Choose pieces from bank** starts a guided setup: click two bank stars and then a large ship for Player 1, and repeat for Player 2. You can also use the suggested first-game opening. Supply limits are enforced. **Resign** awards the opponent a win; **Agree draw** requires both players’ confirmation.
 
 Games autosave in this browser after every action. Reload restores the position and current-turn undo. **Export save** downloads a portable JSON backup; **Import save** validates and replays every action before replacing the game. Autosave needs browser storage, so keep an exported backup if the browser blocks storage or you plan to clear site data. Save files are limited to 2 MB and 10,000 actions.
 
@@ -44,8 +53,8 @@ npm run test:e2e
 
 Playwright uses `/usr/bin/chromium` when present; otherwise it uses its installed Chromium browser. Linux systems may also need `npx playwright install --with-deps chromium`.
 
-- 38 rules and save-format tests cover inventory conservation, setup, connectivity, all action types, sacrifices, catastrophes, turn-end outcomes, and invalid imports.
-- 12 desktop/mobile browser checks cover multi-turn play, undo, victory, custom setup, supply rejection, reload recovery, save import/export, resignation, and agreement to a draw.
+- 41 rules, physical-bank interaction, and save-format tests cover inventory conservation, setup, connectivity, all action types, sacrifices, catastrophes, turn-end outcomes, and invalid imports.
+- 16 desktop/mobile browser checks cover multi-turn play, undo, victory, click-driven building, trading, discovery, movement, capture, sacrifice, catastrophe, custom setup, reload recovery, save import/export, resignation, draws, and map rearrangement.
 - GitHub Actions runs the tests and production build on pushes and pull requests.
 
 ## Publish a playable website
@@ -56,13 +65,14 @@ The source lives at [butbra/Homeworlds](https://github.com/butbra/Homeworlds). T
 2. Open **Actions → Deploy game to GitHub Pages → Run workflow**, using `main`.
 3. Open the website URL reported by the successful deployment.
 
-Pages availability depends on repository/account settings. Deployment is manual so that merely pushing code does not change a live website. Relative asset paths support hosting under `/Homeworlds/` or a custom domain. Re-run the deployment workflow to publish later changes.
+Pages availability depends on repository/account settings. Pushes to `main` automatically redeploy the website once Pages is configured. You can also trigger deployment manually. Relative asset paths support hosting under `/Homeworlds/` or a custom domain. Re-run the deployment workflow to publish later changes.
 
 ## Code
 
 - `src/game.ts`: typed state, pure action reducer, and legal-order generation.
 - `src/session.ts`: versioned saves, schema checks, and legal-history replay.
-- `src/main.ts`, `src/style.css`: responsive board, orders, undo, setup, and game controls.
+- `src/main.ts`, `src/style.css`: interactive space tabletop, bank, undo, click-based setup, and game controls.
+- `src/tabletop.ts`: physical bank selection and pyramid rendering.
 - `src/*.test.ts`: rules and save tests.
 - `e2e/game.spec.ts`: desktop/mobile gameplay checks.
 
