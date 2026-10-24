@@ -18,3 +18,27 @@ describe('rulebook setup round',()=>{
   expect(()=>openingFromSetup([[],[]])).toThrow('Complete');
  });
 });
+
+import {placeSetupPiece,confirmSetup,undoSetup,decodeSetupProgress,type SetupProgress} from './setup';
+describe('setup confirmation',()=>{
+ const ready:SetupProgress={pieces:[[{color:'red',size:1},{color:'blue',size:3},{color:'green',size:3}],[]],player:0};
+ it('does not begin the second player until the first explicitly confirms',()=>{
+  expect(()=>placeSetupPiece(ready,{color:'yellow',size:1})).toThrow('End turn');
+  const second=confirmSetup(ready)!;expect(second.player).toBe(1);
+  expect(()=>undoSetup(second)).toThrow('confirmed');
+  expect(()=>confirmSetup(second)).toThrow('Choose two stars');
+ });
+ it('allows revision during review and persists pending confirmations',()=>{
+  const revised=undoSetup(ready);expect(revised.pieces[0]).toHaveLength(2);
+  expect(revised.player).toBe(0);expect(ready.pieces[0]).toHaveLength(3);
+  expect(decodeSetupProgress(JSON.stringify(ready))).toEqual(ready);
+  let second=confirmSetup(ready)!;
+  for(const p of [{color:'red',size:2},{color:'blue',size:1},{color:'green',size:3}] as const)second=placeSetupPiece(second,p);
+  expect(decodeSetupProgress(JSON.stringify(second))).toEqual(second);
+  expect(confirmSetup(second)).toBeNull();
+ });
+ it('migrates old partial setup without silently confirming a ready first player',()=>{
+  expect(decodeSetupProgress(JSON.stringify(ready.pieces)).player).toBe(0);
+  expect(()=>decodeSetupProgress(JSON.stringify({pieces:[[],[]],player:1}))).toThrow('confirmation');
+ });
+});

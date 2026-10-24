@@ -4,7 +4,7 @@ const bank=(page:Page,color:string,size:number)=>page.getByRole('button',{name:`
 const ship=(page:Page,color:string,size:number,home='North',owner=1)=>page.getByRole('button',{name:`Player ${owner} ${color} ship ${size} at ${home} homeworld`,exact:true});
 const menu=async(page:Page)=>page.getByRole('button',{name:'Game menu'}).click();
 const newGame=async(page:Page)=>{await menu(page);page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'New game',exact:true}).click();};
-const chooseOpening=async(page:Page)=>{for(const [color,size] of [['blue',3],['red',1],['green',3],['red',2],['blue',1],['green',3]] as const)await bank(page,color,size).click();};
+const chooseOpening=async(page:Page)=>{for(const picks of [[['blue',3],['red',1],['green',3]],[['red',2],['blue',1],['green',3]]] as const){for(const [color,size] of picks)await bank(page,color,size).click();await page.getByRole('button',{name:'End turn',exact:true}).click();}};
 const resume=async(page:Page)=>{await page.getByRole('button',{name:'Resume saved game'}).click();};
 test.beforeEach(async({page},info)=>{await page.goto('/');if(!info.title.startsWith('fresh')&&!info.title.startsWith('custom setup'))await chooseOpening(page);});
 test('bank clicks build, undo and reload preserve the physical game',async({page})=>{
@@ -53,8 +53,8 @@ test('custom setup places homeworld stars and ships by clicking the bank',async(
 
  await bank(page,'blue',3).click();await bank(page,'red',1).click();
  await bank(page,'green',1).click();await expect(page.getByRole('status')).toContainText('must be large');
- await bank(page,'yellow',3).click();
- await bank(page,'red',2).click();await bank(page,'blue',1).click();await bank(page,'green',3).click();
+ await bank(page,'yellow',3).click();await page.getByRole('button',{name:'End turn',exact:true}).click();
+ await bank(page,'red',2).click();await bank(page,'blue',1).click();await bank(page,'green',3).click();await page.getByRole('button',{name:'End turn',exact:true}).click();
  await expect(ship(page,'yellow',3)).toBeVisible();await expect(page.locator('.status')).toContainText('Player 1');
  await page.reload();await resume(page);await expect(ship(page,'yellow',3)).toBeVisible();
  await newGame(page);await chooseOpening(page);
@@ -76,7 +76,8 @@ test('resignation and mutual draws require confirmation',async({page})=>{
  await menu(page);page.once('dialog',d=>d.dismiss());await page.getByRole('button',{name:'Resign',exact:true}).click();
  await expect(page.locator('.status')).toContainText('Turn 1');
  page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Resign',exact:true}).click();
- await expect(page.locator('.status')).toHaveText('Player 2 wins');await page.reload();await resume(page);await expect(page.locator('.status')).toHaveText('Player 2 wins');
+ await expect(page.getByRole('heading',{name:'Player 2 wins',exact:true})).toBeVisible();await page.getByRole('button',{name:'View final board'}).click();
+ await expect(page.locator('.status')).toHaveText('Player 2 wins');await page.reload();await resume(page);await expect(page.locator('.status')).toHaveText('Player 2 wins');await page.getByRole('button',{name:'View final board'}).click();
  await newGame(page);await chooseOpening(page);await menu(page);
  page.on('dialog',d=>d.accept());await page.getByRole('button',{name:'Agree draw'}).click();
  await expect(page.locator('.status')).toHaveText('Game over · Draw');
@@ -149,6 +150,7 @@ test('remote catastrophes are available during ship selection and animate withou
  await ship(page,'green',3).click();
  await page.getByRole('button',{name:'green catastrophe at South homeworld'}).click();
  await expect(page.locator('.catastrophe-ring')).toHaveCount(1);
+ await expect(page.locator('.explosion-core')).toHaveCount(1);
  await expect(ship(page,'green',3,'South',2)).toHaveCount(0);
  await expect(page.locator('.turn-token strong')).toHaveText('1');
  await expect(page.locator('.catastrophe-ring')).toHaveCount(0);
@@ -158,4 +160,34 @@ test('fresh reduced-motion preference disables action effects',async({page})=>{
  await page.emulateMedia({reducedMotion:'reduce'});await chooseOpening(page);
  await bank(page,'green',1).click();await expect(ship(page,'green',1)).toBeVisible();
  expect(await page.evaluate(()=>document.getAnimations().length)).toBe(0);
+});
+
+test('fresh setup requires separate confirmation and preserves each player review',async({page})=>{
+ for(const [color,size] of [['red',1],['blue',3],['green',3]] as const)await bank(page,color,size).click();
+ await expect(page.locator('.status')).toHaveText('Player 1 · Setup');
+ await expect(page.getByRole('button',{name:'End turn',exact:true})).toBeEnabled();
+ await expect(bank(page,'yellow',3)).toBeDisabled();
+ await page.reload();await expect(page.locator('.status')).toHaveText('Player 1 · Setup');
+ await page.getByRole('button',{name:'Undo action'}).click();await bank(page,'yellow',3).click();
+ await page.getByRole('button',{name:'End turn',exact:true}).click();
+ await expect(page.locator('.status')).toHaveText('Player 2 · Setup');
+ await expect(page.getByRole('button',{name:'Undo action'})).toBeDisabled();
+ await expect(page.getByRole('button',{name:'End turn',exact:true})).toBeDisabled();
+ for(const [color,size] of [['red',2],['blue',1],['green',3]] as const)await bank(page,color,size).click();
+ await expect(page.locator('.status')).toHaveText('Player 2 · Setup');
+ await page.reload();await expect(page.locator('.status')).toHaveText('Player 2 · Setup');
+ await page.getByRole('button',{name:'Undo action'}).click();await bank(page,'red',3).click();
+ await page.getByRole('button',{name:'End turn',exact:true}).click();
+ await expect(page.locator('.status')).toHaveText('Turn 1 · Player 1');
+ await expect(ship(page,'yellow',3)).toBeVisible();await expect(ship(page,'red',3,'South',2)).toBeVisible();
+});
+test('game over announces the winner and reason, locks play, and can start over',async({page})=>{
+ await menu(page);page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Resign',exact:true}).click();
+ const result=page.locator('#result');await expect(result).toBeVisible();
+ await expect(result.getByRole('heading')).toHaveText('Player 2 wins');await expect(result).toContainText('Player 1 resigned');
+ await result.getByRole('button',{name:'View final board'}).click();
+ await expect(page.locator('.result-banner')).toContainText('Player 2 wins');
+ await expect(page.getByRole('button',{name:'End turn',exact:true})).toBeDisabled();await expect(bank(page,'green',1)).toBeDisabled();
+ await page.reload();await resume(page);await expect(page.locator('#result')).toBeVisible();
+ await page.getByRole('button',{name:'New local game'}).click();await expect(page.locator('.system')).toHaveCount(0);
 });

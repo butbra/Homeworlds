@@ -20,11 +20,19 @@ export function animateAction(before:ActionVisual,next:GameState,action:Action):
  if(action.type==='catastrophe'&&old) {
   const x=old.x+old.width/2,y=old.y+old.height/2;
   const color={red:'#ff6c58',blue:'#65b0ff',yellow:'#ffe17c',green:'#8fea81'}[action.color];
-  const ring=document.createElement('div');ring.className='catastrophe-ring';ring.style.cssText=`left:${x}px;top:${y}px;border-color:${color};color:${color}`;document.body.append(ring);
-  run(ring,[{transform:'translate(-50%,-50%) scale(.2)',opacity:.9},{transform:'translate(-50%,-50%) scale(1.2)',opacity:0}],620);
+  const spawn=(className:string,style='')=>{const element=document.createElement('div');element.className=className;element.setAttribute('aria-hidden','true');element.style.cssText=`left:${x}px;top:${y}px;${style}`;document.body.append(element);return element;};
+  // A short, local fireball with overlapping flame lobes, smoke and hot fragments.
+  const core=spawn('explosion-core');
+  run(core,[{transform:'translate(-50%,-50%) scale(.12)',opacity:1},{transform:'translate(-50%,-50%) scale(1)',opacity:1,offset:.22},{transform:'translate(-50%,-50%) scale(1.35)',opacity:.6,offset:.55},{transform:'translate(-50%,-50%) scale(1.6)',opacity:0}],700);
+  const ring=spawn('catastrophe-ring',`border-color:${color};color:${color}`);
+  run(ring,[{transform:'translate(-50%,-50%) scale(.2)',opacity:.7},{transform:'translate(-50%,-50%) scale(1.5)',opacity:0}],720);
   for(let i=0;i<8;i++) {
-   const dot=document.createElement('div');dot.className='catastrophe-spark';dot.style.cssText=`left:${x}px;top:${y}px;background:${color}`;document.body.append(dot);
-   const angle=i*Math.PI/4;run(dot,[{transform:'translate(-50%,-50%)',opacity:.9},{transform:`translate(${Math.cos(angle)*65}px,${Math.sin(angle)*55}px) scale(.1)`,opacity:0}],520);
+   const angle=i*Math.PI/4,dx=Math.cos(angle),dy=Math.sin(angle);
+   const flame=spawn('explosion-flame',`width:${28+i%3*7}px;height:${28+i%3*7}px`);
+   run(flame,[{transform:'translate(-50%,-50%) scale(.2)',opacity:0},{transform:`translate(calc(-50% + ${dx*22}px),calc(-50% + ${dy*20}px)) scale(1)`,opacity:.95,offset:.25},{transform:`translate(calc(-50% + ${dx*42}px),calc(-50% + ${dy*36}px)) scale(.7)`,opacity:0}],650);
+   const shard=spawn('catastrophe-spark',`background:${color};box-shadow:0 0 5px #ff9a43`);
+   run(shard,[{transform:'translate(-50%,-50%) rotate(0deg)',opacity:1},{transform:`translate(${dx*(65+i%3*9)}px,${dy*(50+i%3*9)}px) rotate(${i*53+100}deg) scale(.2)`,opacity:0}],760);
+   if(i%2===0){const smoke=spawn('explosion-smoke');run(smoke,[{transform:'translate(-50%,-50%) scale(.3)',opacity:0},{transform:`translate(calc(-50% + ${dx*25}px),calc(-50% + ${dy*20-10}px)) scale(.8)`,opacity:.6,offset:.45},{transform:`translate(calc(-50% + ${dx*40}px),calc(-50% + ${dy*30-25}px)) scale(1.3)`,opacity:0}],850);}
   }
   return;
  }
