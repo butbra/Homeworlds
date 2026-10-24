@@ -1,4 +1,6 @@
 import './style.css';
+import {beforeAction,animateAction} from './effects';
+import {setupBank,placeStartingPiece,decodeSetup,openingFromSetup,setupKey,type Setup} from './setup';
 import {bankAction, legal, pyramid, type ShipSelection} from './tabletop';
 import { colors, sizes, createInitialState, applyAction, legalChoices, type Piece, type Action, type GameState, type Opening, type Color, type Size } from './game';
 
@@ -11,8 +13,9 @@ let selected = 'north';
 let source: ShipSelection | null = null;
 let intent: 'build'|'trade'|'discover' = 'build';
 let pending: Piece | null = null;
-let draft: Piece[][] | null = null;
-let notice = 'Click a green bank pyramid to build at your homeworld. Click a ship for more actions.';
+let draft: Setup | null = [[],[]];
+let resumeSession: Session | null = null;
+let notice = 'Two-player local game. Player 1 chooses first; agree who goes first or flip a coin (rulebook p. 4).';
 let history: { state: GameState; log: string[]; actionCount: number }[] = [];
 let log: string[] = [];
 
@@ -22,7 +25,8 @@ function save(): void {
   catch {notice += ' Browser storage unavailable; export a save to keep this game.';}
 }
 function restore(next: Session): void {
-  session = next;
+  session = next;draft=null;resumeSession=null;
+  try {localStorage.removeItem(setupKey);} catch { /* Storage optional. */ }
   state = createInitialState(session.opening);
   history = []; log = [];
   session.actions.forEach((action, index) => {
@@ -35,20 +39,25 @@ function restore(next: Session): void {
   source = null; intent = 'build'; pending = null;
 }
 try {
-  const stored = localStorage.getItem(storageKey);
-  if (stored) {restore(decodeSession(stored)); notice = 'Your saved game has been restored.';}
-} catch {notice = 'The previous save could not be loaded. Start a new game or import a valid save.';}
+  const stored=localStorage.getItem(storageKey);
+  if(stored)resumeSession=decodeSession(stored);
+  const partial=localStorage.getItem(setupKey);
+  if(partial){draft=decodeSetup(partial);notice='Your homeworld selection has been restored.';}
+} catch {notice='Choose your starting pieces. A previous save could not be loaded.';}
+function saveSetup():void {try {if(draft)localStorage.setItem(setupKey,JSON.stringify(draft));} catch {notice='Browser storage unavailable; keep this page open during setup.';}}
+function beginSetup():void {draft=[[],[]];source=null;pending=null;selected='north';positions={};saveLayout();notice='Player 1: choose two stars of any size/color, then one large ship.';saveSetup();render();}
 interface Position {x:number;y:number}
 let positions: Record<string,Position> = {};
-try {positions=JSON.parse(localStorage.getItem('homeworlds.layout.v1')||'{}');} catch { /* Defaults below. */ }
+try {positions=JSON.parse(localStorage.getItem('homeworlds.layout.v2')||'{}');} catch { /* Defaults below. */ }
 function location(id:string,index:number): Position {
   const saved=positions?.[id];
   if(saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)) return {x:Math.max(14,Math.min(85,saved.x)),y:Math.max(12,Math.min(88,saved.y))};
-  return id==='north'?{x:24,y:21}:id==='south'?{x:24,y:75}:{x:62+(index%2)*16,y:20+((index-2)%3)*26};
+  return id==='north'?{x:50,y:16}:id==='south'?{x:50,y:84}:{x:50+(index%2===0?-17:17),y:34+((index-2)%3)*16};
 }
-function saveLayout():void {try {localStorage.setItem('homeworlds.layout.v1',JSON.stringify(positions));} catch { /* Gameplay autosave reports storage failures. */ }}
+function saveLayout():void {try {localStorage.setItem('homeworlds.layout.v2',JSON.stringify(positions));} catch { /* Gameplay autosave reports storage failures. */ }}
 function act(action:Action,label:string):void {
   try {
+    const visual=beforeAction(state,action);
     const next=applyAction(state,action);
     if(['end','resign','draw'].includes(action.type)) history=[];
     else history.push({state,log:[...log],actionCount:session.actions.length});
@@ -57,20 +66,18 @@ function act(action:Action,label:string):void {
     source=null;pending=null;intent='build';
     if(action.type==='end') selected=state.player===0?'north':'south';
     if(!state.systems.some(s=>s.id===selected)) selected=state.systems[0]?.id??'';
-    save();render();
+    save();render();animateAction(visual,state,action);
   } catch(error) {notice=(error as Error).message;render();}
 }
 function chooseBank(piece:Piece):void {
   try {
     if(draft) {
-      const player=draft[0].length<3?0:1;
-      if(draft[player].length===2 && piece.size!==3) throw Error('Your starting ship must be large. Click a large bank pyramid.');
-      draft[player].push(piece);
+      draft=placeStartingPiece(draft,piece);
       selected=draft[0].length<3?'north':'south';
       if(draft[1].length===3) {
-        const opening=draft.map(p=>({stars:[p[0],p[1]] as Opening['stars'],shipColor:p[2].color}));
-        restore(newSession(opening));draft=null;positions={};saveLayout();notice='Your homeworlds are ready. Player 1 begins.';save();
-      }
+        const opening=openingFromSetup(draft);
+        restore(newSession(opening));positions={};saveLayout();notice='Your homeworlds are ready. Player 1 begins.';save();
+      } else saveSetup();
       render();return;
     }
     const action=bankAction(state,selected,piece,source,intent);
@@ -85,32 +92,28 @@ function starfield():string {
 }
 function render():void {
   const over=state.outcome!=='playing';
-  const systems=draft?draft.map((p,i)=>({id:i===0?'north':'south',name:i===0?'North homeworld':'South homeworld',homeworld:i,stars:p.slice(0,2),ships:p[2]?[{...p[2],owner:i}]:[]})):state.systems;
-  const bank=draft?colors.flatMap(color=>sizes.flatMap(size=>Array.from({length:3},()=>({color,size})))).filter((p,index,all)=>{
-    const used=draft!.flat().filter(x=>x.color===p.color&&x.size===p.size).length;
-    return all.slice(0,index).filter(x=>x.color===p.color&&x.size===p.size).length>=used;
-  }):state.bank;
+  const systems=draft?draft.flatMap((p,i)=>p.length?[{id:i===0?'north':'south',name:i===0?'North homeworld':'South homeworld',homeworld:i,stars:p.slice(0,2),ships:p[2]?[{...p[2],owner:i}]:[]}]:[]):state.systems;
+  const bank=draft?setupBank(draft):state.bank;
   const status=draft?'Choose your homeworlds':over?state.outcome==='draw'?'Game over · Draw':`Player ${Number(state.outcome)+1} wins`:`Turn ${state.turn} · Player ${state.player+1}`;
   const selectedShip=source?state.systems.find(s=>s.id===source!.system)?.ships[source.ship]:null;
-  const choices=draft?[]:legalChoices(state,selected);
+  const catastrophes=draft||over?[]:state.systems.flatMap(s=>colors.flatMap(color=>{const count=[...s.stars,...s.ships].filter(p=>p.color===color).length;return count>=4?[{system:s.id,name:s.name,color,count}]:[];}));
   const instruction=draft?`Player ${draft[0].length<3?1:2}: click ${draft[draft[0].length<3?0:1].length<2?'a bank piece for star '+(draft[draft[0].length<3?0:1].length+1):'a large bank piece for your starting ship'}.`:pending?'Click empty space to discover a new system.':source?`${selectedShip?.color} ship selected. Click a connected system to move, or choose Trade / Discover / Sacrifice.`:'Click a system, then a bank pyramid to build. Click your ship to move, trade, discover, or sacrifice. Click an enemy ship to capture.';
-  app.innerHTML=`<main class="tabletop"><header class="topbar"><a class="wordmark" href="./">HOME<span>WORLDS</span><small>THE PYRAMID STARSHIP GAME</small></a><div class="status ${state.player===1?'south-turn':''}">${status}</div><nav><button id="undo" aria-label="Undo action" ${!history.length||draft?'disabled':''}>↶ <span>Undo action</span></button><button id="end" aria-label="End turn" class="primary" ${over||draft?'disabled':''}>End turn →</button><button id="menu" aria-label="Game menu">☰</button></nav></header>
-  <div class="play-area"><section class="space ${pending?'placing':''}" id="space" aria-label="Space playing surface"><div id="universe" class="universe"><div class="starfield" aria-hidden="true">${starfield()}</div><div class="map-label">SECTOR 01 <span>LOCAL EXPLORATION</span></div>
+  app.innerHTML=`<main class="tabletop"><header class="topbar"><a class="wordmark" href="./">HOME<span>WORLDS</span><small>THE PYRAMID STARSHIP GAME</small></a><div class="status ${state.player===1?'south-turn':''}">${status}</div><nav><button id="undo" aria-label="Undo action" ${draft?!draft.flat().length?'disabled':'':!history.length?'disabled':''}>↶ <span>Undo action</span></button><button id="end" aria-label="End turn" class="primary" ${over||draft?'disabled':''}>End turn →</button><button id="menu" aria-label="Game menu">☰</button></nav></header>
+  <div class="play-area"><section class="space ${pending?'placing':''}" id="space" aria-label="Space playing surface"><div id="universe" class="universe" style="min-height:${Math.max(0,(systems.length-4)*180)}px"><div class="starfield" aria-hidden="true">${starfield()}</div><div class="map-label">SECTOR 01 <span>LOCAL EXPLORATION</span></div>
   ${systems.map((s,i)=>{
     const pos=location(s.id,i);
     const destination=source&&source.system!==s.id&&legal(state,{type:'move',...source,destination:s.id});
     return `<article class="system ${selected===s.id?'selected':''} ${destination?'destination':''}" data-system="${s.id}" style="left:${pos.x}%;top:${pos.y}%" aria-label="${s.name}"><div class="system-title"><button data-select="${s.id}" aria-label="Select ${s.name}">${s.homeworld===undefined?'✧':'⌂'} ${s.name}</button><button class="drag-handle" data-drag="${s.id}" aria-label="Reposition ${s.name}" title="Drag to rearrange · arrow keys also work">⠿</button></div><div class="system-pieces"><div class="stars">${s.stars.map((p,j)=>`<button class="piece-button" data-star="${s.id}" aria-label="${s.name} ${p.color} star ${p.size}">${pyramid(p,true)}<span class="piece-caption">${j===0?'':' '}</span></button>`).join('')||'<span class="destroyed">No stars</span>'}</div><div class="fleets">${[0,1].map(owner=>`<div class="fleet" data-player="${owner}" aria-label="Player ${owner+1} fleet">${s.ships.map((p,j)=>p.owner===owner?`<button class="piece-button ${source?.system===s.id&&source.ship===j?'picked':''}" data-ship="${j}" data-source="${s.id}" aria-label="Player ${owner+1} ${p.color} ship ${p.size} at ${s.name}">${pyramid(p,false,owner)}</button>`:'').join('')}</div>`).join('')}</div></div><div class="system-meta">${s.homeworld===undefined?'FRONTIER':`PLAYER ${s.homeworld+1} HOMEWORLD`}${destination?'<span>MOVE HERE ↗</span>':''}</div></article>`;
   }).join('')}
   <div class="space-compass" aria-hidden="true">✧<span>THE UNIVERSE IS YOURS TO EXPLORE</span></div></div></section>
-  <aside class="bank" aria-label="Piece bank"><div class="bank-heading"><h2>THE BANK</h2><span>${bank.length} PIECES</span></div><p>Click a pyramid to bring it into play.</p>${colors.map(color=>`<div class="bank-color ${color}"><h3>${color}<span>${{red:'CAPTURE',yellow:'MOVE',green:'BUILD',blue:'TRADE'}[color]}</span></h3><div class="bank-row">${sizes.map(size=>{
+  <aside class="sidebar" aria-label="Game sidebar"><section class="bank" aria-label="Piece bank"><div class="bank-heading"><h2>THE BANK</h2><span>${bank.length} PIECES</span></div><p>Click a pyramid to bring it into play.</p>${colors.map(color=>`<div class="bank-color ${color}"><h3>${color}<span>${{red:'CAPTURE',yellow:'MOVE',green:'BUILD',blue:'TRADE'}[color]}</span></h3><div class="bank-row">${sizes.map(size=>{
     const p={color,size},count=bank.filter(b=>b.color===color&&b.size===size).length;
-    let available=false;try {available=!!draft||legal(state,bankAction(state,selected,p,source,intent));} catch { /* Not a legal bank choice. */ }
+    let available=false;try {available=draft?!!placeStartingPiece(draft,p):legal(state,bankAction(state,selected,p,source,intent));} catch { /* Not a legal bank choice. */ }
     return `<button class="bank-piece ${available?'available':''} ${pending?.color===color&&pending.size===size?'picked':''}" data-color="${color}" data-size="${size}" aria-label="Bank ${color} ${size}" ${!count||over&&!draft?'disabled':''} title="${color} size ${size}: ${count} available">${pyramid(p)}<span>×${count}</span></button>`;
-  }).join('')}</div></div>`).join('')}<div class="bank-note">ONE SHARED FLEET<br><span>3 of every color & size</span></div></aside></div>
-  <section class="command-bar" aria-label="Piece controls"><div class="turn-token p${state.player}"><span>${draft?'SETUP':over?'FINISHED':`PLAYER ${state.player+1}`}</span><strong>${draft?'✧':over?'★':state.allowance.remaining}</strong><small>${draft?'CHOOSE PIECES':state.allowance.sacrificed?`${state.allowance.color} actions`:'actions left'}</small></div><div class="command-content"><div class="context-actions">${source?`<button data-intent="trade" ${intent==='trade'?'class="active"':''}>Trade → bank</button><button data-intent="discover" ${intent==='discover'?'class="active"':''}>Discover → bank → space</button><button id="sacrifice" ${legal(state,{type:'sacrifice',...source})?'':'disabled'}>Sacrifice ship</button><button id="clear">Cancel selection</button>`:`<strong>${draft?'PREPARE FOR FIRST CONTACT':escape(systems.find(s=>s.id===selected)?.name??'Select a system')}</strong>`}${choices.filter(c=>c.action.type==='catastrophe').map(c=>`<button class="danger" data-cat="${'color'in c.action?c.action.color:''}">✹ ${'color'in c.action?c.action.color:''} catastrophe</button>`).join('')}${draft?'<button id="cancel-draft">Cancel setup</button>':''}</div><p class="instruction">${instruction}</p><p id="notice" role="status" aria-live="polite">${escape(notice)}</p></div><button id="help" class="help-button" aria-label="How to play">?</button></section>
-  <dialog id="game-menu"><h2>Mission control</h2><div class="menu-buttons"><button id="reset">New game</button><button id="export">Export save</button><button id="import">Import save</button><button id="resign" ${over?'disabled':''}>Resign</button><button id="draw" ${over?'disabled':''}>Agree draw</button><button id="close-menu">Back to space</button></div><input type="file" id="save-file" accept=".json,application/json" hidden><details><summary>Flight log (${log.length})</summary><ol>${log.map(l=>`<li>${escape(l)}</li>`).join('')}</ol></details><p>Your game saves automatically on this device.</p></dialog>
-  <dialog id="setup"><h2>A new universe</h2><p>Choose both homeworlds directly from the bank, or use the rulebook’s suggested opening.</p><button id="custom-start" class="primary">Choose pieces from bank</button><button id="suggested">Use suggested opening</button><button id="cancel-setup">Cancel</button></dialog>
-  <dialog id="rules"><h2>Your fleet. Your universe.</h2><p><b>Build:</b> click a system, then the smallest available bank piece of a color you already own there. You need green power.</p><p><b>Move:</b> click your ship, then a connected system. Systems connect when their stars share no sizes. You need yellow power.</p><p><b>Trade:</b> click your ship, then Trade, then a different bank color of exactly the same size. You need blue power.</p><p><b>Discover:</b> click your ship, Discover, a bank pyramid for the new star, then empty space to place it. You need yellow power.</p><p><b>Capture:</b> click an enemy ship. You need red power and an equal or larger ship in that system.</p><p><b>Sacrifice:</b> click your ship, then Sacrifice. Instead of a basic action, gain its pip count in actions of its color anywhere you still have ships.</p><p><b>Catastrophe:</b> click a system containing at least four pieces of one color (stars and both fleets count), then its catastrophe button. Optional and free at any point in your turn.</p><p>Power comes from stars or your own local ships, never enemy ships. Confirm with End turn. An empty or destroyed homeworld loses at turn end. Undo works until you confirm. Drag a system’s grip to arrange the map; this costs no action.</p><p>Based on Homeworlds Rules13, pp. 4–11. Game: John Cooper. Pyramid system: Andrew Looney. Unofficial implementation.</p><button id="close-rules">Back to space</button></dialog></main>`;
+  }).join('')}</div></div>`).join('')}</section>
+  <section class="command-bar" aria-label="Piece controls"><div class="turn-token p${state.player}"><span>${draft?'SETUP':over?'FINISHED':`PLAYER ${state.player+1}`}</span><strong>${draft?'✧':over?'★':state.allowance.remaining}</strong><small>${draft?'pieces':state.allowance.sacrificed?`${state.allowance.color} actions`:'actions left'}</small></div><div class="command-content"><div class="context-actions">${source?`<button data-intent="trade" ${intent==='trade'?'class="active"':''}>Trade → bank</button><button data-intent="discover" ${intent==='discover'?'class="active"':''}>Discover → bank → space</button><button id="sacrifice" ${legal(state,{type:'sacrifice',...source})?'':'disabled'}>Sacrifice ship</button><button id="clear">Cancel selection</button>`:`<strong>${draft?'PREPARE FOR FIRST CONTACT':escape(systems.find(s=>s.id===selected)?.name??'Select a system')}</strong>`}${catastrophes.map(c=>`<button class="danger" data-cat="${c.color}" data-cat-system="${c.system}" aria-label="${c.color} catastrophe at ${c.name}">✹ ${c.color} · ${c.name} (${c.count})</button>`).join('')}${draft&&resumeSession?'<button id="resume">Resume saved game</button>':''}</div><p class="instruction">${instruction}</p><p id="notice" role="status" aria-live="polite">${escape(notice)}</p></div><button id="help" class="help-button" aria-label="How to play">?</button></section></aside></div>
+  <dialog id="game-menu"><h2>Mission control</h2><div class="menu-buttons"><button id="reset">New game</button><button id="export" ${draft?'disabled':''}>Export save</button><button id="import">Import save</button><button id="resign" ${over||draft?'disabled':''}>Resign</button><button id="draw" ${over||draft?'disabled':''}>Agree draw</button><button id="close-menu">Back to space</button></div><input type="file" id="save-file" accept=".json,application/json" hidden><details><summary>Flight log (${log.length})</summary><ol>${log.map(l=>`<li>${escape(l)}</li>`).join('')}</ol></details><p>Your game saves automatically on this device.</p></dialog>
+  <dialog id="rules"><h2>Your fleet. Your universe.</h2><p><b>Build:</b> click a system, then the smallest available bank piece of a color you already own there. You need green power.</p><p><b>Move:</b> click your ship, then a connected system. Systems connect when their stars share no sizes. You need yellow power.</p><p><b>Trade:</b> click your ship, then Trade, then a different bank color of exactly the same size. You need blue power.</p><p><b>Discover:</b> click your ship, Discover, a bank pyramid for the new star, then empty space to place it. You need yellow power.</p><p><b>Capture:</b> click an enemy ship. You need red power and an equal or larger ship in that system.</p><p><b>Sacrifice:</b> click your ship, then Sacrifice. Instead of a basic action, gain its pip count in actions of its color anywhere you still have ships.</p><p><b>Catastrophe:</b> whenever any system has four or more pieces of one color, its catastrophe button appears in the sidebar, even if you have no ships there. Count stars and both fleets. The active player may choose to remove that color. If the last star is removed, every ship there is destroyed; a surviving binary-star half protects other colors. Optional and free at any point in your turn.</p><p>Power comes from stars or your own local ships, never enemy ships. Confirm with End turn. An empty or destroyed homeworld loses at turn end. Undo works until you confirm. Drag a system’s grip to arrange the map; this costs no action.</p><p>Based on Homeworlds Rules13, pp. 4–11. Game: John Cooper. Pyramid system: Andrew Looney. Unofficial implementation.</p><button id="close-rules">Back to space</button></dialog></main>`;
   bindBoard();bindTools();
 }
 function bindBoard():void {
@@ -125,11 +128,11 @@ function bindBoard():void {
       const ship=state.systems.find(s=>s.id===system)!.ships[index];
       if(ship.owner!==state.player) {act({type:'capture',system,ship:index},`Captured ${ship.color} ship`);return;}
       source={system,ship:index};selected=system;intent='build';pending=null;
-      notice='Ship selected. Click a destination to move, or choose an action below.';render();return;
+      notice='Ship selected. Click a destination to move, or choose an action in the sidebar.';render();return;
     }
     const system=target.closest<HTMLElement>('.system')?.dataset.system;
     if(system) {
-      if(source&&source.system!==system) act({type:'move',...source,destination:system},'Moved ship');
+      if(source&&source.system!==system&&!target.closest('[data-star]')) act({type:'move',...source,destination:system},'Moved ship');
       else {selected=system;source=null;pending=null;intent='build';notice='Click a bank pyramid to build here, or select a ship.';render();}
       return;
     }
@@ -143,8 +146,8 @@ function bindBoard():void {
   document.querySelectorAll<HTMLElement>('[data-intent]').forEach(button=>button.addEventListener('click',()=>{intent=button.dataset.intent as 'trade'|'discover';pending=null;notice=intent==='trade'?'Click a different bank color of the same size.':'Choose a connected star size from the bank, then click empty space.';render();}));
   document.querySelector('#clear')?.addEventListener('click',()=>{source=null;pending=null;intent='build';render();});
   document.querySelector('#sacrifice')?.addEventListener('click',()=>{if(source)act({type:'sacrifice',...source},'Sacrificed ship');});
-  document.querySelectorAll<HTMLElement>('[data-cat]').forEach(button=>button.addEventListener('click',()=>act({type:'catastrophe',system:selected,color:button.dataset.cat as Color},`Invoked ${button.dataset.cat} catastrophe`)));
-  document.querySelector('#cancel-draft')?.addEventListener('click',()=>{draft=null;notice='Setup cancelled. Your game is unchanged.';render();});
+  document.querySelectorAll<HTMLElement>('[data-cat]').forEach(button=>button.addEventListener('click',()=>act({type:'catastrophe',system:button.dataset.catSystem!,color:button.dataset.cat as Color},`Invoked ${button.dataset.cat} catastrophe`)));
+  document.querySelector('#resume')?.addEventListener('click',()=>{if(resumeSession){restore(resumeSession);notice='Your saved game has been restored.';render();}});
   document.querySelectorAll<HTMLElement>('[data-drag]').forEach(handle=>{
     handle.addEventListener('pointerdown',event=>{
       event.preventDefault();const card=handle.closest<HTMLElement>('.system')!,rect=document.querySelector('#universe')!.getBoundingClientRect();
@@ -165,18 +168,14 @@ function bindBoard():void {
 function systemsIndex(id:string):number{return state.systems.findIndex(s=>s.id===id);}
 function bindTools():void {
   const menu=document.querySelector<HTMLDialogElement>('#game-menu')!;
-  const setup=document.querySelector<HTMLDialogElement>('#setup')!;
   const rules=document.querySelector<HTMLDialogElement>('#rules')!;
   document.querySelector('#menu')!.addEventListener('click',()=>menu.showModal());
   document.querySelector('#close-menu')!.addEventListener('click',()=>menu.close());
   document.querySelector('#help')!.addEventListener('click',()=>rules.showModal());
   document.querySelector('#close-rules')!.addEventListener('click',()=>rules.close());
-  document.querySelector('#reset')!.addEventListener('click',()=>{menu.close();setup.showModal();});
-  document.querySelector('#cancel-setup')!.addEventListener('click',()=>setup.close());
-  document.querySelector('#custom-start')!.addEventListener('click',()=>{draft=[[],[]];source=null;pending=null;selected='north';notice='Choose two stars and a large ship for each homeworld.';render();});
-  document.querySelector('#suggested')!.addEventListener('click',()=>{restore(newSession());draft=null;positions={};saveLayout();notice='Suggested opening restored. Player 1 begins.';save();render();});
+  document.querySelector('#reset')!.addEventListener('click',()=>{if(draft||window.confirm('Start a new local game? Export your current game first to keep a copy.'))beginSetup();});
   document.querySelector('#end')!.addEventListener('click',()=>act({type:'end'},'Ended turn'));
-  document.querySelector('#undo')!.addEventListener('click',()=>{const previous=history.pop();if(previous){state=previous.state;log=previous.log;session.actions.length=previous.actionCount;source=null;pending=null;intent='build';notice='Action undone.';save();render();}});
+  document.querySelector('#undo')!.addEventListener('click',()=>{if(draft){const next=structuredClone(draft);(next[1].length?next[1]:next[0]).pop();draft=next;selected=draft[0].length<3?'north':'south';notice='Starting piece returned to the bank.';saveSetup();render();return;}const previous=history.pop();if(previous){state=previous.state;log=previous.log;session.actions.length=previous.actionCount;source=null;pending=null;intent='build';notice='Action undone.';save();render();}});
   document.querySelector('#resign')!.addEventListener('click',()=>{if(window.confirm(`Player ${state.player+1}: resign and award the other player the win?`))act({type:'resign'},'Resigned');});
   document.querySelector('#draw')!.addEventListener('click',()=>{if(window.confirm('Player 1: do you agree to a draw?')&&window.confirm('Player 2: do you also agree to a draw?'))act({type:'draw'},'Both players agreed to a draw');});
   document.querySelector('#export')!.addEventListener('click',()=>{

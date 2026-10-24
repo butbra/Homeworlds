@@ -12,17 +12,17 @@ The playing surface is a starfield with a shared bank on the right. All orders u
 - **Discover:** click your ship, Discover, a bank star, then an empty spot in space.
 - **Capture:** click an enemy ship where you have red power and a ship at least as large.
 - **Sacrifice:** click your ship, then Sacrifice in its context controls.
-- **Catastrophe:** click a star/system, then the catastrophe control for an overpopulated color.
+- **Catastrophe:** whenever any system has four or more pieces of one color, its catastrophe button appears in the sidebar, including enemy-only systems. The active player may trigger it for free at any point. Stars and both fleets count.
 
-Legal destinations and bank choices are highlighted. Invalid choices explain the rule without changing the position. Drag a system’s grip (or focus it and use arrow keys) to rearrange the map without spending an action. On narrow screens, pan the playing surface horizontally; the bank stays on the right.
+Legal destinations and bank choices are highlighted. Invalid choices explain the rule without changing the position. Drag a system’s grip (or focus it and use arrow keys) to rearrange the map without spending an action. The space board extends to the bottom of the window and can scroll vertically as it grows. The entire bank stays visible on the right; the controls and instructions are beneath it in the sidebar.
 
 Use **Undo action** before **End turn**, then pass the device. **Game menu** contains new game, saves, resignation, and draw controls; **?** opens the rules reference.
 
 Green builds, yellow moves or discovers, red captures, and blue trades. Instead of a basic action, sacrifice a ship for its size in actions of that color. Four pieces of one color in a system permit an optional catastrophe. An empty or destroyed homeworld loses at turn confirmation; simultaneous elimination is a draw.
 
-**New game → Choose pieces from bank** starts a guided setup: click two bank stars and then a large ship for Player 1, and repeat for Player 2. You can also use the suggested first-game opening. Supply limits are enforced. **Resign** awards the opponent a win; **Agree draw** requires both players’ confirmation.
+**Fresh visits and New game start with an empty space board and a full bank.** Setup is guided: click two bank stars and then a large ship for Player 1, and repeat for Player 2. There are no automatic starting configurations. Player 1 chooses first, then Player 2. Agree who is Player 1 before setup; the booklet suggests a coin flip for equally skilled players. Undo returns the latest setup piece to the bank. Supply limits are enforced. **Resign** awards the opponent a win; **Agree draw** requires both players’ confirmation.
 
-Games autosave in this browser after every action. Reload restores the position and current-turn undo. **Export save** downloads a portable JSON backup; **Import save** validates and replays every action before replacing the game. Autosave needs browser storage, so keep an exported backup if the browser blocks storage or you plan to clear site data. Save files are limited to 2 MB and 10,000 actions.
+Games autosave in this browser after every action. Partial setup survives reload automatically. On a fresh visit, an existing completed setup/game is offered through **Resume saved game**; it is never imposed as a starting configuration. Resume restores the position and current-turn undo. **Export save** downloads a portable JSON backup; **Import save** validates and replays every action before replacing the game. Autosave needs browser storage, so keep an exported backup if the browser blocks storage or you plan to clear site data. Save files are limited to 2 MB and 10,000 actions.
 
 This release supports local play. It does not include online rooms or an AI opponent.
 
@@ -53,8 +53,8 @@ npm run test:e2e
 
 Playwright uses `/usr/bin/chromium` when present; otherwise it uses its installed Chromium browser. Linux systems may also need `npx playwright install --with-deps chromium`.
 
-- 41 rules, physical-bank interaction, and save-format tests cover inventory conservation, setup, connectivity, all action types, sacrifices, catastrophes, turn-end outcomes, and invalid imports.
-- 16 desktop/mobile browser checks cover multi-turn play, undo, victory, click-driven building, trading, discovery, movement, capture, sacrifice, catastrophe, custom setup, reload recovery, save import/export, resignation, draws, and map rearrangement.
+- 60 rules, setup, physical-bank interaction, and save-format tests cover inventory conservation, setup, connectivity, all action types, sacrifices, catastrophes, turn-end outcomes, and invalid imports.
+- 24 desktop/mobile browser checks cover multi-turn play, undo, victory, click-driven building, trading, discovery, movement, capture, sacrifice, catastrophe, custom setup, reload recovery, save import/export, resignation, draws, and map rearrangement.
 - GitHub Actions runs the tests and production build on pushes and pull requests.
 
 ## Publish a playable website
@@ -66,6 +66,8 @@ The source lives at [butbra/Homeworlds](https://github.com/butbra/Homeworlds). T
 3. Open the website URL reported by the successful deployment.
 
 Pages availability depends on repository/account settings. Pushes to `main` automatically redeploy the website once Pages is configured. You can also trigger deployment manually. Relative asset paths support hosting under `/Homeworlds/` or a custom domain. Re-run the deployment workflow to publish later changes.
+
+The rule-by-rule audit and PDF page references are in [docs/rules-audit.md](docs/rules-audit.md). Action animations are subtle and disabled when reduced motion is requested.
 
 ## Code
 
