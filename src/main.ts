@@ -1,4 +1,5 @@
 import './style.css';
+import {fitBoard} from './board';
 import {resultDescription} from './outcome';
 import {beforeAction,animateAction} from './effects';
 import {setupBank,placeSetupPiece,decodeSetupProgress,confirmSetup,undoSetup,openingFromSetup,setupKey,type Setup} from './setup';
@@ -12,6 +13,7 @@ import {createLayout,layoutAfter,layoutBounds,type MapLayout} from './layout';
 import {newSession, decodeSession, storageKey, type Session} from './session';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
+const boardResizeObserver=new ResizeObserver(entries=>entries.forEach(entry=>fitBoard(entry.target as HTMLElement)));
 let session = newSession();
 let state = createInitialState();
 let selected = 'north';
@@ -79,7 +81,7 @@ function advanceIntro():void {
   clearTimeout(introTimer);
   if(introStartedAt===null)return;
   const now=Date.now();
-  if(introPhase(introStartedAt,now)==='complete'){introStartedAt=null;notice='';saveSetup();render();revealSystem(selected);return;}
+  if(introPhase(introStartedAt,now)==='complete'){introStartedAt=null;notice='';saveSetup();render();return;}
   introTimer=setTimeout(advanceIntro,Math.max(1,introStartedAt+nextIntroBoundary(introStartedAt,now)-now));
   render();
 }
@@ -93,7 +95,6 @@ function confirmHomeworld():void {
   const next=confirmSetup({pieces:draft,player:setupPlayer,starter,mode});
   if(next){draft=next.pieces;setupPlayer=next.player;selected=setupPlayer===0?'north':'south';notice=`Homeworld confirmed. ${playerName(setupPlayer)}: choose your homeworld.`;saveSetup();}
   else {const opening=openingFromSetup(draft);restore(newSession(opening,{starter,mode}),false);notice=`Both homeworlds confirmed. ${playerName(starter)} ${mode==='quux'&&starter===humanPlayer?'begin':'begins'}.`;save();}
-  revealSystem(selected);
 }
 const pause=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
 function scheduleBot():void {
@@ -107,7 +108,7 @@ function scheduleBot():void {
           const answer=await askQuux('setup',quuxSetupPosition(draft),quuxPlayer);
           if(epoch!==botEpoch)return;
           for(const piece of decodeQuuxSetup(answer))draft=placeSetupPiece({pieces:draft!,player:quuxPlayer,starter,mode},piece).pieces;
-          saveSetup();render();revealSystem('north');
+          saveSetup();render();
         }
         await pause(450);if(epoch!==botEpoch)return;
         confirmHomeworld();
@@ -116,7 +117,7 @@ function scheduleBot():void {
         if(epoch!==botEpoch)return;
         const actions=quuxActions(state,answer); // Entire native turn must validate first.
         for(const action of actions){
-          await pause(action.type==='end'?280:220);if(epoch!==botEpoch)return;
+          await pause(action.type==='end'?1000:650);if(epoch!==botEpoch)return;
           if(!act(action,action.type==='end'?'Quux Bot ended its turn':`Quux Bot: ${action.type}`,true))throw Error('Could not apply Quux Bot’s turn.');
         }
       }
@@ -124,14 +125,9 @@ function scheduleBot():void {
     finally {if(epoch===botEpoch){botBusy=false;render();}}
   });
 }
-function revealSystem(id:string):void {
-  requestAnimationFrame(()=>{
-    const target=Array.from(document.querySelectorAll<HTMLElement>('[data-system],[data-layout-anchor]')).find(e=>e.dataset.system===id||e.dataset.layoutAnchor===id);
-    target?.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'});
-  });
-}
 function act(action:Action,label:string,fromBot=false):boolean {
   if(!fromBot&&locked())return false;
+  if(!fromBot&&action.type==='end'&&!history.length){notice='Make a valid action before ending your turn.';render();return false;}
   try {
     const visual=beforeAction(state,action);
     const next=applyAction(state,action);
@@ -146,8 +142,7 @@ function act(action:Action,label:string,fromBot=false):boolean {
     if(action.type==='end') selected=state.player===0?'north':'south';
     if(!state.systems.some(s=>s.id===selected)) selected=state.systems[0]?.id??'';
     // A browser reload retries an unfinished bot turn from its saved turn boundary.
-    if(!fromBot||action.type==='end')save();render();animateAction(visual,state,action);
-    if(discovered)revealSystem(discovered);else if(action.type==='end')revealSystem(selected);
+    if(!fromBot||action.type==='end')save();render();animateAction(visual,state,action,fromBot?1.4:1);
     return true;
   } catch(error) {notice=(error as Error).message;render();return false;}
 }
@@ -157,7 +152,7 @@ function chooseBank(piece:Piece):void {
     if(draft) {
       draft=placeSetupPiece({pieces:draft,player:setupPlayer},piece).pieces;
       saveSetup();
-      render();revealSystem(setupPlayer===0?'north':'south');return;
+      render();return;
     }
     const action=bankAction(state,selected,piece,source,intent);
     act(action,action.type==='discover'?'Discovered a new star system':`${action.type==='trade'?'Traded for':'Built'} ${piece.color} ${piece.size}`);
@@ -191,8 +186,6 @@ function boardNotice():string {
   return !choosingMode&&introStartedAt===null&&Date.now()<noticeUntil?escape(notice):'';
 }
 function render():void {
-  const oldSpace=document.querySelector('#space');
-  const scroll={left:oldSpace?.scrollLeft??0,top:oldSpace?.scrollTop??0};
   const openDialog=document.querySelector<HTMLDialogElement>('dialog[open]')?.id;
   const over=state.outcome!=='playing';
   const inputLocked=locked();
@@ -202,16 +195,17 @@ function render():void {
   const status=phase?'Choosing first player':draft?`${playerName(setupPlayer)} · Setup`:over?state.outcome==='draw'?'Game over · Draw':mode==='quux'&&state.outcome===humanPlayer?'You win':`${playerName(Number(state.outcome))} wins`:`Turn ${state.turn} · ${playerName(state.player)}`;
   const catastrophes=draft||over?[]:state.systems.flatMap(s=>colors.flatMap(color=>{const count=[...s.stars,...s.ships].filter(p=>p.color===color).length;return count>=4?[{system:s.id,name:s.name,color,count}]:[];}));
   const {minColumn,columns}=layoutBounds(mapLayout);
-  const slotStyle=(id:string)=>{const slot=mapLayout.slots[id];return `grid-row:${slot.row+1};grid-column:${slot.column-minColumn+1}`;};
-  const controls=`<section class="rail-controls" aria-label="Turn controls"><div class="status ${!phase&&(draft?setupPlayer:state.player)===1?'south-turn':''}">${status}</div><nav><button id="undo" aria-label="Undo action" ${inputLocked||(draft?!draft[setupPlayer].length:!history.length)?'disabled':''}>↶ Undo</button><button id="end" aria-label="End turn" class="primary" ${inputLocked||(draft?draft[setupPlayer].length!==3:over)?'disabled':''}>End turn →</button><button id="menu" aria-label="Game menu">☰</button></nav></section>`;
-  app.innerHTML=`<main class="tabletop"><div class="play-area"><section class="board-region" aria-label="Game board"><section class="space" id="space" aria-label="Space playing surface"><div id="universe" class="universe" style="--map-columns:${columns}"><div class="starfield" aria-hidden="true">${starfield()}</div><div class="map-label">SECTOR 01 <span>LOCAL EXPLORATION</span></div>
+  const slotStyle=(id:string)=>{const slot=mapLayout.slots[id];return `grid-row:${slot.row+1};grid-column:${id==='north'||id==='south'?'1 / -1':slot.column-minColumn+1}`;};
+  const actionMenu=source&&!inputLocked?`<div class="ship-actions context-actions" aria-label="Selected ship actions"><button data-intent="trade" ${intent==='trade'?'class="active"':''}>Trade</button><button data-intent="discover" ${intent==='discover'?'class="active"':''}>Travel</button><button id="sacrifice" ${legal(state,{type:'sacrifice',...source})?'':'disabled'}>Sacrifice</button><button id="clear">Cancel</button></div>`:'';
+  const controls=`<section class="rail-controls" aria-label="Turn controls"><div class="status ${!phase&&(draft?setupPlayer:state.player)===1?'south-turn':''}">${status}</div><nav><button id="undo" aria-label="Undo action" ${inputLocked||(draft?!draft[setupPlayer].length:!history.length)?'disabled':''}>↶ Undo</button><button id="end" aria-label="End turn" class="primary" ${inputLocked||(draft?draft[setupPlayer].length!==3:over||!history.length)?'disabled':''}>End turn →</button><button id="menu" aria-label="Game menu">☰</button></nav></section>`;
+  app.innerHTML=`<main class="tabletop"><div class="play-area"><section class="board-region" aria-label="Game board"><section class="space" id="space" aria-label="Space playing surface"><div class="starfield" aria-hidden="true">${starfield()}</div><div class="map-label">SECTOR 01 <span>LOCAL EXPLORATION</span></div><div id="universe" class="universe" style="--map-columns:${columns}">
   ${['north','south'].filter(id=>!systems.some(s=>s.id===id)).map(id=>`<div class="layout-anchor" data-layout-anchor="${id}" style="${slotStyle(id)}" aria-hidden="true"></div>`).join('')}
   ${systems.map(s=>{
     const slot=mapLayout.slots[s.id];
     const destination=source&&source.system!==s.id&&legal(state,{type:'move',...source,destination:s.id});
-    return `<article class="system ${selected===s.id?'selected':''} ${destination?'destination':''}" data-system="${s.id}" data-map-row="${slot.row}" data-map-column="${slot.column}" style="${slotStyle(s.id)}" aria-label="${s.name}"><div class="system-title"><button data-select="${s.id}" aria-label="Select ${s.name}">${s.homeworld===undefined?'✧':'⌂'} ${s.name}</button></div><div class="system-pieces"><div class="stars">${s.stars.map((p,j)=>`<button class="piece-button" data-star="${s.id}" aria-label="${s.name} ${p.color} star ${p.size}">${pyramid(p,true)}<span class="piece-caption">${j===0?'':' '}</span></button>`).join('')||'<span class="destroyed">No stars</span>'}</div><div class="fleets">${[0,1].map(owner=>`<div class="fleet" data-player="${owner}" aria-label="Player ${owner+1} fleet">${s.ships.map((p,j)=>p.owner===owner?`<button class="piece-button ${source?.system===s.id&&source.ship===j?'picked':''}" data-ship="${j}" data-source="${s.id}" aria-label="Player ${owner+1} ${p.color} ship ${p.size} at ${s.name}">${pyramid(p,false,owner)}</button>`:'').join('')}</div>`).join('')}</div></div><div class="system-meta">${s.homeworld===undefined?'FRONTIER':`PLAYER ${s.homeworld+1} HOMEWORLD`}${destination?'<span>MOVE HERE ↗</span>':''}</div>${catastrophes.filter(c=>c.system===s.id).map(c=>`<button class="system-catastrophe" data-cat="${c.color}" data-cat-system="${c.system}" aria-label="${c.color} catastrophe at ${c.name}" ${inputLocked?'disabled':''}>✹ ${c.color} catastrophe · ${c.count}</button>`).join('')}${source?.system===s.id&&!inputLocked?`<div class="ship-actions context-actions ${slot.row>=2?'above':'below'}" aria-label="Selected ship actions"><button data-intent="trade" ${intent==='trade'?'class="active"':''}>Trade</button><button data-intent="discover" ${intent==='discover'?'class="active"':''}>Travel</button><button id="sacrifice" ${legal(state,{type:'sacrifice',...source})?'':'disabled'}>Sacrifice</button><button id="clear">Cancel</button></div>`:''}</article>`;
+    return `<article class="system ${selected===s.id?'selected':''} ${destination?'destination':''}" data-system="${s.id}" data-map-row="${slot.row}" data-map-column="${slot.column}" style="${slotStyle(s.id)}" aria-label="${s.name}"><div class="system-title"><button data-select="${s.id}" aria-label="Select ${s.name}">${s.homeworld===undefined?'✧':'⌂'} ${s.name}</button></div><div class="system-pieces"><div class="stars">${s.stars.map((p,j)=>`<button class="piece-button" data-star="${s.id}" aria-label="${s.name} ${p.color} star ${p.size}">${pyramid(p,true)}<span class="piece-caption">${j===0?'':' '}</span></button>`).join('')||'<span class="destroyed">No stars</span>'}</div><div class="fleets">${[0,1].map(owner=>`<div class="fleet" data-player="${owner}" aria-label="Player ${owner+1} fleet">${s.ships.map((p,j)=>p.owner===owner?`<button class="piece-button ${source?.system===s.id&&source.ship===j?'picked':''}" data-ship="${j}" data-source="${s.id}" aria-label="Player ${owner+1} ${p.color} ship ${p.size} at ${s.name}">${pyramid(p,false,owner)}</button>`:'').join('')}</div>`).join('')}</div></div><div class="system-meta">${s.homeworld===undefined?'FRONTIER':`PLAYER ${s.homeworld+1} HOMEWORLD`}${destination?'<span>MOVE HERE ↗</span>':''}</div>${catastrophes.filter(c=>c.system===s.id).map(c=>`<button class="system-catastrophe" data-cat="${c.color}" data-cat-system="${c.system}" aria-label="${c.color} catastrophe at ${c.name}" ${inputLocked?'disabled':''}>✹ ${c.color} catastrophe · ${c.count}</button>`).join('')}</article>`;
   }).join('')}
-  </div></section><div class="board-overlay">${!choosingMode?playerPlate(0,phase)+playerPlate(1,phase):''}<p id="notice" class="board-notice" role="status" aria-live="polite">${boardNotice()}</p>${botError?'<button id="retry-bot" class="board-retry">Retry Quux Bot</button>':''}${coinIntro(phase)}</div></section>
+  </div></section><div class="board-overlay">${actionMenu}${!choosingMode?playerPlate(0,phase)+playerPlate(1,phase):''}<p id="notice" class="board-notice" role="status" aria-live="polite">${boardNotice()}</p>${botError?'<button id="retry-bot" class="board-retry">Retry Quux Bot</button>':''}${coinIntro(phase)}</div></section>
   <aside class="sidebar" aria-label="Game sidebar">${controls}<section class="bank" aria-label="Piece bank"><div class="bank-heading"><h2>THE BANK</h2><span>${bank.length} PIECES</span></div><p>Click a pyramid to bring it into play.</p>${colors.map(color=>`<div class="bank-color ${color}"><h3>${color}<span>${{red:'CAPTURE',yellow:'MOVE',green:'BUILD',blue:'TRADE'}[color]}</span></h3><div class="bank-row">${sizes.map(size=>{
     const p={color,size},count=bank.filter(b=>b.color===color&&b.size===size).length;
     let available=false;try {available=!inputLocked&&(draft?!!placeSetupPiece({pieces:draft,player:setupPlayer},p):legal(state,bankAction(state,selected,p,source,intent)));} catch { /* Not a legal bank choice. */ }
@@ -229,7 +223,8 @@ function render():void {
   document.querySelector('#retry-bot')?.addEventListener('click',()=>{botError='';render();});
   if(choosingMode)document.querySelector<HTMLDialogElement>('#opponent-picker')!.showModal();
   else if(openDialog&&openDialog!=='opponent-picker')document.querySelector<HTMLDialogElement>('#'+openDialog)?.showModal();
-  const space=document.querySelector('#space')!;space.scrollLeft=scroll.left;space.scrollTop=scroll.top;
+  const space=document.querySelector<HTMLElement>('#space')!;
+  boardResizeObserver.disconnect();boardResizeObserver.observe(space);fitBoard(space);
   scheduleBot();
   if(over&&!draft&&announcedResult!==`${state.turn}:${state.outcome}`){announcedResult=`${state.turn}:${state.outcome}`;document.querySelector<HTMLDialogElement>('#result')!.showModal();}
 }
@@ -260,7 +255,7 @@ function bindBoard():void {
   document.querySelector('#clear')?.addEventListener('click',()=>{source=null;intent='build';render();});
   document.querySelector('#sacrifice')?.addEventListener('click',()=>{if(source)act({type:'sacrifice',...source},'Sacrificed ship');});
   document.querySelectorAll<HTMLElement>('[data-cat]').forEach(button=>button.addEventListener('click',()=>act({type:'catastrophe',system:button.dataset.catSystem!,color:button.dataset.cat as Color},`Invoked ${button.dataset.cat} catastrophe`)));
-  document.querySelector('#resume')?.addEventListener('click',()=>{if(resumeSession){restore(resumeSession);notice='Your saved game has been restored.';render();revealSystem(selected);}});
+  document.querySelector('#resume')?.addEventListener('click',()=>{if(resumeSession){restore(resumeSession);notice='Your saved game has been restored.';render();}});
 }
 function bindTools():void {
   const result=document.querySelector<HTMLDialogElement>('#result')!;
@@ -292,9 +287,9 @@ function bindTools():void {
   document.querySelector('#import')!.addEventListener('click',()=>document.querySelector<HTMLInputElement>('#save-file')!.click());
   document.querySelector('#save-file')!.addEventListener('change',async event=>{
     const file=(event.target as HTMLInputElement).files?.[0];if(!file)return;
-    try {if(file.size>2_000_000)throw Error('Save file is too large.');const imported=decodeSession(await file.text());if(!window.confirm('Replace the current game with this imported save?'))return;menu.close();restore(imported);draft=null;notice='Saved game imported.';save();render();revealSystem(selected);}
+    try {if(file.size>2_000_000)throw Error('Save file is too large.');const imported=decodeSession(await file.text());if(!window.confirm('Replace the current game with this imported save?'))return;menu.close();restore(imported);draft=null;notice='Saved game imported.';save();render();}
     catch(error){menu.close();notice=`Import failed: ${(error as Error).message}`;render();}
   });
 }
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!document.querySelector('dialog[open]')){source=null;intent='build';render();}});
-if(introStartedAt!==null)advanceIntro();else {render();if(!choosingMode)revealSystem(selected);}
+if(introStartedAt!==null)advanceIntro();else render();

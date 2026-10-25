@@ -5,6 +5,12 @@ const ship=(page:Page,color:string,size:number,home='North',owner=1)=>page.getBy
 const menu=async(page:Page)=>page.getByRole('button',{name:'Game menu'}).click();
 const newGame=async(page:Page)=>{await menu(page);page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByRole('button',{name:'Another player',exact:true}).click();await page.clock.fastForward(6200);};
 const chooseOpening=async(page:Page)=>{for(const picks of [[['blue',3],['red',1],['green',3]],[['red',2],['blue',1],['green',3]]] as const){for(const [color,size] of picks)await bank(page,color,size).click();await page.getByRole('button',{name:'End turn',exact:true}).click();}};
+const otherTurn=async(page:Page)=>{
+ const flagship=page.locator('[data-system="south"] [data-player="1"] [data-ship]').first();
+ const color=(await flagship.getAttribute('aria-label'))!.includes('green')?'yellow':'green';
+ await flagship.click();await page.getByRole('button',{name:'Trade',exact:true}).click();await bank(page,color,3).click();
+ await page.getByRole('button',{name:'End turn',exact:true}).click();
+};
 const resume=async(page:Page)=>{await page.getByRole('button',{name:'Resume saved game'}).click();};
 test.beforeEach(async({page},info)=>{await page.clock.install();await page.addInitScript(()=>{const original=crypto.getRandomValues.bind(crypto);Object.defineProperty(crypto,'getRandomValues',{value:(array:ArrayBufferView)=>{if(array instanceof Uint8Array&&array.byteLength===1){array[0]=0;return array;}return original(array);}});});await page.goto('/');await page.getByRole('button',{name:'Another player',exact:true}).click();await page.clock.fastForward(6200);if(!info.title.startsWith('fresh')&&!info.title.startsWith('custom setup'))await chooseOpening(page);});
 test('bank clicks build, undo and reload preserve the physical game',async({page})=>{
@@ -24,26 +30,42 @@ test('bank clicks build, undo and reload preserve the physical game',async({page
  await expect(ship(page,'green',1,'South',2)).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
+test('End turn requires a committed valid action and undo restores the disabled state',async({page})=>{
+ const end=page.getByRole('button',{name:'End turn',exact:true});
+ await expect(end).toBeDisabled();
+ await ship(page,'green',3).click();await expect(end).toBeDisabled();
+ await page.getByRole('button',{name:'Trade',exact:true}).click();await expect(end).toBeDisabled();
+ await bank(page,'yellow',1).click();await expect(end).toBeDisabled();
+ // Even dispatching the event directly must not bypass the empty-turn guard.
+ await end.dispatchEvent('click');await expect(page.locator('.status')).toHaveText('Turn 1 · Player 1');
+ await page.getByRole('button',{name:'Cancel',exact:true}).click();
+ await bank(page,'green',1).click();await expect(end).toBeEnabled();
+ await page.reload();await resume(page);await expect(end).toBeEnabled();
+ await page.getByRole('button',{name:'Undo action'}).click();await expect(end).toBeDisabled();
+ await page.reload();await resume(page);await expect(end).toBeDisabled();
+ await bank(page,'green',1).click();await end.click();await expect(end).toBeDisabled();
+ await expect(page.locator('.status')).toHaveText('Turn 2 · Player 2');
+});
 test('ship and bank clicks trade, automatically place discoveries, move and sacrifice',async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await bank(page,'green',1).click();await page.getByRole('button',{name:'End turn',exact:true}).click();
- await page.getByRole('button',{name:'End turn',exact:true}).click();
+ await otherTurn(page);
  await ship(page,'green',1).click();await page.getByRole('button',{name:'Trade',exact:true}).click();
  await bank(page,'yellow',3).click();await expect(page.getByRole('status')).toContainText('same size');
  await bank(page,'yellow',1).click();await expect(ship(page,'yellow',1)).toBeVisible();
- await page.getByRole('button',{name:'End turn',exact:true}).click();await page.getByRole('button',{name:'End turn',exact:true}).click();
+ await page.getByRole('button',{name:'End turn',exact:true}).click();await otherTurn(page);
  await ship(page,'yellow',1).click();await page.getByRole('button',{name:'Travel',exact:true}).click();
  await bank(page,'red',1).click();await expect(page.getByRole('status')).toContainText('no sizes in common');
  await bank(page,'red',2).click();
  await expect(page.locator('.system')).toHaveCount(3);
  await expect(page.getByRole('button',{name:'Player 1 yellow ship 1 at Frontier 1'})).toBeVisible();
- await page.getByRole('button',{name:'End turn',exact:true}).click();await page.getByRole('button',{name:'End turn',exact:true}).click();
+ await page.getByRole('button',{name:'End turn',exact:true}).click();await otherTurn(page);
  await page.getByRole('button',{name:'Player 1 yellow ship 1 at Frontier 1'}).click();
  await page.getByRole('button',{name:'Travel',exact:true}).click();
  await page.getByRole('button',{name:'Select North homeworld'}).click();
  await expect(page.locator('.system')).toHaveCount(2);
  await expect(ship(page,'yellow',1)).toBeVisible();
- await page.getByRole('button',{name:'End turn',exact:true}).click();await page.getByRole('button',{name:'End turn',exact:true}).click();
+ await page.getByRole('button',{name:'End turn',exact:true}).click();await otherTurn(page);
  await ship(page,'yellow',1).click();await page.getByRole('button',{name:'Sacrifice',exact:true}).click();
  await expect(ship(page,'yellow',1)).toHaveCount(0);
  expect(errors).toEqual([]);
