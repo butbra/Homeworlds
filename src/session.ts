@@ -1,12 +1,14 @@
-import {applyAction, colors, createInitialState, sizes, suggestedOpening, type Action, type GameState, type Opening} from './game';
-export interface Session {version: 1; opening: Opening[]; actions: Action[]}
+import {applyAction, colors, createInitialState, sizes, suggestedOpening, type Action, type GameState, type Opening,type Player} from './game';
+import type {GameMode} from './match';
+export interface Session {version: 1; opening: Opening[]; actions: Action[];starter?:Player;mode?:GameMode}
 export const storageKey = 'homeworlds.session.v1';
-export function newSession(opening: Opening[] = suggestedOpening): Session {
-  createInitialState(opening);
-  return {version: 1, opening: structuredClone(opening), actions: []};
+export function newSession(opening: Opening[] = suggestedOpening,options:{starter?:Player;mode?:GameMode}={}): Session {
+  const starter=options.starter??0,mode=options.mode??'local';
+  createInitialState(opening,starter);
+  return {version: 1, opening: structuredClone(opening), actions: [],starter,mode};
 }
 export function replay(session: Session): GameState {
-  return session.actions.reduce((state, action) => applyAction(state, action), createInitialState(session.opening));
+  return session.actions.reduce((state, action) => applyAction(state, action), createInitialState(session.opening,session.starter));
 }
 function checkAction(value: unknown): asserts value is Action {
   if (!value || typeof value !== 'object') throw Error('Invalid saved action.');
@@ -28,7 +30,12 @@ export function decodeSession(text: string): Session {
   const value = JSON.parse(text) as Session;
   if (!value || value.version !== 1 || !Array.isArray(value.opening) || !Array.isArray(value.actions) || value.actions.length > 10000) throw Error('Unsupported or invalid save file.');
   for (const action of value.actions) checkAction(action);
-  createInitialState(value.opening);
-  replay(value);
-  return {version:1, opening:value.opening, actions:value.actions};
+  const starter=value.starter??0,mode=value.mode??'local';
+  if((starter!==0&&starter!==1)||(mode!=='local'&&mode!=='quux'))throw Error('Invalid game mode or starting player.');
+  const session:Session={version:1,opening:value.opening,actions:value.actions,starter,mode};
+  createInitialState(value.opening,starter);
+  const state=replay(session);
+  const lastEnd=value.actions.map(a=>a.type).lastIndexOf('end');
+  if(mode==='quux'&&state.player===1&&state.outcome==='playing'&&lastEnd<value.actions.length-1)throw Error('A bot turn must be saved at its turn boundary.');
+  return session;
 }

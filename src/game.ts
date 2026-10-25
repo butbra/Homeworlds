@@ -20,7 +20,8 @@ export const suggestedOpening: [Opening, Opening] = [
   {stars: [{color: 'red', size: 2}, {color: 'blue', size: 1}], shipColor: 'green'},
 ];
 // Rules13, pp. 4–5: choose a binary homeworld and one large ship per player.
-export function createInitialState(opening: Opening[] = suggestedOpening): GameState {
+export function createInitialState(opening: Opening[] = suggestedOpening, starter:Player=0): GameState {
+  requireRule(starter===0||starter===1,'Invalid starting player.');
   requireRule(Array.isArray(opening) && opening.length === 2, 'Choose starting pieces for both players.');
   const systems: StarSystem[] = opening.map((choice, index) => {
     requireRule(choice && Array.isArray(choice.stars) && choice.stars.length === 2 && colors.includes(choice.shipColor), 'Each player needs two stars and a ship color.');
@@ -29,7 +30,7 @@ export function createInitialState(opening: Opening[] = suggestedOpening): GameS
   });
   const bank: Piece[] = colors.flatMap(color => sizes.flatMap(size => Array.from({length: 3}, () => ({color, size}))));
   for (const system of systems) for (const piece of [...system.stars, ...system.ships]) take(bank, piece);
-  return { systems, bank, player: 0, turn: 1, allowance: { color: null, remaining: 1, sacrificed: false }, outcome: 'playing', nextSystem: 1 };
+  return { systems, bank, player: starter, turn: 1, allowance: { color: null, remaining: 1, sacrificed: false }, outcome: 'playing', nextSystem: 1 };
 }
 
 // Rules13, pp. 3, 6: systems connect only when no star sizes overlap.

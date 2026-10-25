@@ -1,0 +1,3390 @@
+[
+  {
+    "position": "N0 (0, b1y3) g3-\nN1 (1, b3r1) -g3\n",
+    "player": 0,
+    "move": "build g1 at N0",
+    "outcome": "playing",
+    "state": {
+      "systems": [
+        {
+          "id": "north",
+          "name": "North",
+          "stars": [
+            {
+              "color": "blue",
+              "size": 1
+            },
+            {
+              "color": "yellow",
+              "size": 3
+            }
+          ],
+          "ships": [
+            {
+              "color": "green",
+              "size": 3,
+              "owner": 0
+            }
+          ],
+          "homeworld": 0
+        },
+        {
+          "id": "south",
+          "name": "South",
+          "stars": [
+            {
+              "color": "blue",
+              "size": 3
+            },
+            {
+              "color": "red",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "green",
+              "size": 3,
+              "owner": 1
+            }
+          ],
+          "homeworld": 1
+        }
+      ],
+      "bank": [
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 3
+        }
+      ],
+      "player": 0,
+      "turn": 1,
+      "allowance": {
+        "color": null,
+        "remaining": 1,
+        "sacrificed": false
+      },
+      "outcome": "playing",
+      "nextSystem": 100
+    }
+  },
+  {
+    "position": "N0 (0, y3b1) g1g3-\nN1 (1, r1b3) -g1g3\n",
+    "player": 0,
+    "move": "convert g3 to r3 at N0",
+    "outcome": "playing",
+    "state": {
+      "systems": [
+        {
+          "id": "north",
+          "name": "North",
+          "stars": [
+            {
+              "color": "yellow",
+              "size": 3
+            },
+            {
+              "color": "blue",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 0
+            },
+            {
+              "color": "green",
+              "size": 3,
+              "owner": 0
+            }
+          ],
+          "homeworld": 0
+        },
+        {
+          "id": "south",
+          "name": "South",
+          "stars": [
+            {
+              "color": "red",
+              "size": 1
+            },
+            {
+              "color": "blue",
+              "size": 3
+            }
+          ],
+          "ships": [
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 3,
+              "owner": 1
+            }
+          ],
+          "homeworld": 1
+        }
+      ],
+      "bank": [
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 3
+        }
+      ],
+      "player": 0,
+      "turn": 1,
+      "allowance": {
+        "color": null,
+        "remaining": 1,
+        "sacrificed": false
+      },
+      "outcome": "playing",
+      "nextSystem": 100
+    }
+  },
+  {
+    "position": "N0 (0, y3b1) r3g1b1-\nN1 (1, r1b3) -r1g1b3\n",
+    "player": 0,
+    "move": "move b1 from N0 to Delos (g2)",
+    "outcome": "playing",
+    "state": {
+      "systems": [
+        {
+          "id": "north",
+          "name": "North",
+          "stars": [
+            {
+              "color": "yellow",
+              "size": 3
+            },
+            {
+              "color": "blue",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 3,
+              "owner": 0
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 0
+            },
+            {
+              "color": "blue",
+              "size": 1,
+              "owner": 0
+            }
+          ],
+          "homeworld": 0
+        },
+        {
+          "id": "south",
+          "name": "South",
+          "stars": [
+            {
+              "color": "red",
+              "size": 1
+            },
+            {
+              "color": "blue",
+              "size": 3
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "blue",
+              "size": 3,
+              "owner": 1
+            }
+          ],
+          "homeworld": 1
+        }
+      ],
+      "bank": [
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 3
+        }
+      ],
+      "player": 0,
+      "turn": 1,
+      "allowance": {
+        "color": null,
+        "remaining": 1,
+        "sacrificed": false
+      },
+      "outcome": "playing",
+      "nextSystem": 100
+    }
+  },
+  {
+    "position": "N0 (0, y3b1) r3g1-\nN1 (1, r1b3) -r1g1g1g3\nN2 (g2) b1b1-\n",
+    "player": 0,
+    "move": "convert b1 to y1 at N2",
+    "outcome": "playing",
+    "state": {
+      "systems": [
+        {
+          "id": "north",
+          "name": "North",
+          "stars": [
+            {
+              "color": "yellow",
+              "size": 3
+            },
+            {
+              "color": "blue",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 3,
+              "owner": 0
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 0
+            }
+          ],
+          "homeworld": 0
+        },
+        {
+          "id": "south",
+          "name": "South",
+          "stars": [
+            {
+              "color": "red",
+              "size": 1
+            },
+            {
+              "color": "blue",
+              "size": 3
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 3,
+              "owner": 1
+            }
+          ],
+          "homeworld": 1
+        },
+        {
+          "id": "fixture-2",
+          "name": "Delos",
+          "stars": [
+            {
+              "color": "green",
+              "size": 2
+            }
+          ],
+          "ships": [
+            {
+              "color": "blue",
+              "size": 1,
+              "owner": 0
+            },
+            {
+              "color": "blue",
+              "size": 1,
+              "owner": 0
+            }
+          ]
+        }
+      ],
+      "bank": [
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 3
+        }
+      ],
+      "player": 0,
+      "turn": 1,
+      "allowance": {
+        "color": null,
+        "remaining": 1,
+        "sacrificed": false
+      },
+      "outcome": "playing",
+      "nextSystem": 100
+    }
+  },
+  {
+    "position": "N0 (0, y3b1) r3g1-\nN1 (1, r1b3) -r1y1g1g1g3\nN2 (g2) y1b1b1-\n",
+    "player": 0,
+    "move": "convert b1 to r1 at N2",
+    "outcome": "playing",
+    "state": {
+      "systems": [
+        {
+          "id": "north",
+          "name": "North",
+          "stars": [
+            {
+              "color": "yellow",
+              "size": 3
+            },
+            {
+              "color": "blue",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 3,
+              "owner": 0
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 0
+            }
+          ],
+          "homeworld": 0
+        },
+        {
+          "id": "south",
+          "name": "South",
+          "stars": [
+            {
+              "color": "red",
+              "size": 1
+            },
+            {
+              "color": "blue",
+              "size": 3
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 3,
+              "owner": 1
+            }
+          ],
+          "homeworld": 1
+        },
+        {
+          "id": "fixture-2",
+          "name": "Delos",
+          "stars": [
+            {
+              "color": "green",
+              "size": 2
+            }
+          ],
+          "ships": [
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 0
+            },
+            {
+              "color": "blue",
+              "size": 1,
+              "owner": 0
+            },
+            {
+              "color": "blue",
+              "size": 1,
+              "owner": 0
+            }
+          ]
+        }
+      ],
+      "bank": [
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 3
+        }
+      ],
+      "player": 0,
+      "turn": 1,
+      "allowance": {
+        "color": null,
+        "remaining": 1,
+        "sacrificed": false
+      },
+      "outcome": "playing",
+      "nextSystem": 100
+    }
+  },
+  {
+    "position": "N0 (0, y3b1) r3g1-\nN1 (1, r1b3) -r1r2y1g1g1g3\nN2 (g2) r1y1b1-\n",
+    "player": 0,
+    "move": "move r1 from N2 to N1; catastrophe red at N1",
+    "outcome": "playing",
+    "state": {
+      "systems": [
+        {
+          "id": "north",
+          "name": "North",
+          "stars": [
+            {
+              "color": "yellow",
+              "size": 3
+            },
+            {
+              "color": "blue",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 3,
+              "owner": 0
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 0
+            }
+          ],
+          "homeworld": 0
+        },
+        {
+          "id": "south",
+          "name": "South",
+          "stars": [
+            {
+              "color": "red",
+              "size": 1
+            },
+            {
+              "color": "blue",
+              "size": 3
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "red",
+              "size": 2,
+              "owner": 1
+            },
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 3,
+              "owner": 1
+            }
+          ],
+          "homeworld": 1
+        },
+        {
+          "id": "fixture-2",
+          "name": "Delos",
+          "stars": [
+            {
+              "color": "green",
+              "size": 2
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 1,
+              "owner": 0
+            },
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 0
+            },
+            {
+              "color": "blue",
+              "size": 1,
+              "owner": 0
+            }
+          ]
+        }
+      ],
+      "bank": [
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 3
+        }
+      ],
+      "player": 0,
+      "turn": 1,
+      "allowance": {
+        "color": null,
+        "remaining": 1,
+        "sacrificed": false
+      },
+      "outcome": "playing",
+      "nextSystem": 100
+    }
+  },
+  {
+    "position": "N0 (0, y3b1) r3g1-\nN1 (1, b3) -r2y1y1y2\nN2 (g2) r1y1b1-\nN3 (g2) g3-r1r1r2r2\nN4 (g1) y2b1-\n",
+    "player": 0,
+    "move": "sacrifice g3 at N3; build r3 at N2; build y2 at N4; build y3 at N4; catastrophe red at N3",
+    "outcome": "playing",
+    "state": {
+      "systems": [
+        {
+          "id": "north",
+          "name": "North",
+          "stars": [
+            {
+              "color": "yellow",
+              "size": 3
+            },
+            {
+              "color": "blue",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 3,
+              "owner": 0
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 0
+            }
+          ],
+          "homeworld": 0
+        },
+        {
+          "id": "south",
+          "name": "South",
+          "stars": [
+            {
+              "color": "blue",
+              "size": 3
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 2,
+              "owner": 1
+            },
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "yellow",
+              "size": 2,
+              "owner": 1
+            }
+          ],
+          "homeworld": 1
+        },
+        {
+          "id": "fixture-2",
+          "name": "Delos",
+          "stars": [
+            {
+              "color": "green",
+              "size": 2
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 1,
+              "owner": 0
+            },
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 0
+            },
+            {
+              "color": "blue",
+              "size": 1,
+              "owner": 0
+            }
+          ]
+        },
+        {
+          "id": "fixture-3",
+          "name": "New1",
+          "stars": [
+            {
+              "color": "green",
+              "size": 2
+            }
+          ],
+          "ships": [
+            {
+              "color": "green",
+              "size": 3,
+              "owner": 0
+            },
+            {
+              "color": "red",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "red",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "red",
+              "size": 2,
+              "owner": 1
+            },
+            {
+              "color": "red",
+              "size": 2,
+              "owner": 1
+            }
+          ]
+        },
+        {
+          "id": "fixture-4",
+          "name": "Lebling",
+          "stars": [
+            {
+              "color": "green",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "yellow",
+              "size": 2,
+              "owner": 0
+            },
+            {
+              "color": "blue",
+              "size": 1,
+              "owner": 0
+            }
+          ]
+        }
+      ],
+      "bank": [
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 3
+        }
+      ],
+      "player": 0,
+      "turn": 1,
+      "allowance": {
+        "color": null,
+        "remaining": 1,
+        "sacrificed": false
+      },
+      "outcome": "playing",
+      "nextSystem": 100
+    }
+  },
+  {
+    "position": "N0 (0, b1r3) g3-\nN1 (1, b2y1) -g3\n",
+    "player": 0,
+    "move": "build g1 at N0",
+    "outcome": "playing",
+    "state": {
+      "systems": [
+        {
+          "id": "north",
+          "name": "North",
+          "stars": [
+            {
+              "color": "blue",
+              "size": 1
+            },
+            {
+              "color": "red",
+              "size": 3
+            }
+          ],
+          "ships": [
+            {
+              "color": "green",
+              "size": 3,
+              "owner": 0
+            }
+          ],
+          "homeworld": 0
+        },
+        {
+          "id": "south",
+          "name": "South",
+          "stars": [
+            {
+              "color": "blue",
+              "size": 2
+            },
+            {
+              "color": "yellow",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "green",
+              "size": 3,
+              "owner": 1
+            }
+          ],
+          "homeworld": 1
+        }
+      ],
+      "bank": [
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 3
+        }
+      ],
+      "player": 0,
+      "turn": 1,
+      "allowance": {
+        "color": null,
+        "remaining": 1,
+        "sacrificed": false
+      },
+      "outcome": "playing",
+      "nextSystem": 100
+    }
+  },
+  {
+    "position": "N0 (0, r3b1) y3g1-\nN1 (1, y1b2) -r1r1r3g1\nN2 (g2) y1-\n",
+    "player": 0,
+    "move": "build y1 at N2",
+    "outcome": "playing",
+    "state": {
+      "systems": [
+        {
+          "id": "north",
+          "name": "North",
+          "stars": [
+            {
+              "color": "red",
+              "size": 3
+            },
+            {
+              "color": "blue",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "yellow",
+              "size": 3,
+              "owner": 0
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 0
+            }
+          ],
+          "homeworld": 0
+        },
+        {
+          "id": "south",
+          "name": "South",
+          "stars": [
+            {
+              "color": "yellow",
+              "size": 1
+            },
+            {
+              "color": "blue",
+              "size": 2
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "red",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "red",
+              "size": 3,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 1
+            }
+          ],
+          "homeworld": 1
+        },
+        {
+          "id": "fixture-2",
+          "name": "Delos",
+          "stars": [
+            {
+              "color": "green",
+              "size": 2
+            }
+          ],
+          "ships": [
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 0
+            }
+          ]
+        }
+      ],
+      "bank": [
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 3
+        }
+      ],
+      "player": 0,
+      "turn": 1,
+      "allowance": {
+        "color": null,
+        "remaining": 1,
+        "sacrificed": false
+      },
+      "outcome": "playing",
+      "nextSystem": 100
+    }
+  },
+  {
+    "position": "N0 (0, r3b1) y3g1-\nN1 (1, y1b2) -r1r1r3g1g1g2\nN2 (g2) y1y1y2-\n",
+    "player": 0,
+    "move": "move y2 from N2 to Delos (g3)",
+    "outcome": "playing",
+    "state": {
+      "systems": [
+        {
+          "id": "north",
+          "name": "North",
+          "stars": [
+            {
+              "color": "red",
+              "size": 3
+            },
+            {
+              "color": "blue",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "yellow",
+              "size": 3,
+              "owner": 0
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 0
+            }
+          ],
+          "homeworld": 0
+        },
+        {
+          "id": "south",
+          "name": "South",
+          "stars": [
+            {
+              "color": "yellow",
+              "size": 1
+            },
+            {
+              "color": "blue",
+              "size": 2
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "red",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "red",
+              "size": 3,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 2,
+              "owner": 1
+            }
+          ],
+          "homeworld": 1
+        },
+        {
+          "id": "fixture-2",
+          "name": "Delos",
+          "stars": [
+            {
+              "color": "green",
+              "size": 2
+            }
+          ],
+          "ships": [
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 0
+            },
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 0
+            },
+            {
+              "color": "yellow",
+              "size": 2,
+              "owner": 0
+            }
+          ]
+        }
+      ],
+      "bank": [
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 3
+        }
+      ],
+      "player": 0,
+      "turn": 1,
+      "allowance": {
+        "color": null,
+        "remaining": 1,
+        "sacrificed": false
+      },
+      "outcome": "playing",
+      "nextSystem": 100
+    }
+  },
+  {
+    "position": "N0 (0, r3b1) y3g1g3-\nN1 (1, y1b2) -r1r1\nN2 (g2) y1y1-\nN3 (g3) y2-\nN4 (b3) -r3\n",
+    "player": 0,
+    "move": "sacrifice g3 at N0; build y2 at N2; build y2 at N3; build y3 at N3",
+    "outcome": "playing",
+    "state": {
+      "systems": [
+        {
+          "id": "north",
+          "name": "North",
+          "stars": [
+            {
+              "color": "red",
+              "size": 3
+            },
+            {
+              "color": "blue",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "yellow",
+              "size": 3,
+              "owner": 0
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 0
+            },
+            {
+              "color": "green",
+              "size": 3,
+              "owner": 0
+            }
+          ],
+          "homeworld": 0
+        },
+        {
+          "id": "south",
+          "name": "South",
+          "stars": [
+            {
+              "color": "yellow",
+              "size": 1
+            },
+            {
+              "color": "blue",
+              "size": 2
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "red",
+              "size": 1,
+              "owner": 1
+            }
+          ],
+          "homeworld": 1
+        },
+        {
+          "id": "fixture-2",
+          "name": "Delos",
+          "stars": [
+            {
+              "color": "green",
+              "size": 2
+            }
+          ],
+          "ships": [
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 0
+            },
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 0
+            }
+          ]
+        },
+        {
+          "id": "fixture-3",
+          "name": "Lebling",
+          "stars": [
+            {
+              "color": "green",
+              "size": 3
+            }
+          ],
+          "ships": [
+            {
+              "color": "yellow",
+              "size": 2,
+              "owner": 0
+            }
+          ]
+        },
+        {
+          "id": "fixture-4",
+          "name": "New0",
+          "stars": [
+            {
+              "color": "blue",
+              "size": 3
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 3,
+              "owner": 1
+            }
+          ]
+        }
+      ],
+      "bank": [
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 3
+        }
+      ],
+      "player": 0,
+      "turn": 1,
+      "allowance": {
+        "color": null,
+        "remaining": 1,
+        "sacrificed": false
+      },
+      "outcome": "playing",
+      "nextSystem": 100
+    }
+  },
+  {
+    "position": "N0 (0, b3y2) g3-\nN1 (1, b1r2) -g3\n",
+    "player": 0,
+    "move": "build g1 at N0",
+    "outcome": "playing",
+    "state": {
+      "systems": [
+        {
+          "id": "north",
+          "name": "North",
+          "stars": [
+            {
+              "color": "blue",
+              "size": 3
+            },
+            {
+              "color": "yellow",
+              "size": 2
+            }
+          ],
+          "ships": [
+            {
+              "color": "green",
+              "size": 3,
+              "owner": 0
+            }
+          ],
+          "homeworld": 0
+        },
+        {
+          "id": "south",
+          "name": "South",
+          "stars": [
+            {
+              "color": "blue",
+              "size": 1
+            },
+            {
+              "color": "red",
+              "size": 2
+            }
+          ],
+          "ships": [
+            {
+              "color": "green",
+              "size": 3,
+              "owner": 1
+            }
+          ],
+          "homeworld": 1
+        }
+      ],
+      "bank": [
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 3
+        }
+      ],
+      "player": 0,
+      "turn": 1,
+      "allowance": {
+        "color": null,
+        "remaining": 1,
+        "sacrificed": false
+      },
+      "outcome": "playing",
+      "nextSystem": 100
+    }
+  },
+  {
+    "position": "N0 (0, y2b3) r3g1b1-\nN1 (1, r2b1) -y1g1b3\n",
+    "player": 0,
+    "move": "move b1 from N0 to Delos (g1)",
+    "outcome": "playing",
+    "state": {
+      "systems": [
+        {
+          "id": "north",
+          "name": "North",
+          "stars": [
+            {
+              "color": "yellow",
+              "size": 2
+            },
+            {
+              "color": "blue",
+              "size": 3
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 3,
+              "owner": 0
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 0
+            },
+            {
+              "color": "blue",
+              "size": 1,
+              "owner": 0
+            }
+          ],
+          "homeworld": 0
+        },
+        {
+          "id": "south",
+          "name": "South",
+          "stars": [
+            {
+              "color": "red",
+              "size": 2
+            },
+            {
+              "color": "blue",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "blue",
+              "size": 3,
+              "owner": 1
+            }
+          ],
+          "homeworld": 1
+        }
+      ],
+      "bank": [
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 3
+        }
+      ],
+      "player": 0,
+      "turn": 1,
+      "allowance": {
+        "color": null,
+        "remaining": 1,
+        "sacrificed": false
+      },
+      "outcome": "playing",
+      "nextSystem": 100
+    }
+  },
+  {
+    "position": "N0 (0, y2b3) r3g1g2-\nN1 (1, r2b1) -r1y1g2b3\nN2 (g1) b1-\n",
+    "player": 0,
+    "move": "move g2 from N0 to Delos (b1)",
+    "outcome": "playing",
+    "state": {
+      "systems": [
+        {
+          "id": "north",
+          "name": "North",
+          "stars": [
+            {
+              "color": "yellow",
+              "size": 2
+            },
+            {
+              "color": "blue",
+              "size": 3
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 3,
+              "owner": 0
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 0
+            },
+            {
+              "color": "green",
+              "size": 2,
+              "owner": 0
+            }
+          ],
+          "homeworld": 0
+        },
+        {
+          "id": "south",
+          "name": "South",
+          "stars": [
+            {
+              "color": "red",
+              "size": 2
+            },
+            {
+              "color": "blue",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 2,
+              "owner": 1
+            },
+            {
+              "color": "blue",
+              "size": 3,
+              "owner": 1
+            }
+          ],
+          "homeworld": 1
+        },
+        {
+          "id": "fixture-2",
+          "name": "Delos",
+          "stars": [
+            {
+              "color": "green",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "blue",
+              "size": 1,
+              "owner": 0
+            }
+          ]
+        }
+      ],
+      "bank": [
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 3
+        }
+      ],
+      "player": 0,
+      "turn": 1,
+      "allowance": {
+        "color": null,
+        "remaining": 1,
+        "sacrificed": false
+      },
+      "outcome": "playing",
+      "nextSystem": 100
+    }
+  },
+  {
+    "position": "N0 (0, y2b3) r3g1-\nN1 (1, r2b1) -r1r1y1g2b2b3\nN2 (g1) b1-\nN3 (b1) g1g2-\n",
+    "player": 0,
+    "move": "convert g1 to y1 at N3",
+    "outcome": "playing",
+    "state": {
+      "systems": [
+        {
+          "id": "north",
+          "name": "North",
+          "stars": [
+            {
+              "color": "yellow",
+              "size": 2
+            },
+            {
+              "color": "blue",
+              "size": 3
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 3,
+              "owner": 0
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 0
+            }
+          ],
+          "homeworld": 0
+        },
+        {
+          "id": "south",
+          "name": "South",
+          "stars": [
+            {
+              "color": "red",
+              "size": 2
+            },
+            {
+              "color": "blue",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "red",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 1
+            },
+            {
+              "color": "green",
+              "size": 2,
+              "owner": 1
+            },
+            {
+              "color": "blue",
+              "size": 2,
+              "owner": 1
+            },
+            {
+              "color": "blue",
+              "size": 3,
+              "owner": 1
+            }
+          ],
+          "homeworld": 1
+        },
+        {
+          "id": "fixture-2",
+          "name": "Delos",
+          "stars": [
+            {
+              "color": "green",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "blue",
+              "size": 1,
+              "owner": 0
+            }
+          ]
+        },
+        {
+          "id": "fixture-3",
+          "name": "Lebling",
+          "stars": [
+            {
+              "color": "blue",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 0
+            },
+            {
+              "color": "green",
+              "size": 2,
+              "owner": 0
+            }
+          ]
+        }
+      ],
+      "bank": [
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 3
+        }
+      ],
+      "player": 0,
+      "turn": 1,
+      "allowance": {
+        "color": null,
+        "remaining": 1,
+        "sacrificed": false
+      },
+      "outcome": "playing",
+      "nextSystem": 100
+    }
+  },
+  {
+    "position": "N0 (0, b1y3) g3-\nN1 (1, b3y2) -g3\n",
+    "player": 0,
+    "move": "build g1 at N0",
+    "outcome": "playing",
+    "state": {
+      "systems": [
+        {
+          "id": "north",
+          "name": "North",
+          "stars": [
+            {
+              "color": "blue",
+              "size": 1
+            },
+            {
+              "color": "yellow",
+              "size": 3
+            }
+          ],
+          "ships": [
+            {
+              "color": "green",
+              "size": 3,
+              "owner": 0
+            }
+          ],
+          "homeworld": 0
+        },
+        {
+          "id": "south",
+          "name": "South",
+          "stars": [
+            {
+              "color": "blue",
+              "size": 3
+            },
+            {
+              "color": "yellow",
+              "size": 2
+            }
+          ],
+          "ships": [
+            {
+              "color": "green",
+              "size": 3,
+              "owner": 1
+            }
+          ],
+          "homeworld": 1
+        }
+      ],
+      "bank": [
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 1
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 2
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 1
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 1
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 3
+        }
+      ],
+      "player": 0,
+      "turn": 1,
+      "allowance": {
+        "color": null,
+        "remaining": 1,
+        "sacrificed": false
+      },
+      "outcome": "playing",
+      "nextSystem": 100
+    }
+  },
+  {
+    "position": "N0 (0, y3b1) r3g1-\nN1 (1, y2b3) y2-b1\nN2 (g1) y1y3-\nN3 (g2) y1-\nN4 (g3) y2-\nN5 (g1) y1-\nN6 (b1) -g3\n",
+    "player": 0,
+    "move": "sacrifice r3 at N0; capture b1 at N1",
+    "outcome": 0,
+    "state": {
+      "systems": [
+        {
+          "id": "north",
+          "name": "North",
+          "stars": [
+            {
+              "color": "yellow",
+              "size": 3
+            },
+            {
+              "color": "blue",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "red",
+              "size": 3,
+              "owner": 0
+            },
+            {
+              "color": "green",
+              "size": 1,
+              "owner": 0
+            }
+          ],
+          "homeworld": 0
+        },
+        {
+          "id": "south",
+          "name": "South",
+          "stars": [
+            {
+              "color": "yellow",
+              "size": 2
+            },
+            {
+              "color": "blue",
+              "size": 3
+            }
+          ],
+          "ships": [
+            {
+              "color": "yellow",
+              "size": 2,
+              "owner": 0
+            },
+            {
+              "color": "blue",
+              "size": 1,
+              "owner": 1
+            }
+          ],
+          "homeworld": 1
+        },
+        {
+          "id": "fixture-2",
+          "name": "Lebling",
+          "stars": [
+            {
+              "color": "green",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 0
+            },
+            {
+              "color": "yellow",
+              "size": 3,
+              "owner": 0
+            }
+          ]
+        },
+        {
+          "id": "fixture-3",
+          "name": "Delos",
+          "stars": [
+            {
+              "color": "green",
+              "size": 2
+            }
+          ],
+          "ships": [
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 0
+            }
+          ]
+        },
+        {
+          "id": "fixture-4",
+          "name": "Kotok",
+          "stars": [
+            {
+              "color": "green",
+              "size": 3
+            }
+          ],
+          "ships": [
+            {
+              "color": "yellow",
+              "size": 2,
+              "owner": 0
+            }
+          ]
+        },
+        {
+          "id": "fixture-5",
+          "name": "Minsky",
+          "stars": [
+            {
+              "color": "green",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "yellow",
+              "size": 1,
+              "owner": 0
+            }
+          ]
+        },
+        {
+          "id": "fixture-6",
+          "name": "New0",
+          "stars": [
+            {
+              "color": "blue",
+              "size": 1
+            }
+          ],
+          "ships": [
+            {
+              "color": "green",
+              "size": 3,
+              "owner": 1
+            }
+          ]
+        }
+      ],
+      "bank": [
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 1
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 2
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "red",
+          "size": 3
+        },
+        {
+          "color": "yellow",
+          "size": 3
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 2
+        },
+        {
+          "color": "green",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 2
+        },
+        {
+          "color": "blue",
+          "size": 3
+        },
+        {
+          "color": "blue",
+          "size": 3
+        }
+      ],
+      "player": 0,
+      "turn": 1,
+      "allowance": {
+        "color": null,
+        "remaining": 1,
+        "sacrificed": false
+      },
+      "outcome": "playing",
+      "nextSystem": 100
+    }
+  }
+]

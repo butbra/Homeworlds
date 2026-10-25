@@ -3,10 +3,10 @@ import {readFile} from 'node:fs/promises';
 const bank=(page:Page,color:string,size:number)=>page.getByRole('button',{name:`Bank ${color} ${size}`,exact:true});
 const ship=(page:Page,color:string,size:number,home='North',owner=1)=>page.getByRole('button',{name:`Player ${owner} ${color} ship ${size} at ${home} homeworld`,exact:true});
 const menu=async(page:Page)=>page.getByRole('button',{name:'Game menu'}).click();
-const newGame=async(page:Page)=>{await menu(page);page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'New game',exact:true}).click();};
+const newGame=async(page:Page)=>{await menu(page);page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByRole('button',{name:'Another player',exact:true}).click();};
 const chooseOpening=async(page:Page)=>{for(const picks of [[['blue',3],['red',1],['green',3]],[['red',2],['blue',1],['green',3]]] as const){for(const [color,size] of picks)await bank(page,color,size).click();await page.getByRole('button',{name:'End turn',exact:true}).click();}};
 const resume=async(page:Page)=>{await page.getByRole('button',{name:'Resume saved game'}).click();};
-test.beforeEach(async({page},info)=>{await page.goto('/');if(!info.title.startsWith('fresh')&&!info.title.startsWith('custom setup'))await chooseOpening(page);});
+test.beforeEach(async({page},info)=>{await page.addInitScript(()=>{const original=crypto.getRandomValues.bind(crypto);Object.defineProperty(crypto,'getRandomValues',{value:(array:ArrayBufferView)=>{if(array instanceof Uint8Array&&array.byteLength===1){array[0]=0;return array;}return original(array);}});});await page.goto('/');await page.getByRole('button',{name:'Another player',exact:true}).click();if(!info.title.startsWith('fresh')&&!info.title.startsWith('custom setup'))await chooseOpening(page);});
 test('bank clicks build, undo and reload preserve the physical game',async({page})=>{
  await bank(page,'green',3).click();
  await expect(page.getByRole('status')).toContainText('smallest');
@@ -189,5 +189,5 @@ test('game over announces the winner and reason, locks play, and can start over'
  await expect(page.locator('.result-banner')).toContainText('Player 2 wins');
  await expect(page.getByRole('button',{name:'End turn',exact:true})).toBeDisabled();await expect(bank(page,'green',1)).toBeDisabled();
  await page.reload();await resume(page);await expect(page.locator('#result')).toBeVisible();
- await page.getByRole('button',{name:'New local game'}).click();await expect(page.locator('.system')).toHaveCount(0);
+ await page.getByRole('button',{name:'New game',exact:true}).click();await expect(page.locator('.system')).toHaveCount(0);
 });

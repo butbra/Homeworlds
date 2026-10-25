@@ -1,0 +1,9 @@
+{
+  "upstream": "https://github.com/Quuxplusone/Homeworlds",
+  "commit": "20d2ec4a70365acc4b8ba8cd6bae7125fa935513",
+  "compiler": "WASI SDK 25.0",
+  "optimization": "O2",
+  "upstream_configuration": "ALLMOVES_USE_EXCEPTIONS=0 (supported equivalent early-exit implementation)",
+  "sha256": "ec2764f5c41959839f4f24e7c3a16d677c5c805b61018b59145ff45fda3d1843",
+  "bytes": 729047
+}
