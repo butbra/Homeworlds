@@ -26,7 +26,7 @@ test('names arrive first, the toss reveals at five seconds, and setup waits for 
  await expect(page.locator('.status')).toHaveText('You · Setup');
  await expect(page.getByRole('button',{name:'Bank red 1',exact:true})).toBeEnabled();
  await expect(page.locator('.command-bar,.turn-token,.match-info,.space-compass')).toHaveCount(0);
- await expect(page.locator('.sidebar').locator(':scope > *')).toHaveCount(1);
+ await expect(page.locator('.sidebar').locator(':scope > *')).toHaveCount(2);
 });
 test('the opposite face reveals Quux Bot without starting bot setup early',async({page})=>{
  await freeze(page,0);await page.clock.fastForward(5000);

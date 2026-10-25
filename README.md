@@ -7,14 +7,14 @@ A Homeworlds game for the browser with two choices: **Another player** (two peop
 The playing surface is a starfield with a shared bank on the right. All orders use the pieces on the table:
 
 - **Build:** click a system, then its smallest available bank piece of a color you already own there.
-- **Move:** click your ship, then a connected destination system.
-- **Trade:** click your ship, Trade, then a different bank color of the same size.
-- **Discover:** click your ship, Discover, a bank star, then an empty spot in space.
+- **Travel (yellow):** click your ship, then a connected destination system. The Travel button also lets you discover a new system.
+- **Trade (blue):** click your ship, Trade, then a different bank color of the same size.
+- **Discover a new system:** click your ship, Travel, a bank star. The system appears automatically in a fixed slot in its star-size row.
 - **Capture:** click an enemy ship where you have red power and a ship at least as large.
 - **Sacrifice:** click your ship, then Sacrifice in its context controls.
 - **Catastrophe:** whenever any system has four or more pieces of one color, its catastrophe button appears on that system, including enemy-only systems. The active player may trigger it for free at any point. Stars and both fleets count.
 
-Legal destinations and bank choices are highlighted. Invalid choices explain the rule without changing the position. Drag a system’s grip (or focus it and use arrow keys) to rearrange the map without spending an action. The space board extends to the bottom of the window and can scroll vertically as it grows. The entire bank stays visible on the right; the sidebar contains only the bank. Player names stay at the north and south edges of the board. Selecting a ship opens its action controls beside its system; catastrophe controls appear directly on eligible systems. Short notices appear temporarily on the board, and help/resume are in the game menu.
+Legal destinations and bank choices are highlighted. Invalid choices explain the rule without changing the position. Systems occupy fixed grid slots and cannot be dragged. Same-size stars share a horizontal row; the opening determines row order so connected sizes sit nearest each homeworld where possible (Rules13, p. 12). Discoveries take the nearest free column to their source, and existing systems keep their slots. Physical distance never changes travel legality. The board fills the window from top to bottom and scrolls as it grows. Undo, End turn, and the game menu sit above the fully visible bank on the right. Player names stay at the north and south edges of the board. Each fleet stays to the right of the stars from its own player’s viewpoint: North ships on screen-left, South ships on screen-right. Selecting a ship opens its action controls beside its system; catastrophe controls appear directly on eligible systems. Short notices appear temporarily on the board, and help/resume are in the game menu.
 
 Use **Undo action** before **End turn**. In local play, pass the device; against Quux Bot, the bot takes and confirms its own turn automatically. **Game menu** contains new game, saves, resignation, and draw controls; **How to play** in the game menu opens the rules reference.
 
@@ -67,9 +67,9 @@ npm run test:e2e
 
 Playwright uses `/usr/bin/chromium` when present; otherwise it uses its installed Chromium browser. Linux systems may also need `npx playwright install --with-deps chromium`.
 
-- 81 rules, setup, physical-bank interaction, bot, intro, and save-format tests cover inventory conservation, setup, connectivity, all action types, sacrifices, catastrophes, turn-end outcomes, and invalid imports.
-- 50 desktop/mobile browser checks cover multi-turn play, undo, victory, click-driven building, trading, discovery, movement, capture, sacrifice, catastrophe, custom setup, reload recovery, save import/export, resignation, draws, and map rearrangement.
-- The browser engine matches native Quux’s exact full-turn decisions on 17 recorded positions. Bot setup is checked across 60 seeded cases. Browser checks cover bot-first and human-first matches, actual bot moves, reload, cancellation, retry, and a catastrophe victory, plus the five-second coin reveal, name placement, intro recovery, reduced motion and the cleared sidebar.
+- 86 rules, setup, map layout, physical-bank interaction, bot, intro, and save-format tests cover inventory conservation, setup, connectivity, all action types, sacrifices, catastrophes, turn-end outcomes, and invalid imports.
+- Desktop/mobile browser checks cover multi-turn play, undo, victory, click-driven building, trading, discovery, movement, capture, sacrifice, catastrophe, custom setup, reload recovery, save import/export, resignation, draws, and fixed map rows and stable placement.
+- The browser engine matches native Quux’s exact full-turn decisions on 17 recorded positions. Bot setup is checked across 60 seeded cases. Browser checks cover bot-first and human-first matches, actual bot moves, reload, cancellation, retry, and a catastrophe victory, plus the five-second coin reveal, name placement, intro recovery, reduced motion and the bank and turn controls in the right sidebar.
 - GitHub Actions runs the tests and production build on pushes and pull requests.
 
 ## Publish a playable website

@@ -24,28 +24,27 @@ test('bank clicks build, undo and reload preserve the physical game',async({page
  await expect(ship(page,'green',1,'South',2)).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
-test('ship and bank clicks trade, discover in empty space, move and sacrifice',async({page})=>{
+test('ship and bank clicks trade, automatically place discoveries, move and sacrifice',async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await bank(page,'green',1).click();await page.getByRole('button',{name:'End turn',exact:true}).click();
  await page.getByRole('button',{name:'End turn',exact:true}).click();
- await ship(page,'green',1).click();await page.getByRole('button',{name:'Trade → bank',exact:true}).click();
+ await ship(page,'green',1).click();await page.getByRole('button',{name:'Trade',exact:true}).click();
  await bank(page,'yellow',3).click();await expect(page.getByRole('status')).toContainText('same size');
  await bank(page,'yellow',1).click();await expect(ship(page,'yellow',1)).toBeVisible();
  await page.getByRole('button',{name:'End turn',exact:true}).click();await page.getByRole('button',{name:'End turn',exact:true}).click();
- await ship(page,'yellow',1).click();await page.getByRole('button',{name:'Discover → bank → space',exact:true}).click();
+ await ship(page,'yellow',1).click();await page.getByRole('button',{name:'Travel',exact:true}).click();
  await bank(page,'red',1).click();await expect(page.getByRole('status')).toContainText('no sizes in common');
  await bank(page,'red',2).click();
- // Place near center on desktop; the map pans horizontally on phones.
- const universe=page.locator('#universe'),box=await universe.boundingBox();await universe.click({position:{x:box!.width*.5,y:box!.height*.5}});
  await expect(page.locator('.system')).toHaveCount(3);
  await expect(page.getByRole('button',{name:'Player 1 yellow ship 1 at Frontier 1'})).toBeVisible();
  await page.getByRole('button',{name:'End turn',exact:true}).click();await page.getByRole('button',{name:'End turn',exact:true}).click();
  await page.getByRole('button',{name:'Player 1 yellow ship 1 at Frontier 1'}).click();
+ await page.getByRole('button',{name:'Travel',exact:true}).click();
  await page.getByRole('button',{name:'Select North homeworld'}).click();
  await expect(page.locator('.system')).toHaveCount(2);
  await expect(ship(page,'yellow',1)).toBeVisible();
  await page.getByRole('button',{name:'End turn',exact:true}).click();await page.getByRole('button',{name:'End turn',exact:true}).click();
- await ship(page,'yellow',1).click();await page.getByRole('button',{name:'Sacrifice ship',exact:true}).click();
+ await ship(page,'yellow',1).click();await page.getByRole('button',{name:'Sacrifice',exact:true}).click();
  await expect(ship(page,'yellow',1)).toHaveCount(0);
  expect(errors).toEqual([]);
 });
@@ -82,12 +81,27 @@ test('resignation and mutual draws require confirmation',async({page})=>{
  page.on('dialog',d=>d.accept());await page.getByRole('button',{name:'Agree draw'}).click();
  await expect(page.locator('.status')).toHaveText('Game over · Draw');
 });
-test('map can be rearranged without consuming an action',async({page})=>{
- const card=page.locator('[data-system="north"]'),handle=page.getByRole('button',{name:'Reposition North homeworld'});
- const before=await card.getAttribute('style');await handle.focus();await page.keyboard.press('ArrowDown');
- expect(await card.getAttribute('style')).not.toBe(before);await page.reload();await resume(page);
- await expect(page.locator('.status')).toContainText('Turn 1');
- await bank(page,'green',1).click();await expect(ship(page,'green',1)).toBeVisible();
+test('map fixes same-size stars in horizontal rows and ignores old drag positions',async({page})=>{
+ const saved={version:1,opening:[{stars:[{color:'yellow',size:1},{color:'blue',size:3}],shipColor:'green'},{stars:[{color:'red',size:2},{color:'blue',size:1}],shipColor:'green'}],actions:[
+  {type:'build',system:'north',color:'green'},{type:'end'},{type:'end'},
+  {type:'discover',system:'north',ship:1,star:{color:'yellow',size:2}},{type:'end'},{type:'end'},
+  {type:'build',system:'north',color:'green'},{type:'end'},{type:'end'},
+  {type:'discover',system:'north',ship:1,star:{color:'red',size:2}},
+ ]};
+ await page.evaluate(value=>{localStorage.setItem('homeworlds.session.v1',JSON.stringify(value));localStorage.setItem('homeworlds.layout.v2',JSON.stringify({north:{x:90,y:90},'system-1':{x:10,y:10},'system-2':{x:90,y:90}}));},saved);
+ await page.reload();await resume(page);
+ const first=page.locator('[data-system="system-1"]'),second=page.locator('[data-system="system-2"]');
+ const one=(await first.boundingBox())!,two=(await second.boundingBox())!;
+ expect(Math.abs(one.y+one.height/2-two.y-two.height/2)).toBeLessThan(1);
+ expect(one.x).toBeGreaterThan(two.x+two.width);
+ await expect(page.locator('[data-drag],.drag-handle')).toHaveCount(0);
+ const slots=await page.locator('[data-system]').evaluateAll(cards=>cards.map(c=>c.getAttribute('style')));
+ await page.reload();await resume(page);
+ expect(await page.locator('[data-system]').evaluateAll(cards=>cards.map(c=>c.getAttribute('style')))).toEqual(slots);
+ await page.getByRole('button',{name:'Undo action'}).click();await expect(second).toHaveCount(0);
+ await page.getByRole('button',{name:'Player 1 green ship 1 at North homeworld',exact:true}).click();
+ await page.getByRole('button',{name:'Travel',exact:true}).click();await bank(page,'red',2).click();
+ expect(await page.locator('[data-system]').evaluateAll(cards=>cards.map(c=>c.getAttribute('style')))).toEqual(slots);
 });
 test('enemy ship clicks capture with local red power',async({page})=>{
  const saved={version:1,opening:[{stars:[{color:'red',size:1},{color:'yellow',size:2}],shipColor:'green'},{stars:[{color:'red',size:2},{color:'blue',size:1}],shipColor:'green'}],actions:[
@@ -97,8 +111,17 @@ test('enemy ship clicks capture with local red power',async({page})=>{
   {type:'move',system:'system-1',ship:0,destination:'south'},{type:'end'},
  ]};
  await page.evaluate(value=>localStorage.setItem('homeworlds.session.v1',JSON.stringify(value)),saved);await page.reload();await resume(page);
- const enemy=ship(page,'green',1,'South',1);await expect(enemy).toBeVisible();await enemy.click();
+ const assertSide=async(owner:number)=>{
+  const stars=(await page.locator('[data-system="south"] .stars').boundingBox())!;
+  for(const piece of await page.locator(`[data-system="south"] .fleet[data-player="${owner}"] [data-ship]`).all()){
+   const bounds=(await piece.boundingBox())!;
+   if(owner===0)expect(bounds.x+bounds.width).toBeLessThanOrEqual(stars.x+1);
+   else expect(bounds.x).toBeGreaterThanOrEqual(stars.x+stars.width-1);
+  }
+ };
+ const enemy=ship(page,'green',1,'South',1);await expect(enemy).toBeVisible();await assertSide(0);await assertSide(1);await enemy.click();
  await expect(enemy).toHaveCount(0);await expect(ship(page,'green',1,'South',2)).toHaveCount(2);
+ await assertSide(1);
  await expect(page.getByRole('status')).toContainText('Captured');
 });
 test('click a star to invoke a free catastrophe after a basic action',async({page})=>{
@@ -131,7 +154,9 @@ test('fresh viewport uses bottom space for the board and shows the entire bank',
  for(const size of [{width:1366,height:768},{width:1920,height:900},{width:390,height:844},{width:375,height:667}]) {
   await page.setViewportSize(size);
   const bounds=await page.locator('#space').boundingBox();
+  expect(bounds!.y).toBe(0);
   expect(Math.abs(bounds!.y+bounds!.height-size.height)).toBeLessThan(2);
+  await expect(page.locator('.topbar')).toHaveCount(0);
   const commands=await page.locator('.sidebar').boundingBox();
   expect(commands!.x).toBeGreaterThanOrEqual(bounds!.x+bounds!.width-1);
   for(const piece of await page.locator('.bank-piece').all()) {
