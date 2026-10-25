@@ -34,6 +34,28 @@ test('the opposite face reveals Quux Bot without starting bot setup early',async
  await expect(page.locator('.player-nameplate.north')).toHaveClass(/is-active/);
  await expect(page.locator('.system')).toHaveCount(0);
 });
+for(const starter of [0,1] as const)test(`coin steadily decelerates without pauses or bursts for starting player ${starter}`,async({page})=>{
+ await freeze(page,starter);await page.clock.fastForward(450);
+ const samples=await page.locator('.coin-disc').evaluate(element=>{
+  const animation=element.getAnimations()[0]!;
+  animation.pause();
+  const timing=animation.effect!.getTiming(),duration=Number(timing.duration);
+  const angles:number[]=[];
+  for(let index=0;index<=100;index++){
+   animation.currentTime=Number(timing.delay)+duration*index/100;
+   const matrix=new DOMMatrix(getComputedStyle(element).transform);
+   angles.push(Math.atan2(-matrix.m13,matrix.m11)*180/Math.PI);
+  }
+  return angles.slice(1).map((angle,index)=>(angle-angles[index]!+540)%360-180);
+ });
+ expect(samples[0]).toBeGreaterThan(60); // Starts spinning quickly.
+ for(let index=1;index<samples.length;index++){
+  expect(samples[index]).toBeGreaterThanOrEqual(0);
+  expect(samples[index]).toBeLessThanOrEqual(samples[index-1]!+.01);
+ }
+ expect(samples.at(-1)).toBeLessThan(.01); // Reaches a smooth stop on the chosen face.
+ expect(samples.reduce((total,angle)=>total+angle,0)).toBeCloseTo(2160+starter*180,2);
+});
 test('reloading the toss preserves its outcome and elapsed time',async({page})=>{
  await freeze(page);await page.clock.fastForward(2500);
  const before=await page.evaluate(()=>JSON.parse(localStorage.getItem('homeworlds.setup.v1')!));
