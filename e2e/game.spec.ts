@@ -3,10 +3,10 @@ import {readFile} from 'node:fs/promises';
 const bank=(page:Page,color:string,size:number)=>page.getByRole('button',{name:`Bank ${color} ${size}`,exact:true});
 const ship=(page:Page,color:string,size:number,home='North',owner=1)=>page.getByRole('button',{name:`Player ${owner} ${color} ship ${size} at ${home} homeworld`,exact:true});
 const menu=async(page:Page)=>page.getByRole('button',{name:'Game menu'}).click();
-const newGame=async(page:Page)=>{await menu(page);page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByRole('button',{name:'Another player',exact:true}).click();};
+const newGame=async(page:Page)=>{await menu(page);page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByRole('button',{name:'Another player',exact:true}).click();await page.clock.fastForward(6200);};
 const chooseOpening=async(page:Page)=>{for(const picks of [[['blue',3],['red',1],['green',3]],[['red',2],['blue',1],['green',3]]] as const){for(const [color,size] of picks)await bank(page,color,size).click();await page.getByRole('button',{name:'End turn',exact:true}).click();}};
 const resume=async(page:Page)=>{await page.getByRole('button',{name:'Resume saved game'}).click();};
-test.beforeEach(async({page},info)=>{await page.addInitScript(()=>{const original=crypto.getRandomValues.bind(crypto);Object.defineProperty(crypto,'getRandomValues',{value:(array:ArrayBufferView)=>{if(array instanceof Uint8Array&&array.byteLength===1){array[0]=0;return array;}return original(array);}});});await page.goto('/');await page.getByRole('button',{name:'Another player',exact:true}).click();if(!info.title.startsWith('fresh')&&!info.title.startsWith('custom setup'))await chooseOpening(page);});
+test.beforeEach(async({page},info)=>{await page.clock.install();await page.addInitScript(()=>{const original=crypto.getRandomValues.bind(crypto);Object.defineProperty(crypto,'getRandomValues',{value:(array:ArrayBufferView)=>{if(array instanceof Uint8Array&&array.byteLength===1){array[0]=0;return array;}return original(array);}});});await page.goto('/');await page.getByRole('button',{name:'Another player',exact:true}).click();await page.clock.fastForward(6200);if(!info.title.startsWith('fresh')&&!info.title.startsWith('custom setup'))await chooseOpening(page);});
 test('bank clicks build, undo and reload preserve the physical game',async({page})=>{
  await bank(page,'green',3).click();
  await expect(page.getByRole('status')).toContainText('smallest');
@@ -132,7 +132,7 @@ test('fresh viewport uses bottom space for the board and shows the entire bank',
   await page.setViewportSize(size);
   const bounds=await page.locator('#space').boundingBox();
   expect(Math.abs(bounds!.y+bounds!.height-size.height)).toBeLessThan(2);
-  const commands=await page.locator('.command-bar').boundingBox();
+  const commands=await page.locator('.sidebar').boundingBox();
   expect(commands!.x).toBeGreaterThanOrEqual(bounds!.x+bounds!.width-1);
   for(const piece of await page.locator('.bank-piece').all()) {
    const box=await piece.boundingBox();expect(box!.y).toBeGreaterThan(0);expect(box!.y+box!.height).toBeLessThanOrEqual(size.height);
@@ -152,7 +152,7 @@ test('remote catastrophes are available during ship selection and animate withou
  await expect(page.locator('.catastrophe-ring')).toHaveCount(1);
  await expect(page.locator('.explosion-core')).toHaveCount(1);
  await expect(ship(page,'green',3,'South',2)).toHaveCount(0);
- await expect(page.locator('.turn-token strong')).toHaveText('1');
+ await expect(page.locator('.player-nameplate.is-active .player-allowance')).toHaveText('1 action');
  await expect(page.locator('.catastrophe-ring')).toHaveCount(0);
  await page.getByRole('button',{name:'End turn',exact:true}).click();await expect(page.locator('.status')).toHaveText('Player 1 wins');
 });
@@ -186,7 +186,7 @@ test('game over announces the winner and reason, locks play, and can start over'
  const result=page.locator('#result');await expect(result).toBeVisible();
  await expect(result.getByRole('heading')).toHaveText('Player 2 wins');await expect(result).toContainText('Player 1 resigned');
  await result.getByRole('button',{name:'View final board'}).click();
- await expect(page.locator('.result-banner')).toContainText('Player 2 wins');
+ await expect(page.locator('.player-nameplate.south .player-detail')).toHaveText('WINNER');
  await expect(page.getByRole('button',{name:'End turn',exact:true})).toBeDisabled();await expect(bank(page,'green',1)).toBeDisabled();
  await page.reload();await resume(page);await expect(page.locator('#result')).toBeVisible();
  await page.getByRole('button',{name:'New game',exact:true}).click();await expect(page.locator('.system')).toHaveCount(0);
