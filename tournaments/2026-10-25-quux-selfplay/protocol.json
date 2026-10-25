@@ -1,0 +1,2327 @@
+{
+  "games": 100,
+  "seconds": 60,
+  "maxturns": 400,
+  "workers": 4,
+  "started_at": 1792945650.0924911,
+  "started_utc": "2026-10-25T16:27:30.092507+00:00",
+  "engine_commit": "20d2ec4a70365acc4b8ba8cd6bae7125fa935513",
+  "opening_seed": 20261025,
+  "openings": [
+    {
+      "pair": 1,
+      "initial_state": "North (0, y3b2) g3-\nSouth (1, y1b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 1821732005
+        },
+        {
+          "player": 1,
+          "seed": 1628324191
+        }
+      ]
+    },
+    {
+      "pair": 2,
+      "initial_state": "North (0, y1g3) b3-\nSouth (1, y1g2) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 3351864502
+        },
+        {
+          "player": 0,
+          "seed": 965746278
+        }
+      ]
+    },
+    {
+      "pair": 3,
+      "initial_state": "North (0, r2b3) g3-\nSouth (1, r1y3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 841152641
+        },
+        {
+          "player": 1,
+          "seed": 2904711041
+        }
+      ]
+    },
+    {
+      "pair": 4,
+      "initial_state": "North (0, g3b2) y3-\nSouth (1, r1b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 3089844631
+        },
+        {
+          "player": 0,
+          "seed": 2453814293
+        }
+      ]
+    },
+    {
+      "pair": 5,
+      "initial_state": "North (0, r2b3) g3-\nSouth (1, r3y1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 3775632221
+        },
+        {
+          "player": 1,
+          "seed": 1905625906
+        }
+      ]
+    },
+    {
+      "pair": 6,
+      "initial_state": "North (0, g2b1) y3-\nSouth (1, g2b3) -y3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 309512692
+        },
+        {
+          "player": 0,
+          "seed": 3506935998
+        }
+      ]
+    },
+    {
+      "pair": 7,
+      "initial_state": "North (0, y2g3) b3-\nSouth (1, r3y1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 3883480181
+        },
+        {
+          "player": 1,
+          "seed": 1756718358
+        }
+      ]
+    },
+    {
+      "pair": 8,
+      "initial_state": "North (0, g1b2) y3-\nSouth (1, r3y1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1561407237
+        },
+        {
+          "player": 0,
+          "seed": 4043909572
+        }
+      ]
+    },
+    {
+      "pair": 9,
+      "initial_state": "North (0, y3g1) b3-\nSouth (1, y2g1) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 619618584
+        },
+        {
+          "player": 1,
+          "seed": 3292449313
+        }
+      ]
+    },
+    {
+      "pair": 10,
+      "initial_state": "North (0, y2b1) g3-\nSouth (1, r3b1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 2961440882
+        },
+        {
+          "player": 0,
+          "seed": 3972604814
+        }
+      ]
+    },
+    {
+      "pair": 11,
+      "initial_state": "North (0, r2b1) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 580143580
+        },
+        {
+          "player": 1,
+          "seed": 220652654
+        }
+      ]
+    },
+    {
+      "pair": 12,
+      "initial_state": "North (0, y3b1) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1456075399
+        },
+        {
+          "player": 0,
+          "seed": 1895274113
+        }
+      ]
+    },
+    {
+      "pair": 13,
+      "initial_state": "North (0, r3y1) g3-\nSouth (1, y3g2) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 1672041111
+        },
+        {
+          "player": 1,
+          "seed": 2684383426
+        }
+      ]
+    },
+    {
+      "pair": 14,
+      "initial_state": "North (0, r3b1) g3-\nSouth (1, y1b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 3254308432
+        },
+        {
+          "player": 0,
+          "seed": 326980093
+        }
+      ]
+    },
+    {
+      "pair": 15,
+      "initial_state": "North (0, y2b3) g3-\nSouth (1, y2g1) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 3902066727
+        },
+        {
+          "player": 1,
+          "seed": 1537882032
+        }
+      ]
+    },
+    {
+      "pair": 16,
+      "initial_state": "North (0, r2y1) g3-\nSouth (1, y1b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 2502520782
+        },
+        {
+          "player": 0,
+          "seed": 2674267094
+        }
+      ]
+    },
+    {
+      "pair": 17,
+      "initial_state": "North (0, g3b1) y3-\nSouth (1, y2b1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 356073489
+        },
+        {
+          "player": 1,
+          "seed": 2983057493
+        }
+      ]
+    },
+    {
+      "pair": 18,
+      "initial_state": "North (0, r1b3) g3-\nSouth (1, r2y3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 4100207506
+        },
+        {
+          "player": 0,
+          "seed": 2079990222
+        }
+      ]
+    },
+    {
+      "pair": 19,
+      "initial_state": "North (0, g3b1) y3-\nSouth (1, g2b3) -y3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 4225075880
+        },
+        {
+          "player": 1,
+          "seed": 2492796178
+        }
+      ]
+    },
+    {
+      "pair": 20,
+      "initial_state": "North (0, g1b3) y3-\nSouth (1, y2b1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 3994775966
+        },
+        {
+          "player": 0,
+          "seed": 3556575602
+        }
+      ]
+    },
+    {
+      "pair": 21,
+      "initial_state": "North (0, g1b3) y3-\nSouth (1, y3b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 188544838
+        },
+        {
+          "player": 1,
+          "seed": 2554670324
+        }
+      ]
+    },
+    {
+      "pair": 22,
+      "initial_state": "North (0, y3b2) g3-\nSouth (1, y1g3) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 2720168397
+        },
+        {
+          "player": 0,
+          "seed": 3952914520
+        }
+      ]
+    },
+    {
+      "pair": 23,
+      "initial_state": "North (0, r3y1) g3-\nSouth (1, y3b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 263865039
+        },
+        {
+          "player": 1,
+          "seed": 431150393
+        }
+      ]
+    },
+    {
+      "pair": 24,
+      "initial_state": "North (0, r1y3) g3-\nSouth (1, g2b3) -y3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 135499825
+        },
+        {
+          "player": 0,
+          "seed": 1107282771
+        }
+      ]
+    },
+    {
+      "pair": 25,
+      "initial_state": "North (0, r2y1) g3-\nSouth (1, r3b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 4130034936
+        },
+        {
+          "player": 1,
+          "seed": 935933049
+        }
+      ]
+    },
+    {
+      "pair": 26,
+      "initial_state": "North (0, r2y3) g3-\nSouth (1, r1y2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 2116871726
+        },
+        {
+          "player": 0,
+          "seed": 172740265
+        }
+      ]
+    },
+    {
+      "pair": 27,
+      "initial_state": "North (0, r1y2) g3-\nSouth (1, y1b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 85221285
+        },
+        {
+          "player": 1,
+          "seed": 2941430165
+        }
+      ]
+    },
+    {
+      "pair": 28,
+      "initial_state": "North (0, y3b2) g3-\nSouth (1, r1y3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1395327720
+        },
+        {
+          "player": 0,
+          "seed": 979051801
+        }
+      ]
+    },
+    {
+      "pair": 29,
+      "initial_state": "North (0, g1b2) y3-\nSouth (1, y3b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 1668205997
+        },
+        {
+          "player": 1,
+          "seed": 2334166877
+        }
+      ]
+    },
+    {
+      "pair": 30,
+      "initial_state": "North (0, y3g2) b3-\nSouth (1, y2g1) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1988734420
+        },
+        {
+          "player": 0,
+          "seed": 1172054872
+        }
+      ]
+    },
+    {
+      "pair": 31,
+      "initial_state": "North (0, g3b1) y3-\nSouth (1, y1g2) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2522208671
+        },
+        {
+          "player": 1,
+          "seed": 1391422595
+        }
+      ]
+    },
+    {
+      "pair": 32,
+      "initial_state": "North (0, g2b1) y3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 967770984
+        },
+        {
+          "player": 0,
+          "seed": 574500693
+        }
+      ]
+    },
+    {
+      "pair": 33,
+      "initial_state": "North (0, r3b1) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2007300777
+        },
+        {
+          "player": 1,
+          "seed": 1962102749
+        }
+      ]
+    },
+    {
+      "pair": 34,
+      "initial_state": "North (0, y2g1) b3-\nSouth (1, y3b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 2811582967
+        },
+        {
+          "player": 0,
+          "seed": 4111510484
+        }
+      ]
+    },
+    {
+      "pair": 35,
+      "initial_state": "North (0, r1b2) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 218155031
+        },
+        {
+          "player": 1,
+          "seed": 1557324709
+        }
+      ]
+    },
+    {
+      "pair": 36,
+      "initial_state": "North (0, y1b3) g3-\nSouth (1, r2y1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1249403007
+        },
+        {
+          "player": 0,
+          "seed": 984677244
+        }
+      ]
+    },
+    {
+      "pair": 37,
+      "initial_state": "North (0, y3b1) g3-\nSouth (1, r2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2672123676
+        },
+        {
+          "player": 1,
+          "seed": 2893157123
+        }
+      ]
+    },
+    {
+      "pair": 38,
+      "initial_state": "North (0, g2b3) y3-\nSouth (1, r2y1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 513188076
+        },
+        {
+          "player": 0,
+          "seed": 3944924750
+        }
+      ]
+    },
+    {
+      "pair": 39,
+      "initial_state": "North (0, g2b3) y3-\nSouth (1, y1g2) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 4129627382
+        },
+        {
+          "player": 1,
+          "seed": 2818928088
+        }
+      ]
+    },
+    {
+      "pair": 40,
+      "initial_state": "North (0, r1b3) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1360340165
+        },
+        {
+          "player": 0,
+          "seed": 3579635647
+        }
+      ]
+    },
+    {
+      "pair": 41,
+      "initial_state": "North (0, y1b2) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2204439422
+        },
+        {
+          "player": 1,
+          "seed": 1302558476
+        }
+      ]
+    },
+    {
+      "pair": 42,
+      "initial_state": "North (0, r2y1) g3-\nSouth (1, r2y3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1716332898
+        },
+        {
+          "player": 0,
+          "seed": 1580776166
+        }
+      ]
+    },
+    {
+      "pair": 43,
+      "initial_state": "North (0, r3y2) g3-\nSouth (1, r1y2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2394113202
+        },
+        {
+          "player": 1,
+          "seed": 3714709135
+        }
+      ]
+    },
+    {
+      "pair": 44,
+      "initial_state": "North (0, y3b1) g3-\nSouth (1, g1b2) -y3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1194360054
+        },
+        {
+          "player": 0,
+          "seed": 3712976155
+        }
+      ]
+    },
+    {
+      "pair": 45,
+      "initial_state": "North (0, y3b1) g3-\nSouth (1, y2g3) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 249421701
+        },
+        {
+          "player": 1,
+          "seed": 2942057883
+        }
+      ]
+    },
+    {
+      "pair": 46,
+      "initial_state": "North (0, g1b3) y3-\nSouth (1, r1y2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 3894242976
+        },
+        {
+          "player": 0,
+          "seed": 175081603
+        }
+      ]
+    },
+    {
+      "pair": 47,
+      "initial_state": "North (0, r1b3) g3-\nSouth (1, y3g2) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2999140095
+        },
+        {
+          "player": 1,
+          "seed": 518239957
+        }
+      ]
+    },
+    {
+      "pair": 48,
+      "initial_state": "North (0, y3b2) g3-\nSouth (1, r3b1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 342906409
+        },
+        {
+          "player": 0,
+          "seed": 647907984
+        }
+      ]
+    },
+    {
+      "pair": 49,
+      "initial_state": "North (0, g2b3) y3-\nSouth (1, y3b1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 1629722047
+        },
+        {
+          "player": 1,
+          "seed": 2634791095
+        }
+      ]
+    },
+    {
+      "pair": 50,
+      "initial_state": "North (0, g1b3) y3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 264108375
+        },
+        {
+          "player": 0,
+          "seed": 3437855676
+        }
+      ]
+    }
+  ],
+  "schedule": [
+    {
+      "game": 1,
+      "starter": 0,
+      "pair": 1,
+      "initial_state": "North (0, y3b2) g3-\nSouth (1, y1b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 1821732005
+        },
+        {
+          "player": 1,
+          "seed": 1628324191
+        }
+      ]
+    },
+    {
+      "game": 2,
+      "starter": 1,
+      "pair": 1,
+      "initial_state": "North (0, y3b2) g3-\nSouth (1, y1b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 1821732005
+        },
+        {
+          "player": 1,
+          "seed": 1628324191
+        }
+      ]
+    },
+    {
+      "game": 3,
+      "starter": 0,
+      "pair": 2,
+      "initial_state": "North (0, y1g3) b3-\nSouth (1, y1g2) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 3351864502
+        },
+        {
+          "player": 0,
+          "seed": 965746278
+        }
+      ]
+    },
+    {
+      "game": 4,
+      "starter": 1,
+      "pair": 2,
+      "initial_state": "North (0, y1g3) b3-\nSouth (1, y1g2) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 3351864502
+        },
+        {
+          "player": 0,
+          "seed": 965746278
+        }
+      ]
+    },
+    {
+      "game": 5,
+      "starter": 0,
+      "pair": 3,
+      "initial_state": "North (0, r2b3) g3-\nSouth (1, r1y3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 841152641
+        },
+        {
+          "player": 1,
+          "seed": 2904711041
+        }
+      ]
+    },
+    {
+      "game": 6,
+      "starter": 1,
+      "pair": 3,
+      "initial_state": "North (0, r2b3) g3-\nSouth (1, r1y3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 841152641
+        },
+        {
+          "player": 1,
+          "seed": 2904711041
+        }
+      ]
+    },
+    {
+      "game": 7,
+      "starter": 0,
+      "pair": 4,
+      "initial_state": "North (0, g3b2) y3-\nSouth (1, r1b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 3089844631
+        },
+        {
+          "player": 0,
+          "seed": 2453814293
+        }
+      ]
+    },
+    {
+      "game": 8,
+      "starter": 1,
+      "pair": 4,
+      "initial_state": "North (0, g3b2) y3-\nSouth (1, r1b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 3089844631
+        },
+        {
+          "player": 0,
+          "seed": 2453814293
+        }
+      ]
+    },
+    {
+      "game": 9,
+      "starter": 0,
+      "pair": 5,
+      "initial_state": "North (0, r2b3) g3-\nSouth (1, r3y1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 3775632221
+        },
+        {
+          "player": 1,
+          "seed": 1905625906
+        }
+      ]
+    },
+    {
+      "game": 10,
+      "starter": 1,
+      "pair": 5,
+      "initial_state": "North (0, r2b3) g3-\nSouth (1, r3y1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 3775632221
+        },
+        {
+          "player": 1,
+          "seed": 1905625906
+        }
+      ]
+    },
+    {
+      "game": 11,
+      "starter": 0,
+      "pair": 6,
+      "initial_state": "North (0, g2b1) y3-\nSouth (1, g2b3) -y3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 309512692
+        },
+        {
+          "player": 0,
+          "seed": 3506935998
+        }
+      ]
+    },
+    {
+      "game": 12,
+      "starter": 1,
+      "pair": 6,
+      "initial_state": "North (0, g2b1) y3-\nSouth (1, g2b3) -y3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 309512692
+        },
+        {
+          "player": 0,
+          "seed": 3506935998
+        }
+      ]
+    },
+    {
+      "game": 13,
+      "starter": 0,
+      "pair": 7,
+      "initial_state": "North (0, y2g3) b3-\nSouth (1, r3y1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 3883480181
+        },
+        {
+          "player": 1,
+          "seed": 1756718358
+        }
+      ]
+    },
+    {
+      "game": 14,
+      "starter": 1,
+      "pair": 7,
+      "initial_state": "North (0, y2g3) b3-\nSouth (1, r3y1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 3883480181
+        },
+        {
+          "player": 1,
+          "seed": 1756718358
+        }
+      ]
+    },
+    {
+      "game": 15,
+      "starter": 0,
+      "pair": 8,
+      "initial_state": "North (0, g1b2) y3-\nSouth (1, r3y1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1561407237
+        },
+        {
+          "player": 0,
+          "seed": 4043909572
+        }
+      ]
+    },
+    {
+      "game": 16,
+      "starter": 1,
+      "pair": 8,
+      "initial_state": "North (0, g1b2) y3-\nSouth (1, r3y1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1561407237
+        },
+        {
+          "player": 0,
+          "seed": 4043909572
+        }
+      ]
+    },
+    {
+      "game": 17,
+      "starter": 0,
+      "pair": 9,
+      "initial_state": "North (0, y3g1) b3-\nSouth (1, y2g1) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 619618584
+        },
+        {
+          "player": 1,
+          "seed": 3292449313
+        }
+      ]
+    },
+    {
+      "game": 18,
+      "starter": 1,
+      "pair": 9,
+      "initial_state": "North (0, y3g1) b3-\nSouth (1, y2g1) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 619618584
+        },
+        {
+          "player": 1,
+          "seed": 3292449313
+        }
+      ]
+    },
+    {
+      "game": 19,
+      "starter": 0,
+      "pair": 10,
+      "initial_state": "North (0, y2b1) g3-\nSouth (1, r3b1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 2961440882
+        },
+        {
+          "player": 0,
+          "seed": 3972604814
+        }
+      ]
+    },
+    {
+      "game": 20,
+      "starter": 1,
+      "pair": 10,
+      "initial_state": "North (0, y2b1) g3-\nSouth (1, r3b1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 2961440882
+        },
+        {
+          "player": 0,
+          "seed": 3972604814
+        }
+      ]
+    },
+    {
+      "game": 21,
+      "starter": 0,
+      "pair": 11,
+      "initial_state": "North (0, r2b1) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 580143580
+        },
+        {
+          "player": 1,
+          "seed": 220652654
+        }
+      ]
+    },
+    {
+      "game": 22,
+      "starter": 1,
+      "pair": 11,
+      "initial_state": "North (0, r2b1) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 580143580
+        },
+        {
+          "player": 1,
+          "seed": 220652654
+        }
+      ]
+    },
+    {
+      "game": 23,
+      "starter": 0,
+      "pair": 12,
+      "initial_state": "North (0, y3b1) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1456075399
+        },
+        {
+          "player": 0,
+          "seed": 1895274113
+        }
+      ]
+    },
+    {
+      "game": 24,
+      "starter": 1,
+      "pair": 12,
+      "initial_state": "North (0, y3b1) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1456075399
+        },
+        {
+          "player": 0,
+          "seed": 1895274113
+        }
+      ]
+    },
+    {
+      "game": 25,
+      "starter": 0,
+      "pair": 13,
+      "initial_state": "North (0, r3y1) g3-\nSouth (1, y3g2) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 1672041111
+        },
+        {
+          "player": 1,
+          "seed": 2684383426
+        }
+      ]
+    },
+    {
+      "game": 26,
+      "starter": 1,
+      "pair": 13,
+      "initial_state": "North (0, r3y1) g3-\nSouth (1, y3g2) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 1672041111
+        },
+        {
+          "player": 1,
+          "seed": 2684383426
+        }
+      ]
+    },
+    {
+      "game": 27,
+      "starter": 0,
+      "pair": 14,
+      "initial_state": "North (0, r3b1) g3-\nSouth (1, y1b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 3254308432
+        },
+        {
+          "player": 0,
+          "seed": 326980093
+        }
+      ]
+    },
+    {
+      "game": 28,
+      "starter": 1,
+      "pair": 14,
+      "initial_state": "North (0, r3b1) g3-\nSouth (1, y1b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 3254308432
+        },
+        {
+          "player": 0,
+          "seed": 326980093
+        }
+      ]
+    },
+    {
+      "game": 29,
+      "starter": 0,
+      "pair": 15,
+      "initial_state": "North (0, y2b3) g3-\nSouth (1, y2g1) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 3902066727
+        },
+        {
+          "player": 1,
+          "seed": 1537882032
+        }
+      ]
+    },
+    {
+      "game": 30,
+      "starter": 1,
+      "pair": 15,
+      "initial_state": "North (0, y2b3) g3-\nSouth (1, y2g1) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 3902066727
+        },
+        {
+          "player": 1,
+          "seed": 1537882032
+        }
+      ]
+    },
+    {
+      "game": 31,
+      "starter": 0,
+      "pair": 16,
+      "initial_state": "North (0, r2y1) g3-\nSouth (1, y1b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 2502520782
+        },
+        {
+          "player": 0,
+          "seed": 2674267094
+        }
+      ]
+    },
+    {
+      "game": 32,
+      "starter": 1,
+      "pair": 16,
+      "initial_state": "North (0, r2y1) g3-\nSouth (1, y1b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 2502520782
+        },
+        {
+          "player": 0,
+          "seed": 2674267094
+        }
+      ]
+    },
+    {
+      "game": 33,
+      "starter": 0,
+      "pair": 17,
+      "initial_state": "North (0, g3b1) y3-\nSouth (1, y2b1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 356073489
+        },
+        {
+          "player": 1,
+          "seed": 2983057493
+        }
+      ]
+    },
+    {
+      "game": 34,
+      "starter": 1,
+      "pair": 17,
+      "initial_state": "North (0, g3b1) y3-\nSouth (1, y2b1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 356073489
+        },
+        {
+          "player": 1,
+          "seed": 2983057493
+        }
+      ]
+    },
+    {
+      "game": 35,
+      "starter": 0,
+      "pair": 18,
+      "initial_state": "North (0, r1b3) g3-\nSouth (1, r2y3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 4100207506
+        },
+        {
+          "player": 0,
+          "seed": 2079990222
+        }
+      ]
+    },
+    {
+      "game": 36,
+      "starter": 1,
+      "pair": 18,
+      "initial_state": "North (0, r1b3) g3-\nSouth (1, r2y3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 4100207506
+        },
+        {
+          "player": 0,
+          "seed": 2079990222
+        }
+      ]
+    },
+    {
+      "game": 37,
+      "starter": 0,
+      "pair": 19,
+      "initial_state": "North (0, g3b1) y3-\nSouth (1, g2b3) -y3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 4225075880
+        },
+        {
+          "player": 1,
+          "seed": 2492796178
+        }
+      ]
+    },
+    {
+      "game": 38,
+      "starter": 1,
+      "pair": 19,
+      "initial_state": "North (0, g3b1) y3-\nSouth (1, g2b3) -y3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 4225075880
+        },
+        {
+          "player": 1,
+          "seed": 2492796178
+        }
+      ]
+    },
+    {
+      "game": 39,
+      "starter": 0,
+      "pair": 20,
+      "initial_state": "North (0, g1b3) y3-\nSouth (1, y2b1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 3994775966
+        },
+        {
+          "player": 0,
+          "seed": 3556575602
+        }
+      ]
+    },
+    {
+      "game": 40,
+      "starter": 1,
+      "pair": 20,
+      "initial_state": "North (0, g1b3) y3-\nSouth (1, y2b1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 3994775966
+        },
+        {
+          "player": 0,
+          "seed": 3556575602
+        }
+      ]
+    },
+    {
+      "game": 41,
+      "starter": 0,
+      "pair": 21,
+      "initial_state": "North (0, g1b3) y3-\nSouth (1, y3b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 188544838
+        },
+        {
+          "player": 1,
+          "seed": 2554670324
+        }
+      ]
+    },
+    {
+      "game": 42,
+      "starter": 1,
+      "pair": 21,
+      "initial_state": "North (0, g1b3) y3-\nSouth (1, y3b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 188544838
+        },
+        {
+          "player": 1,
+          "seed": 2554670324
+        }
+      ]
+    },
+    {
+      "game": 43,
+      "starter": 0,
+      "pair": 22,
+      "initial_state": "North (0, y3b2) g3-\nSouth (1, y1g3) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 2720168397
+        },
+        {
+          "player": 0,
+          "seed": 3952914520
+        }
+      ]
+    },
+    {
+      "game": 44,
+      "starter": 1,
+      "pair": 22,
+      "initial_state": "North (0, y3b2) g3-\nSouth (1, y1g3) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 2720168397
+        },
+        {
+          "player": 0,
+          "seed": 3952914520
+        }
+      ]
+    },
+    {
+      "game": 45,
+      "starter": 0,
+      "pair": 23,
+      "initial_state": "North (0, r3y1) g3-\nSouth (1, y3b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 263865039
+        },
+        {
+          "player": 1,
+          "seed": 431150393
+        }
+      ]
+    },
+    {
+      "game": 46,
+      "starter": 1,
+      "pair": 23,
+      "initial_state": "North (0, r3y1) g3-\nSouth (1, y3b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 263865039
+        },
+        {
+          "player": 1,
+          "seed": 431150393
+        }
+      ]
+    },
+    {
+      "game": 47,
+      "starter": 0,
+      "pair": 24,
+      "initial_state": "North (0, r1y3) g3-\nSouth (1, g2b3) -y3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 135499825
+        },
+        {
+          "player": 0,
+          "seed": 1107282771
+        }
+      ]
+    },
+    {
+      "game": 48,
+      "starter": 1,
+      "pair": 24,
+      "initial_state": "North (0, r1y3) g3-\nSouth (1, g2b3) -y3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 135499825
+        },
+        {
+          "player": 0,
+          "seed": 1107282771
+        }
+      ]
+    },
+    {
+      "game": 49,
+      "starter": 0,
+      "pair": 25,
+      "initial_state": "North (0, r2y1) g3-\nSouth (1, r3b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 4130034936
+        },
+        {
+          "player": 1,
+          "seed": 935933049
+        }
+      ]
+    },
+    {
+      "game": 50,
+      "starter": 1,
+      "pair": 25,
+      "initial_state": "North (0, r2y1) g3-\nSouth (1, r3b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 4130034936
+        },
+        {
+          "player": 1,
+          "seed": 935933049
+        }
+      ]
+    },
+    {
+      "game": 51,
+      "starter": 0,
+      "pair": 26,
+      "initial_state": "North (0, r2y3) g3-\nSouth (1, r1y2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 2116871726
+        },
+        {
+          "player": 0,
+          "seed": 172740265
+        }
+      ]
+    },
+    {
+      "game": 52,
+      "starter": 1,
+      "pair": 26,
+      "initial_state": "North (0, r2y3) g3-\nSouth (1, r1y2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 2116871726
+        },
+        {
+          "player": 0,
+          "seed": 172740265
+        }
+      ]
+    },
+    {
+      "game": 53,
+      "starter": 0,
+      "pair": 27,
+      "initial_state": "North (0, r1y2) g3-\nSouth (1, y1b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 85221285
+        },
+        {
+          "player": 1,
+          "seed": 2941430165
+        }
+      ]
+    },
+    {
+      "game": 54,
+      "starter": 1,
+      "pair": 27,
+      "initial_state": "North (0, r1y2) g3-\nSouth (1, y1b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 85221285
+        },
+        {
+          "player": 1,
+          "seed": 2941430165
+        }
+      ]
+    },
+    {
+      "game": 55,
+      "starter": 0,
+      "pair": 28,
+      "initial_state": "North (0, y3b2) g3-\nSouth (1, r1y3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1395327720
+        },
+        {
+          "player": 0,
+          "seed": 979051801
+        }
+      ]
+    },
+    {
+      "game": 56,
+      "starter": 1,
+      "pair": 28,
+      "initial_state": "North (0, y3b2) g3-\nSouth (1, r1y3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1395327720
+        },
+        {
+          "player": 0,
+          "seed": 979051801
+        }
+      ]
+    },
+    {
+      "game": 57,
+      "starter": 0,
+      "pair": 29,
+      "initial_state": "North (0, g1b2) y3-\nSouth (1, y3b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 1668205997
+        },
+        {
+          "player": 1,
+          "seed": 2334166877
+        }
+      ]
+    },
+    {
+      "game": 58,
+      "starter": 1,
+      "pair": 29,
+      "initial_state": "North (0, g1b2) y3-\nSouth (1, y3b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 1668205997
+        },
+        {
+          "player": 1,
+          "seed": 2334166877
+        }
+      ]
+    },
+    {
+      "game": 59,
+      "starter": 0,
+      "pair": 30,
+      "initial_state": "North (0, y3g2) b3-\nSouth (1, y2g1) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1988734420
+        },
+        {
+          "player": 0,
+          "seed": 1172054872
+        }
+      ]
+    },
+    {
+      "game": 60,
+      "starter": 1,
+      "pair": 30,
+      "initial_state": "North (0, y3g2) b3-\nSouth (1, y2g1) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1988734420
+        },
+        {
+          "player": 0,
+          "seed": 1172054872
+        }
+      ]
+    },
+    {
+      "game": 61,
+      "starter": 0,
+      "pair": 31,
+      "initial_state": "North (0, g3b1) y3-\nSouth (1, y1g2) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2522208671
+        },
+        {
+          "player": 1,
+          "seed": 1391422595
+        }
+      ]
+    },
+    {
+      "game": 62,
+      "starter": 1,
+      "pair": 31,
+      "initial_state": "North (0, g3b1) y3-\nSouth (1, y1g2) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2522208671
+        },
+        {
+          "player": 1,
+          "seed": 1391422595
+        }
+      ]
+    },
+    {
+      "game": 63,
+      "starter": 0,
+      "pair": 32,
+      "initial_state": "North (0, g2b1) y3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 967770984
+        },
+        {
+          "player": 0,
+          "seed": 574500693
+        }
+      ]
+    },
+    {
+      "game": 64,
+      "starter": 1,
+      "pair": 32,
+      "initial_state": "North (0, g2b1) y3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 967770984
+        },
+        {
+          "player": 0,
+          "seed": 574500693
+        }
+      ]
+    },
+    {
+      "game": 65,
+      "starter": 0,
+      "pair": 33,
+      "initial_state": "North (0, r3b1) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2007300777
+        },
+        {
+          "player": 1,
+          "seed": 1962102749
+        }
+      ]
+    },
+    {
+      "game": 66,
+      "starter": 1,
+      "pair": 33,
+      "initial_state": "North (0, r3b1) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2007300777
+        },
+        {
+          "player": 1,
+          "seed": 1962102749
+        }
+      ]
+    },
+    {
+      "game": 67,
+      "starter": 0,
+      "pair": 34,
+      "initial_state": "North (0, y2g1) b3-\nSouth (1, y3b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 2811582967
+        },
+        {
+          "player": 0,
+          "seed": 4111510484
+        }
+      ]
+    },
+    {
+      "game": 68,
+      "starter": 1,
+      "pair": 34,
+      "initial_state": "North (0, y2g1) b3-\nSouth (1, y3b2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 2811582967
+        },
+        {
+          "player": 0,
+          "seed": 4111510484
+        }
+      ]
+    },
+    {
+      "game": 69,
+      "starter": 0,
+      "pair": 35,
+      "initial_state": "North (0, r1b2) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 218155031
+        },
+        {
+          "player": 1,
+          "seed": 1557324709
+        }
+      ]
+    },
+    {
+      "game": 70,
+      "starter": 1,
+      "pair": 35,
+      "initial_state": "North (0, r1b2) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 218155031
+        },
+        {
+          "player": 1,
+          "seed": 1557324709
+        }
+      ]
+    },
+    {
+      "game": 71,
+      "starter": 0,
+      "pair": 36,
+      "initial_state": "North (0, y1b3) g3-\nSouth (1, r2y1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1249403007
+        },
+        {
+          "player": 0,
+          "seed": 984677244
+        }
+      ]
+    },
+    {
+      "game": 72,
+      "starter": 1,
+      "pair": 36,
+      "initial_state": "North (0, y1b3) g3-\nSouth (1, r2y1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1249403007
+        },
+        {
+          "player": 0,
+          "seed": 984677244
+        }
+      ]
+    },
+    {
+      "game": 73,
+      "starter": 0,
+      "pair": 37,
+      "initial_state": "North (0, y3b1) g3-\nSouth (1, r2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2672123676
+        },
+        {
+          "player": 1,
+          "seed": 2893157123
+        }
+      ]
+    },
+    {
+      "game": 74,
+      "starter": 1,
+      "pair": 37,
+      "initial_state": "North (0, y3b1) g3-\nSouth (1, r2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2672123676
+        },
+        {
+          "player": 1,
+          "seed": 2893157123
+        }
+      ]
+    },
+    {
+      "game": 75,
+      "starter": 0,
+      "pair": 38,
+      "initial_state": "North (0, g2b3) y3-\nSouth (1, r2y1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 513188076
+        },
+        {
+          "player": 0,
+          "seed": 3944924750
+        }
+      ]
+    },
+    {
+      "game": 76,
+      "starter": 1,
+      "pair": 38,
+      "initial_state": "North (0, g2b3) y3-\nSouth (1, r2y1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 513188076
+        },
+        {
+          "player": 0,
+          "seed": 3944924750
+        }
+      ]
+    },
+    {
+      "game": 77,
+      "starter": 0,
+      "pair": 39,
+      "initial_state": "North (0, g2b3) y3-\nSouth (1, y1g2) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 4129627382
+        },
+        {
+          "player": 1,
+          "seed": 2818928088
+        }
+      ]
+    },
+    {
+      "game": 78,
+      "starter": 1,
+      "pair": 39,
+      "initial_state": "North (0, g2b3) y3-\nSouth (1, y1g2) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 4129627382
+        },
+        {
+          "player": 1,
+          "seed": 2818928088
+        }
+      ]
+    },
+    {
+      "game": 79,
+      "starter": 0,
+      "pair": 40,
+      "initial_state": "North (0, r1b3) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1360340165
+        },
+        {
+          "player": 0,
+          "seed": 3579635647
+        }
+      ]
+    },
+    {
+      "game": 80,
+      "starter": 1,
+      "pair": 40,
+      "initial_state": "North (0, r1b3) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1360340165
+        },
+        {
+          "player": 0,
+          "seed": 3579635647
+        }
+      ]
+    },
+    {
+      "game": 81,
+      "starter": 0,
+      "pair": 41,
+      "initial_state": "North (0, y1b2) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2204439422
+        },
+        {
+          "player": 1,
+          "seed": 1302558476
+        }
+      ]
+    },
+    {
+      "game": 82,
+      "starter": 1,
+      "pair": 41,
+      "initial_state": "North (0, y1b2) g3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2204439422
+        },
+        {
+          "player": 1,
+          "seed": 1302558476
+        }
+      ]
+    },
+    {
+      "game": 83,
+      "starter": 0,
+      "pair": 42,
+      "initial_state": "North (0, r2y1) g3-\nSouth (1, r2y3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1716332898
+        },
+        {
+          "player": 0,
+          "seed": 1580776166
+        }
+      ]
+    },
+    {
+      "game": 84,
+      "starter": 1,
+      "pair": 42,
+      "initial_state": "North (0, r2y1) g3-\nSouth (1, r2y3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1716332898
+        },
+        {
+          "player": 0,
+          "seed": 1580776166
+        }
+      ]
+    },
+    {
+      "game": 85,
+      "starter": 0,
+      "pair": 43,
+      "initial_state": "North (0, r3y2) g3-\nSouth (1, r1y2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2394113202
+        },
+        {
+          "player": 1,
+          "seed": 3714709135
+        }
+      ]
+    },
+    {
+      "game": 86,
+      "starter": 1,
+      "pair": 43,
+      "initial_state": "North (0, r3y2) g3-\nSouth (1, r1y2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2394113202
+        },
+        {
+          "player": 1,
+          "seed": 3714709135
+        }
+      ]
+    },
+    {
+      "game": 87,
+      "starter": 0,
+      "pair": 44,
+      "initial_state": "North (0, y3b1) g3-\nSouth (1, g1b2) -y3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1194360054
+        },
+        {
+          "player": 0,
+          "seed": 3712976155
+        }
+      ]
+    },
+    {
+      "game": 88,
+      "starter": 1,
+      "pair": 44,
+      "initial_state": "North (0, y3b1) g3-\nSouth (1, g1b2) -y3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 1194360054
+        },
+        {
+          "player": 0,
+          "seed": 3712976155
+        }
+      ]
+    },
+    {
+      "game": 89,
+      "starter": 0,
+      "pair": 45,
+      "initial_state": "North (0, y3b1) g3-\nSouth (1, y2g3) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 249421701
+        },
+        {
+          "player": 1,
+          "seed": 2942057883
+        }
+      ]
+    },
+    {
+      "game": 90,
+      "starter": 1,
+      "pair": 45,
+      "initial_state": "North (0, y3b1) g3-\nSouth (1, y2g3) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 249421701
+        },
+        {
+          "player": 1,
+          "seed": 2942057883
+        }
+      ]
+    },
+    {
+      "game": 91,
+      "starter": 0,
+      "pair": 46,
+      "initial_state": "North (0, g1b3) y3-\nSouth (1, r1y2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 3894242976
+        },
+        {
+          "player": 0,
+          "seed": 175081603
+        }
+      ]
+    },
+    {
+      "game": 92,
+      "starter": 1,
+      "pair": 46,
+      "initial_state": "North (0, g1b3) y3-\nSouth (1, r1y2) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 3894242976
+        },
+        {
+          "player": 0,
+          "seed": 175081603
+        }
+      ]
+    },
+    {
+      "game": 93,
+      "starter": 0,
+      "pair": 47,
+      "initial_state": "North (0, r1b3) g3-\nSouth (1, y3g2) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2999140095
+        },
+        {
+          "player": 1,
+          "seed": 518239957
+        }
+      ]
+    },
+    {
+      "game": 94,
+      "starter": 1,
+      "pair": 47,
+      "initial_state": "North (0, r1b3) g3-\nSouth (1, y3g2) -b3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 2999140095
+        },
+        {
+          "player": 1,
+          "seed": 518239957
+        }
+      ]
+    },
+    {
+      "game": 95,
+      "starter": 0,
+      "pair": 48,
+      "initial_state": "North (0, y3b2) g3-\nSouth (1, r3b1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 342906409
+        },
+        {
+          "player": 0,
+          "seed": 647907984
+        }
+      ]
+    },
+    {
+      "game": 96,
+      "starter": 1,
+      "pair": 48,
+      "initial_state": "North (0, y3b2) g3-\nSouth (1, r3b1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 342906409
+        },
+        {
+          "player": 0,
+          "seed": 647907984
+        }
+      ]
+    },
+    {
+      "game": 97,
+      "starter": 0,
+      "pair": 49,
+      "initial_state": "North (0, g2b3) y3-\nSouth (1, y3b1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 1629722047
+        },
+        {
+          "player": 1,
+          "seed": 2634791095
+        }
+      ]
+    },
+    {
+      "game": 98,
+      "starter": 1,
+      "pair": 49,
+      "initial_state": "North (0, g2b3) y3-\nSouth (1, y3b1) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 0,
+          "seed": 1629722047
+        },
+        {
+          "player": 1,
+          "seed": 2634791095
+        }
+      ]
+    },
+    {
+      "game": 99,
+      "starter": 0,
+      "pair": 50,
+      "initial_state": "North (0, g1b3) y3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 264108375
+        },
+        {
+          "player": 0,
+          "seed": 3437855676
+        }
+      ]
+    },
+    {
+      "game": 100,
+      "starter": 1,
+      "pair": 50,
+      "initial_state": "North (0, g1b3) y3-\nSouth (1, y2b3) -g3\n",
+      "setup_seeds": [
+        {
+          "player": 1,
+          "seed": 264108375
+        },
+        {
+          "player": 0,
+          "seed": 3437855676
+        }
+      ]
+    }
+  ],
+  "method": "Unmodified native get_ai_move, full search. Fresh process per complete turn, matching website worker lifetime. Identical search and 60-second safety ceiling for both copies; no partial answer accepted. Native CLI setup algorithm generates 50 distinct paired opening positions; setup selection order alternates by pair. Bot 1 always North/player 0; Bot 2 always South/player 1. Every pair reverses who moves first. One player turn counts as one turn, including any sacrifice actions and free catastrophes.",
+  "scoring": "Exactly 100 fixed scheduled games; no outcome-based replacement or filtering. Natural rulebook wins and simultaneous-elimination draws only. Repetition adjudications, turn-limit stops, timeouts, illegal moves and software errors are separate and earn no win.",
+  "referee": "Original Quux ApplyMove::Single plus existing Rules13 whole-turn adapter; full transcripts independently replayed through the website TypeScript rules engine.",
+  "resource_policy": "4 parallel games, one CPU affinity per game, 4 GiB address space per search.",
+  "hashes": {
+    "quux-selfplay/bin/quux": "74aeac9fa09efa292269f95f21981887ebffc07fc35d9e3d5de1ebcf3ee750b5",
+    "quux-selfplay/native.cc": "5ac929ed8cc19b2ca5e8b42f4ea41c11e174fea5d2b7ba6fbcb5dab70b1ed59b",
+    "quux-selfplay/run.py": "b282b930c93cc813c28d580c72d57710c99b2a638b4aa6365885cfae4acf26bb",
+    "quux-selfplay/build.sh": "c191f77c1962b9437ec6e31074e72e5a2db5732daf0913f892323a9a0282548b",
+    "adapters/quux.cc": "0cb2ad627d7fcf6db2a20074fd9ce268261c1ac3673ef6b36228d5f0dff9d314",
+    "bin/quux-adapter": "32c3b4d2f3b4372d1250f70d85e4198d1ccb49d0c99d123ac2dc87e8e6de4c3d",
+    "tournament.py": "05df18f347ccbaec12367e9c1a472989c1f5ba6252db74c18e0aae82ef312f9e"
+  }
+}

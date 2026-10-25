@@ -1,0 +1,9 @@
+{
+  "games": 100,
+  "turns": 6125,
+  "terminalGames": 43,
+  "repetitionStopsConfirmed": 56,
+  "rejectedTurns": 0,
+  "terminalEmptyHomeworldNormalizations": 7,
+  "engine": "Website TypeScript applyAction; independent of the native C++ referee"
+}

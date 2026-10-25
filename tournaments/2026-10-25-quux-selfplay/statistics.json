@@ -1,0 +1,109 @@
+{
+  "scheduled": 100,
+  "naturally_completed": 43,
+  "decisive": 43,
+  "statuses": {
+    "completed": 43,
+    "adjudicated": 56,
+    "unfinished": 1
+  },
+  "wins": {
+    "Bot 2": 20,
+    "Bot 1": 23
+  },
+  "wins_by_order": {
+    "second": 25,
+    "first": 18
+  },
+  "first_win_percent_decisive": 41.86046511627907,
+  "second_win_percent_decisive": 58.13953488372093,
+  "per_bot": {
+    "Bot 1": {
+      "starts": 50,
+      "wins": 23,
+      "wins_first": 11,
+      "wins_second": 12
+    },
+    "Bot 2": {
+      "starts": 50,
+      "wins": 20,
+      "wins_first": 7,
+      "wins_second": 13
+    }
+  },
+  "natural_game_turns": {
+    "count": 43,
+    "mean": 67.20930232558139,
+    "median": 54,
+    "min": 21,
+    "max": 196,
+    "p95": 152
+  },
+  "all_attempt_turns": {
+    "count": 100,
+    "mean": 61.25,
+    "median": 53.5,
+    "min": 20,
+    "max": 196,
+    "p95": 138
+  },
+  "decisive_game_turns": {
+    "count": 43,
+    "mean": 67.20930232558139,
+    "median": 54,
+    "min": 21,
+    "max": 196,
+    "p95": 152
+  },
+  "total_validated_turns": 6125,
+  "passes": 73,
+  "catastrophes": 225,
+  "games_with_catastrophe": 80,
+  "actions": {
+    "build": 2672,
+    "trade": 1214,
+    "discover": 903,
+    "move": 1562,
+    "sacrifice": 901,
+    "catastrophe": 225,
+    "capture": 415,
+    "pass": 73
+  },
+  "decision_wall_seconds": {
+    "count": 6125,
+    "mean": 0.4549673543299515,
+    "median": 0.011458330998721067,
+    "min": 0.005012900997826364,
+    "max": 42.765193156999885,
+    "p95": 1.9204877250012942
+  },
+  "decision_cpu_seconds": {
+    "count": 6125,
+    "mean": 0.4467730543673476,
+    "median": 0.008992000000001443,
+    "min": 0.003126999999999998,
+    "max": 42.45193500000003,
+    "p95": 1.8729970000000082
+  },
+  "total_search_process_cpu_seconds": 2795.256497000004,
+  "total_decision_wall_seconds": 2846.802204737949,
+  "elapsed_wall_seconds": 911.7788283824921,
+  "timeouts": 1,
+  "illegal_turns": 0,
+  "failed_searches": 1,
+  "pair_results": {
+    "second player wins both": 5,
+    "pair contains a draw, adjudication or unfinished game": 37,
+    "first player wins both": 3,
+    "one first-player win and one second-player win": 5
+  },
+  "verification": {
+    "games": 100,
+    "turns": 6125,
+    "terminalGames": 43,
+    "repetitionStopsConfirmed": 56,
+    "rejectedTurns": 0,
+    "terminalEmptyHomeworldNormalizations": 7,
+    "engine": "Website TypeScript applyAction; independent of the native C++ referee"
+  }
+}
