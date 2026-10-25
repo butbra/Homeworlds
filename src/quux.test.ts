@@ -23,11 +23,11 @@ describe('original Quux engine in WebAssembly',()=>{
  it('chooses legal native homeworlds both before and after human setup',async()=>{
   const engine=await QuuxRuntime.create(readFileSync(new URL('../vendor/quux/quux.wasm',import.meta.url)));
   for(const starter of [0,1]as const)for(let seed=1;seed<=30;seed++){
-   let draft:Setup=starter===0?[[{color:'red',size:1},{color:'blue',size:3},{color:'green',size:3}],[]]:[[],[]];
-   const text=engine.call('setup',quuxSetupPosition(draft),1,seed);
-   for(const p of decodeQuuxSetup(text))draft=placeSetupPiece({pieces:draft,player:1,starter},p).pieces;
-   expect(draft[1]).toHaveLength(3);expect(draft[1][2].size).toBe(3);
-   expect(setupBank(draft)).toHaveLength(starter===0?30:33);
+   let draft:Setup=starter===1?[[],[{color:'red',size:1},{color:'blue',size:3},{color:'green',size:3}]]:[[],[]];
+   const text=engine.call('setup',quuxSetupPosition(draft),0,seed);
+   for(const p of decodeQuuxSetup(text))draft=placeSetupPiece({pieces:draft,player:0,starter},p).pieces;
+   expect(draft[0]).toHaveLength(3);expect(draft[0][2].size).toBe(3);
+   expect(setupBank(draft)).toHaveLength(starter===1?30:33);
   }
  });
  it('rejects invalid or partial native turns without changing the supplied state',()=>{

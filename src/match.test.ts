@@ -35,9 +35,33 @@ describe('random starting player and match modes',()=>{
   expect(decodeSetupProgress(JSON.stringify(progress))).toEqual(progress);
  });
  it('rejects a bot save containing a half-recorded bot turn',()=>{
-  const session=newSession(undefined,{starter:1,mode:'quux'});
-  session.actions=[{type:'build',system:'south',color:'green'}];
+  const session=newSession(undefined,{starter:0,mode:'quux'});
+  session.actions=[{type:'build',system:'north',color:'green'}];
   expect(()=>decodeSession(JSON.stringify(session))).toThrow('turn boundary');
+ });
+ it('moves existing North-human bot saves to South without changing turn order or ownership',()=>{
+  const legacy={...newSession(undefined,{starter:0,mode:'quux'}),humanPlayer:undefined,actions:[
+   {type:'build',system:'north',color:'green'},{type:'end'},{type:'end'},
+   {type:'trade',system:'north',ship:1,color:'yellow'},{type:'end'},{type:'end'},
+   {type:'discover',system:'north',ship:1,star:{color:'red',size:2}},{type:'end'},{type:'end'},
+   {type:'move',system:'system-1',ship:0,destination:'north'},{type:'end'},
+  ]};
+  const migrated=decodeSession(JSON.stringify(legacy));
+  expect(migrated).toMatchObject({starter:1,humanPlayer:1,mode:'quux'});
+  expect(migrated.opening[1]).toEqual(legacy.opening[0]);
+  expect(migrated.actions.at(-2)).toMatchObject({type:'move',destination:'south'});
+  const state=replay(migrated);
+  expect(state.player).toBe(0);
+  expect(state.systems.find(s=>s.id==='south')?.ships).toContainEqual({color:'yellow',size:1,owner:1});
+  expect(decodeSession(JSON.stringify(migrated))).toEqual(migrated);
+ });
+ it('migrates partially selected bot homeworlds and preserves pending human confirmation',()=>{
+  const human=[{color:'red',size:1},{color:'blue',size:3},{color:'green',size:3}];
+  const old={pieces:[human,[]],player:0,starter:0,mode:'quux'};
+  const migrated=decodeSetupProgress(JSON.stringify(old));
+  expect(migrated).toEqual({pieces:[[],human],player:1,starter:1,mode:'quux',humanPlayer:1});
+  expect(confirmSetup(migrated)?.player).toBe(0);
+  expect(decodeSetupProgress(JSON.stringify(migrated))).toEqual(migrated);
  });
  it('rejects invalid starting players in the rules engine',()=>{
   expect(()=>createInitialState(undefined,3 as 0)).toThrow('starting player');

@@ -1,6 +1,6 @@
 # Homeworlds
 
-A Homeworlds game for the browser with two choices: **Another player** (two people on one device) or **Quux Bot** (you at North, the bot at South). Choose your homeworlds and command your fleets by clicking pieces. No account, backend, database, or credentials are needed.
+A Homeworlds game for the browser with two choices: **Another player** (two people on one device) or **Quux Bot** (you at South, the bot at North). Choose your homeworlds and command your fleets by clicking pieces. No account, backend, database, or credentials are needed.
 
 ## Play
 
@@ -28,7 +28,7 @@ Games autosave in this browser after every action. Partial setup survives reload
 
 Quux Bot runs the original C++ `get_ai_move` engine from [Quuxplusone/Homeworlds](https://github.com/Quuxplusone/Homeworlds), commit `20d2ec4a70365acc4b8ba8cd6bae7125fa935513`, compiled to WebAssembly. Its move generation, evaluation and search sources are unchanged. The supported upstream `ALLMOVES_USE_EXCEPTIONS=0` configuration replaces exception-based early exits with the engine’s equivalent flag checks. This is the actual engine tested in the tournaments, running in a Web Worker so the board remains responsive. A whole proposed turn is translated and validated by the website’s rules before it is animated. The bot has a 60-second browser safety deadline; a failed or timed-out search offers **Retry Quux Bot**, with no invented move or automatic forfeit.
 
-Human actions are locked during the bot’s turn. New game and save import cancel stale requests. Bot turns autosave atomically at the end, so a reload during thinking or animation retries from the prior saved turn boundary. Save export is disabled during bot animation. Legacy saves remain local and North-first; new saves include the mode and starting player. Bot matches do not offer a pretend mutually agreed draw.
+Human actions are locked during the bot’s turn. New game and save import cancel stale requests. Bot turns autosave atomically at the end, so a reload during thinking or animation retries from the prior saved turn boundary. Save export is disabled during bot animation. Legacy local saves remain local and North-first. Earlier bot saves and partial setups automatically exchange seats so the human is at South and Quux Bot is at North, retaining the position, ownership, and who goes first. New bot saves record the human’s South seat along with mode and starting player. Bot matches do not offer a pretend mutually agreed draw.
 
 There are no online rooms; “Another player” means another person sharing this device. Bot mode and local mode use the same tabletop rules and controls.
 
@@ -67,7 +67,7 @@ npm run test:e2e
 
 Playwright uses `/usr/bin/chromium` when present; otherwise it uses its installed Chromium browser. Linux systems may also need `npx playwright install --with-deps chromium`.
 
-- 76 rules, setup, physical-bank interaction, bot, and save-format tests cover inventory conservation, setup, connectivity, all action types, sacrifices, catastrophes, turn-end outcomes, and invalid imports.
+- 78 rules, setup, physical-bank interaction, bot, and save-format tests cover inventory conservation, setup, connectivity, all action types, sacrifices, catastrophes, turn-end outcomes, and invalid imports.
 - 40 desktop/mobile browser checks cover multi-turn play, undo, victory, click-driven building, trading, discovery, movement, capture, sacrifice, catastrophe, custom setup, reload recovery, save import/export, resignation, draws, and map rearrangement.
 - The browser engine matches native Quux’s exact full-turn decisions on 17 recorded positions. Bot setup is checked across 60 seeded cases. Browser checks cover bot-first and human-first matches, actual bot moves, reload, cancellation, retry, and a catastrophe victory.
 - GitHub Actions runs the tests and production build on pushes and pull requests.

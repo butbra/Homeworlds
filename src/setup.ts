@@ -31,16 +31,18 @@ export function openingFromSetup(draft:Setup):Opening[] {
  if(!draft.every(p=>p.length===3))throw Error('Complete both homeworlds first.');
  return draft.map(p=>({stars:[p[0],p[1]],shipColor:p[2].color}));
 }
-export interface SetupProgress {pieces:Setup;player:Player;starter?:Player;mode?:GameMode}
+export interface SetupProgress {pieces:Setup;player:Player;starter?:Player;mode?:GameMode;humanPlayer?:Player}
 export function decodeSetupProgress(text:string):SetupProgress {
  const raw=JSON.parse(text);
  const starter=Array.isArray(raw)?0:raw?.starter??0;
  if(starter!==0&&starter!==1)throw Error('Invalid starting player.');
  if(!Array.isArray(raw)&&raw?.mode!==undefined&&raw.mode!=='local'&&raw.mode!=='quux')throw Error('Invalid game mode.');
+ if(!Array.isArray(raw)&&raw?.humanPlayer!==undefined&&raw.humanPlayer!==0&&raw.humanPlayer!==1)throw Error('Invalid human player.');
  const pieces=decodeSetup(JSON.stringify(Array.isArray(raw)?raw:raw?.pieces),starter);
  const player=Array.isArray(raw)?(pieces[1].length?1:0):raw.player;
  if(player!==0&&player!==1||player===starter&&pieces[1-starter].length>0||player!==starter&&pieces[starter].length!==3)throw Error('Invalid setup confirmation.');
- return {pieces,player,...(!Array.isArray(raw)&&raw.starter!==undefined?{starter}:{}),...(!Array.isArray(raw)&&raw.mode!==undefined?{mode:raw.mode}:{})};
+ if(raw?.mode==='quux'&&raw.humanPlayer!==1)return {pieces:[pieces[1],pieces[0]],player:(1-player)as Player,starter:(1-starter)as Player,mode:'quux',humanPlayer:1};
+ return {pieces,player,...(!Array.isArray(raw)&&raw.starter!==undefined?{starter}:{}),...(!Array.isArray(raw)&&raw.mode!==undefined?{mode:raw.mode}:{}),...(raw?.mode==='quux'?{humanPlayer:1 as Player}:{})};
 }
 export function placeSetupPiece(progress:SetupProgress,piece:Piece):SetupProgress {
  if(progress.pieces[progress.player].length===3)throw Error('Review your homeworld and click End turn to confirm.');
