@@ -142,7 +142,7 @@ function act(action:Action,label:string,fromBot=false):boolean {
     if(action.type==='end') selected=state.player===0?'north':'south';
     if(!state.systems.some(s=>s.id===selected)) selected=state.systems[0]?.id??'';
     // A browser reload retries an unfinished bot turn from its saved turn boundary.
-    if(!fromBot||action.type==='end')save();render();animateAction(visual,state,action,fromBot?1.4:1);
+    if(!fromBot||action.type==='end')save();render();animateAction(visual,state,action,fromBot?1.8:1);
     return true;
   } catch(error) {notice=(error as Error).message;render();return false;}
 }
