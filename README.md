@@ -1,6 +1,6 @@
 # Homeworlds
 
-A Homeworlds game for the browser with three choices: **Another player** (two people on one device), **Quux Bot**, or **Quux practice** (hints and move reviews). In both Quux modes, you sit at South and the bot sits at North. Choose your homeworlds and command your fleets by clicking pieces. No account, backend, database, or credentials are needed.
+A Homeworlds game for the browser with four choices: **Another player** (two people on one device), **Quux Bot**, **Quux practice** (hints and move reviews), or **Learning mode** (a visual rules tour and legal-move help). In every bot mode, you sit at South and the bot sits at North. Choose your homeworlds and command your fleets by clicking pieces. No account, backend, database, or credentials are needed.
 
 ## Play
 
@@ -23,6 +23,16 @@ Green builds, yellow moves or discovers, red captures, and blue trades. Instead 
 **Fresh visits and New game open an opponent chooser above an empty space board and a full bank.** The player names arrive on the north and south edges, then a central coin spins for about five seconds before revealing who sets up and moves first. After a brief result hold, setup unlocks automatically. The toss uses cryptographic randomness and its start time and outcome are persisted: reloading resumes the same introduction rather than rerolling. Reduced-motion mode keeps the reveal timing without the 3D spin. Setup is guided: the randomly chosen first player clicks two bank stars and then a large ship, confirms with **End turn**, and the other player repeats. Local play has no automatic starting configurations. Each human reviews their three pieces and explicitly confirms; the other player cannot start before that confirmation. Quux Bot chooses its own legal homeworld using the upstream CLI setup procedure and confirms automatically. Undo revises only the active human’s unconfirmed choices. Supply limits are enforced. **Resign** awards the opponent a win; **Agree draw** requires both players’ confirmation.
 
 Games autosave in this browser after every action. Partial setup survives reload automatically. On a fresh visit, an existing completed setup/game is offered through **Resume saved game**; it is never imposed as a starting configuration. Resume restores the position and current-turn undo. **Export save** downloads a portable JSON backup; **Import save** validates and replays every action before replacing the game. Autosave needs browser storage, so keep an exported backup if the browser blocks storage or you plan to clear site data. Save files are limited to 2 MB and 10,000 actions.
+
+## Learning mode
+
+Choose **Learning mode** for a beginner game. First select **Show walkthrough** or **Skip walkthrough**. Both paths lead to the normal homeworld setup and a game against Quux Bot at difficulty 1, with you at South. The existing coin flip still decides who sets up and plays first. Entering or leaving the initial learning choice does not replace an existing saved match.
+
+The optional 15-lesson walkthrough covers the goal, ownership and pips, starting pieces, turn structure and shared supply, local color access, building, travel connections, discovery and abandoned systems, trading, captures, sacrifice turns, both kinds of catastrophe outcome, and win/loss/draw conditions. **Back** and **Next** arrows (or left/right keyboard arrows) navigate one lesson at a time. **Show move** and **Reset example** switch real examples between their before and after positions. The diagrams reuse the game's exact `pyramid` SVG renderer, ownership directions, sizes and colors. Example actions are applied by the same rules reducer as real play and conserve the full 36-piece supply. They never change your match. **Game menu → Rules walkthrough** reopens the tour during your turn without resetting the game.
+
+During a learning game, mint outlines and plus markers identify selectable own ships, red outlines identify legal captures, yellow outlines identify actual travel destinations, and green system outlines identify places where building is possible. Available bank pieces glow for the chosen action. Invalid bank pieces and unavailable ship actions are disabled. These choices are recalculated from the rules after selection, trade/travel intent changes, actions, sacrifices, undo and save replay. Free catastrophe buttons are highlighted even in enemy-only systems and after a basic action. A compact help panel explains the current click sequence, setup stage or action allowance and warns if confirming the staged turn would lose your homeworld.
+
+Legal choices are not necessarily strategically safe. Learning mode does not alter game rules or the existing End turn guard, which requires an action before a human can confirm. The tour explicitly mentions the rulebook's pass option and this interface restriction. Ordinary Quux and local modes retain their controls; hints and numerical move reviews remain in **Quux practice**.
 
 ## Quux practice and difficulty
 
@@ -85,7 +95,7 @@ npm run test:e2e
 
 Playwright uses `/usr/bin/chromium` when present; otherwise it uses its installed Chromium browser. Linux systems may also need `npx playwright install --with-deps chromium`.
 
-- 93 rules, setup, map layout, physical-bank interaction, bot, coaching, difficulty, intro, and save-format tests cover inventory conservation, setup, connectivity, all action types, sacrifices, catastrophes, turn-end outcomes, and invalid imports.
+- 99 rules, setup, map layout, physical-bank interaction, bot, coaching, difficulty, learning, intro, and save-format tests cover inventory conservation, setup, connectivity, all action types, sacrifices, catastrophes, turn-end outcomes, and invalid imports.
 - Desktop/mobile browser checks cover multi-turn play, undo, victory, click-driven building, trading, discovery, movement, capture, sacrifice, catastrophe, custom setup, reload recovery, save import/export, resignation, draws, fixed map rows and stable placement, fitting crowded boards without scrolling, and the action requirement for End turn.
 - The browser engine matches native Quux’s exact full-turn decisions on 17 recorded positions. Bot setup is checked across 60 seeded cases. Browser checks cover bot-first and human-first matches, actual bot moves, reload, cancellation, retry, and a catastrophe victory, plus the five-second coin reveal, name placement, intro recovery, reduced motion and the bank and turn controls in the right sidebar.
 - GitHub Actions runs the tests and production build on pushes and pull requests.
@@ -106,6 +116,7 @@ The rule-by-rule audit and PDF page references are in [docs/rules-audit.md](docs
 
 - `src/game.ts`: typed state, pure action reducer, and legal-order generation.
 - `src/session.ts`: versioned saves, match mode/starting player, schema checks, and legal-history replay.
+- `src/learning.ts`: rule-derived legal highlights, visual lessons, and independently validated example positions.
 - `src/coach.ts`: full-turn coaching, rating, factual explanations, and verified reply translation.
 - `src/quux.ts`, `src/quux-worker.ts`, `src/quux-runtime.ts`: native Quux WebAssembly interface, full-turn translation, cancellation, and browser worker.
 - `vendor/quux/`: pinned upstream C++ engine, license, bridge, and precompiled WebAssembly.

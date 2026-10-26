@@ -36,7 +36,7 @@ export function decodeSetupProgress(text:string):SetupProgress {
  const raw=JSON.parse(text);
  const starter=Array.isArray(raw)?0:raw?.starter??0;
  if(starter!==0&&starter!==1)throw Error('Invalid starting player.');
- if(!Array.isArray(raw)&&raw?.mode!==undefined&&raw.mode!=='local'&&raw.mode!=='quux'&&raw.mode!=='practice')throw Error('Invalid game mode.');
+ if(!Array.isArray(raw)&&raw?.mode!==undefined&&raw.mode!=='local'&&raw.mode!=='quux'&&raw.mode!=='practice'&&raw.mode!=='learning')throw Error('Invalid game mode.');
  if(!Array.isArray(raw)&&raw?.humanPlayer!==undefined&&raw.humanPlayer!==0&&raw.humanPlayer!==1)throw Error('Invalid human player.');
  if(raw?.difficulty!==undefined&&!validDifficulty(raw.difficulty))throw Error('Invalid Quux difficulty.');
  const pieces=decodeSetup(JSON.stringify(Array.isArray(raw)?raw:raw?.pieces),starter);

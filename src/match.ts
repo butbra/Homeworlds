@@ -1,6 +1,6 @@
 import type {Player} from './game';
-export type GameMode = 'local' | 'quux' | 'practice';
-export const isBotMode=(mode:GameMode):boolean=>mode==='quux'||mode==='practice';
+export type GameMode = 'local' | 'quux' | 'practice' | 'learning';
+export const isBotMode=(mode:GameMode):boolean=>mode==='quux'||mode==='practice'||mode==='learning';
 export const validDifficulty=(value:unknown):value is number=>typeof value==='number'&&Number.isInteger(value)&&value>=1&&value<=10;
 export const difficultyLabel=(level:number):string=>level===10?'Full strength':level>=8?'Challenging':level>=5?'Casual':'Learning';
 export const humanPlayer:Player=1;

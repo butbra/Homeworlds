@@ -9,6 +9,7 @@ import {randomStarter,humanPlayer,quuxPlayer,isBotMode,validDifficulty,difficult
 import {coachRequest,decodeAnalysis,bestTurn,describeTurn,explainTurn,describeReply,moveRating,type CoachAnalysis} from './coach';
 import {askQuux,stopQuux,quuxPosition,quuxSetupPosition,decodeQuuxSetup,quuxActions} from './quux';
 import {introPhase,nextIntroBoundary,nameEntranceMs,coinRevealMs,type IntroPhase} from './intro';
+import {learningOptions,shipKey,lessons,lessonVisual} from './learning';
 import {createLayout,layoutAfter,layoutBounds,type MapLayout} from './layout';
 
 import {newSession, decodeSession, storageKey, type Session} from './session';
@@ -32,6 +33,7 @@ let botEpoch=0;
 let coachBusy=false;
 let coachEpoch=0;
 let coachView:{kind:'hint'|'review';start:GameState;staged:GameState;actions:Action[];analysis?:CoachAnalysis;error?:string}|null=null;
+let learningFlow:{screen:'choice'|'walkthrough';index:number;after:boolean;launch:boolean}|null=null;
 let introStartedAt:number|null=null;
 let introTimer:ReturnType<typeof setTimeout>|undefined;
 let resumeSession: Session | null = null;
@@ -47,14 +49,14 @@ function save(): void {
   catch {notice += ' Browser storage unavailable; export a save to keep this game.';}
 }
 function clearCoach():void {coachEpoch++;if(coachBusy)stopQuux();coachBusy=false;coachView=null;}
-function cancelBot():void {clearCoach();botEpoch++;stopQuux();botBusy=false;botError='';clearTimeout(introTimer);introStartedAt=null;}
+function cancelBot():void {learningFlow=null;clearCoach();botEpoch++;stopQuux();botBusy=false;botError='';clearTimeout(introTimer);introStartedAt=null;}
 function playerName(player:number):string {return isBotMode(mode)?(player===humanPlayer?'You':'Quux Bot'):`Player ${player+1}`;}
 function outcomeText():string {
   const text=resultDescription(state);
   return isBotMode(mode)?text.replaceAll('Player 1','Quux Bot').replaceAll('Player 2','You').replaceAll('You has','You have').replaceAll('You wins','You win'):text;
 }
-function botTurn():boolean {return !choosingMode&&introStartedAt===null&&isBotMode(mode)&&(draft?setupPlayer===quuxPlayer:state.outcome==='playing'&&state.player===quuxPlayer);}
-function locked():boolean {return choosingMode||introStartedAt!==null||botBusy||coachBusy||botTurn();}
+function botTurn():boolean {return !learningFlow&&!choosingMode&&introStartedAt===null&&isBotMode(mode)&&(draft?setupPlayer===quuxPlayer:state.outcome==='playing'&&state.player===quuxPlayer);}
+function locked():boolean {return !!learningFlow||choosingMode||introStartedAt!==null||botBusy||coachBusy||botTurn();}
 function restore(next: Session,cancel=true): void {
   if(cancel)cancelBot();
   session = next;mode=next.mode??'local';difficulty=next.difficulty??10;starter=next.starter??0;choosingMode=false;draft=null;resumeSession=null;announcedResult='';
@@ -75,11 +77,12 @@ try {
   const stored=localStorage.getItem(storageKey);
   if(stored)resumeSession=decodeSession(stored);
   const partial=localStorage.getItem(setupKey);
-  if(partial){const progress=decodeSetupProgress(partial);draft=progress.pieces;setupPlayer=progress.player;starter=progress.starter??0;mode=progress.mode??'local';difficulty=progress.difficulty??10;introStartedAt=progress.introStartedAt===undefined?null:Math.min(progress.introStartedAt,Date.now());choosingMode=false;selected=setupPlayer===0?'north':'south';notice=introStartedAt===null?'Your homeworld selection has been restored.':'';}
+  if(partial){const progress=decodeSetupProgress(partial);draft=progress.pieces;setupPlayer=progress.player;starter=progress.starter??0;mode=progress.mode??'local';difficulty=progress.difficulty??(mode==='learning'?1:10);introStartedAt=progress.introStartedAt===undefined?null:Math.min(progress.introStartedAt,Date.now());choosingMode=false;selected=setupPlayer===0?'north':'south';notice=introStartedAt===null?'Your homeworld selection has been restored.':'';}
 } catch {notice='Choose your starting pieces. A previous save could not be loaded.';}
 function saveSetup():void {try {if(draft)localStorage.setItem(setupKey,JSON.stringify({pieces:draft,player:setupPlayer,starter,mode,...(isBotMode(mode)?{humanPlayer,difficulty}:{}),...(introStartedAt!==null?{introStartedAt}:{})}));} catch {notice='Browser storage unavailable; keep this page open during setup.';}}
 function beginSetup(nextMode:GameMode):void {
   cancelBot();mode=nextMode;starter=randomStarter();setupPlayer=starter;choosingMode=false;
+  if(mode==='learning')difficulty=1;
   draft=[[],[]];announcedResult='';source=null;selected=starter===0?'north':'south';mapLayout=createLayout();
   introStartedAt=Date.now();notice='';saveSetup();advanceIntro();
 }
@@ -212,6 +215,40 @@ function coachDialog():string {
 function difficultyControl(id:string,disabled=false):string {
   return `<div class="difficulty-control"><label for="${id}">Quux difficulty <output data-difficulty-label>${difficulty} / 10 · ${difficultyLabel(difficulty)}</output></label><input id="${id}" data-difficulty type="range" min="1" max="10" step="1" value="${difficulty}" ${disabled?'disabled':''}><div class="difficulty-ends"><span>Learning</span><span>Full strength</span></div></div>`;
 }
+function openLearning(launch:boolean):void {
+  if(!launch&&locked())return;
+  document.querySelector<HTMLDialogElement>('#game-menu')?.close();
+  learningFlow={screen:launch?'choice':'walkthrough',index:0,after:false,launch};render();
+}
+function finishLearning():void {
+  const launch=learningFlow?.launch;learningFlow=null;
+  if(launch)beginSetup('learning');else render();
+}
+function changeLesson(direction:number):void {
+  if(!learningFlow||learningFlow.screen!=='walkthrough')return;
+  const index=learningFlow.index+direction;
+  if(index<0||index>=lessons.length)return;
+  learningFlow={...learningFlow,index,after:false};render();
+}
+function learningDialog():string {
+  if(!learningFlow)return '';
+  if(learningFlow.screen==='choice')return `<dialog id="learning-dialog" class="learning-dialog" aria-labelledby="learning-title"><p class="result-eyebrow">LEARNING MODE</p><h2 id="learning-title">Learn the rules first?</h2><p>Take a visual walkthrough using the same stars and ships you will play with. Go at your own pace with Next and Back.</p><div class="lesson-choice-pieces" aria-hidden="true">${pyramid({color:'blue',size:3},true)}${pyramid({color:'green',size:3},false,1)}${pyramid({color:'yellow',size:2},false,1)}</div><div class="lesson-choice-buttons"><button id="walkthrough-yes" class="primary">Show walkthrough</button><button id="walkthrough-no">Skip walkthrough</button></div><p>Either choice starts a game against an easy Quux Bot at level 1, with legal choices highlighted.</p><button id="learning-close">Back to modes</button></dialog>`;
+  const {index,after,launch}=learningFlow,lesson=lessons[index];
+  return `<dialog id="learning-dialog" class="learning-dialog walkthrough" aria-labelledby="learning-title"><header class="lesson-header"><span>LEARNING MODE</span><span>Lesson ${index+1} of ${lessons.length}</span></header><div class="lesson-progress" role="progressbar" aria-label="Walkthrough progress" aria-valuemin="1" aria-valuemax="${lessons.length}" aria-valuenow="${index+1}"><i style="width:${(index+1)/lessons.length*100}%"></i></div><h2 id="learning-title" tabindex="-1">${lesson.title}</h2>${lessonVisual(lesson,after)}${lesson.example?.actions.length?`<button id="lesson-example" class="lesson-example-button">${after?'↶ Reset example':'▶ Show move'}</button>`:''}<div class="lesson-copy">${lesson.text.map(t=>`<p>${t}</p>`).join('')}<p class="lesson-tip">${lesson.tip}</p></div><footer class="lesson-navigation"><button id="lesson-back" aria-label="Previous lesson" ${index===0?'disabled':''}>← Back</button>${index===lessons.length-1?`<button id="lesson-finish" class="primary">${launch?'Start learning game':'Return to game'}</button>`:'<button id="lesson-next" aria-label="Next lesson" class="primary">Next →</button>'}</footer><button id="learning-close" class="lesson-exit">${launch?'Skip to game':'Back to game'}</button></dialog>`;
+}
+function learningCue():string {
+  if(mode!=='learning'||choosingMode||introStartedAt!==null)return '';
+  let text='';
+  if(draft)text=botTurn()?'Quux is choosing its homeworld.':draft[setupPlayer].length===3?'Your homeworld is ready. Press End turn to confirm.':draft[setupPlayer].length===2?'Choose a glowing large ship. Small and medium pieces cannot be starting ships.':`Choose star ${draft[setupPlayer].length+1} from the glowing bank pieces.`;
+  else if(state.outcome!=='playing')text='Game finished. Start another learning game whenever you are ready.';
+  else if(botTurn())text='Watch Quux’s turn. Your legal choices will light up when it is your turn.';
+  else if(applyAction(state,{type:'end'}).outcome===(1-humanPlayer))text='Your homeworld is empty or destroyed. Undo or restore a ship before End turn to avoid losing.';
+  else if(source)text=intent==='trade'?'Trade with a glowing bank piece. Size stays the same.':intent==='discover'?'Travel to a yellow-outlined system, or click a glowing bank piece to discover a new star.':'Choose Trade, Travel, or Sacrifice beside your ship. Yellow outlines are legal travel destinations.';
+  else if(state.allowance.remaining===0)text='Your action is complete. You can still use glowing catastrophe buttons, undo, or press End turn.';
+  else if(state.allowance.sacrificed)text=`${state.allowance.remaining} ${state.allowance.color} action${state.allowance.remaining===1?'':'s'} left. Choose a glowing ship, system, or bank piece. You may end early.`;
+  else text='Glowing ships can act. Red glows mark captures. Select a glowing system, then a glowing bank piece to build.';
+  return `<section class="learning-cue" aria-label="Learning help"><span>LEGAL MOVE HELP</span><p role="status">${text}</p></section>`;
+}
 function starfield():string {
   let seed=93;
   return Array.from({length:160},(_,i)=>{seed=(seed*16807)%2147483647;const x=seed%10000/100;seed=(seed*16807)%2147483647;const y=seed%10000/100;return `<i style="left:${x}%;top:${y}%;--light:${i%9===0?'.9':'.35'};--radius:${i%9===0?'2':'1'}px"></i>`;}).join('');
@@ -244,36 +281,53 @@ function render():void {
   const over=state.outcome!=='playing';
   const inputLocked=locked();
   const phase=introStartedAt===null?null:introPhase(introStartedAt,Date.now());
+  const teaching=mode==='learning';
+  const guide=teaching&&!draft&&!over&&!inputLocked?learningOptions(state,source):null;
   const systems=draft?draft.flatMap((p,i)=>p.length?[{id:i===0?'north':'south',name:i===0?'North homeworld':'South homeworld',homeworld:i,stars:p.slice(0,2),ships:p[2]?[{...p[2],owner:i}]:[]}]:[]):state.systems;
   const bank=draft?setupBank(draft):state.bank;
   const status=phase?'Choosing first player':draft?`${playerName(setupPlayer)} · Setup`:over?state.outcome==='draw'?'Game over · Draw':isBotMode(mode)&&state.outcome===humanPlayer?'You win':`${playerName(Number(state.outcome))} wins`:`Turn ${state.turn} · ${playerName(state.player)}`;
   const catastrophes=draft||over?[]:state.systems.flatMap(s=>colors.flatMap(color=>{const count=[...s.stars,...s.ships].filter(p=>p.color===color).length;return count>=4?[{system:s.id,name:s.name,color,count}]:[];}));
   const {minColumn,columns}=layoutBounds(mapLayout);
   const slotStyle=(id:string)=>{const slot=mapLayout.slots[id];return `grid-row:${slot.row+1};grid-column:${id==='north'||id==='south'?'1 / -1':slot.column-minColumn+1}`;};
-  const actionMenu=source&&!inputLocked?`<div class="ship-actions context-actions" aria-label="Selected ship actions"><button data-intent="trade" ${intent==='trade'?'class="active"':''}>Trade</button><button data-intent="discover" ${intent==='discover'?'class="active"':''}>Travel</button><button id="sacrifice" ${legal(state,{type:'sacrifice',...source})?'':'disabled'}>Sacrifice</button><button id="clear">Cancel</button></div>`:'';
+  const actionMenu=source&&!inputLocked?`<div class="ship-actions context-actions" aria-label="Selected ship actions"><button data-intent="trade" ${intent==='trade'?'class="active"':''} ${teaching&&!guide?.trade?'disabled':''}>Trade</button><button data-intent="discover" ${intent==='discover'?'class="active"':''} ${teaching&&!guide?.travel?'disabled':''}>Travel</button><button id="sacrifice" ${legal(state,{type:'sacrifice',...source})?'':'disabled'}>Sacrifice</button><button id="clear">Cancel</button></div>`:'';
   const controls=`<section class="rail-controls" aria-label="Turn controls"><div class="status ${!phase&&(draft?setupPlayer:state.player)===1?'south-turn':''}">${status}</div><nav><button id="undo" aria-label="Undo action" ${inputLocked||(draft?!draft[setupPlayer].length:!history.length)?'disabled':''}>↶ Undo</button><button id="end" aria-label="End turn" class="primary" ${inputLocked||(draft?draft[setupPlayer].length!==3:over||!history.length)?'disabled':''}>End turn →</button><button id="menu" aria-label="Game menu">☰</button></nav>${mode==='practice'?`<div class="coach-controls"><button id="hint" ${inputLocked||draft||over?'disabled':''}>Hint</button><button id="evaluate" ${inputLocked||draft||over||!history.length?'disabled':''}>Evaluate move</button></div>`:''}</section>`;
-  app.innerHTML=`<main class="tabletop"><div class="play-area"><section class="board-region" aria-label="Game board"><section class="space" id="space" aria-label="Space playing surface"><div class="starfield" aria-hidden="true">${starfield()}</div><div class="map-label">SECTOR 01 <span>LOCAL EXPLORATION</span></div><div id="universe" class="universe" style="--map-columns:${columns}">
+  app.innerHTML=`<main class="tabletop ${teaching?'learning-mode':''}"><div class="play-area"><section class="board-region" aria-label="Game board"><section class="space" id="space" aria-label="Space playing surface"><div class="starfield" aria-hidden="true">${starfield()}</div><div class="map-label">SECTOR 01 <span>LOCAL EXPLORATION</span></div><div id="universe" class="universe" style="--map-columns:${columns}">
   ${['north','south'].filter(id=>!systems.some(s=>s.id===id)).map(id=>`<div class="layout-anchor" data-layout-anchor="${id}" style="${slotStyle(id)}" aria-hidden="true"></div>`).join('')}
   ${systems.map(s=>{
     const slot=mapLayout.slots[s.id];
     const destination=source&&source.system!==s.id&&legal(state,{type:'move',...source,destination:s.id});
-    return `<article class="system ${selected===s.id?'selected':''} ${destination?'destination':''}" data-system="${s.id}" data-map-row="${slot.row}" data-map-column="${slot.column}" style="${slotStyle(s.id)}" aria-label="${s.name}"><div class="system-title"><button data-select="${s.id}" aria-label="Select ${s.name}">${s.homeworld===undefined?'✧':'⌂'} ${s.name}</button></div><div class="system-pieces"><div class="stars">${s.stars.map((p,j)=>`<button class="piece-button" data-star="${s.id}" aria-label="${s.name} ${p.color} star ${p.size}">${pyramid(p,true)}<span class="piece-caption">${j===0?'':' '}</span></button>`).join('')||'<span class="destroyed">No stars</span>'}</div><div class="fleets">${[0,1].map(owner=>`<div class="fleet" data-player="${owner}" aria-label="Player ${owner+1} fleet">${s.ships.map((p,j)=>p.owner===owner?`<button class="piece-button ${source?.system===s.id&&source.ship===j?'picked':''}" data-ship="${j}" data-source="${s.id}" aria-label="Player ${owner+1} ${p.color} ship ${p.size} at ${s.name}">${pyramid(p,false,owner)}</button>`:'').join('')}</div>`).join('')}</div></div><div class="system-meta">${s.homeworld===undefined?'FRONTIER':`PLAYER ${s.homeworld+1} HOMEWORLD`}${destination?'<span>MOVE HERE ↗</span>':''}</div>${catastrophes.filter(c=>c.system===s.id).map(c=>`<button class="system-catastrophe" data-cat="${c.color}" data-cat-system="${c.system}" aria-label="${c.color} catastrophe at ${c.name}" ${inputLocked?'disabled':''}>✹ ${c.color} catastrophe · ${c.count}</button>`).join('')}</article>`;
+    return `<article class="system ${selected===s.id?'selected':''} ${destination?'destination':''} ${guide?.buildSystems.has(s.id)?'learn-build-system':''}" data-system="${s.id}" data-map-row="${slot.row}" data-map-column="${slot.column}" style="${slotStyle(s.id)}" aria-label="${s.name}"><div class="system-title"><button data-select="${s.id}" aria-label="Select ${s.name}">${s.homeworld===undefined?'✧':'⌂'} ${s.name}</button></div><div class="system-pieces"><div class="stars">${s.stars.map((p,j)=>`<button class="piece-button" data-star="${s.id}" aria-label="${s.name} ${p.color} star ${p.size}">${pyramid(p,true)}<span class="piece-caption">${j===0?'':' '}</span></button>`).join('')||'<span class="destroyed">No stars</span>'}</div><div class="fleets">${[0,1].map(owner=>`<div class="fleet" data-player="${owner}" aria-label="Player ${owner+1} fleet">${s.ships.map((p,j)=>{
+      if(p.owner!==owner)return '';
+      const key=shipKey(s.id,j),canSelect=guide?.ships.has(key),canCapture=guide?.captures.has(key);
+      return `<button class="piece-button ${source?.system===s.id&&source.ship===j?'picked':''} ${canSelect||canCapture?'learn-option':''} ${canCapture?'learn-capture':''}" data-ship="${j}" data-source="${s.id}" ${canSelect||canCapture?'data-legal-option="'+(canCapture?'capture':'select')+'"':''} ${teaching&&!canSelect&&!canCapture?'disabled':''} aria-label="Player ${owner+1} ${p.color} ship ${p.size} at ${s.name}" ${canSelect||canCapture?'aria-description="'+(canCapture?'Legal capture. Click to take this ship.':'Legal actions available. Click to choose one.')+'"':''}>${pyramid(p,false,owner)}</button>`;
+    }).join('')}</div>`).join('')}</div></div><div class="system-meta">${s.homeworld===undefined?'FRONTIER':`PLAYER ${s.homeworld+1} HOMEWORLD`}${destination?'<span>MOVE HERE ↗</span>':guide?.buildSystems.has(s.id)&&!source?'<span class="learn-build-label">BUILD HERE +</span>':''}</div>${catastrophes.filter(c=>c.system===s.id).map(c=>`<button class="system-catastrophe ${guide?'learn-option':''}" data-cat="${c.color}" data-cat-system="${c.system}" aria-label="${c.color} catastrophe at ${c.name}" ${inputLocked?'disabled':''}>✹ ${c.color} catastrophe · ${c.count}</button>`).join('')}</article>`;
   }).join('')}
   </div></section><div class="board-overlay">${actionMenu}${!choosingMode?playerPlate(0,phase)+playerPlate(1,phase):''}<p id="notice" class="board-notice" role="status" aria-live="polite">${boardNotice()}</p>${botError?'<button id="retry-bot" class="board-retry">Retry Quux Bot</button>':''}${coinIntro(phase)}</div></section>
-  <aside class="sidebar" aria-label="Game sidebar">${controls}<section class="bank" aria-label="Piece bank"><div class="bank-heading"><h2>THE BANK</h2><span>${bank.length} PIECES</span></div><p>Click a pyramid to bring it into play.</p>${colors.map(color=>`<div class="bank-color ${color}"><h3>${color}<span>${{red:'CAPTURE',yellow:'MOVE',green:'BUILD',blue:'TRADE'}[color]}</span></h3><div class="bank-row">${sizes.map(size=>{
+  <aside class="sidebar" aria-label="Game sidebar">${controls}${learningCue()}<section class="bank" aria-label="Piece bank"><div class="bank-heading"><h2>THE BANK</h2><span>${bank.length} PIECES</span></div><p>Click a pyramid to bring it into play.</p>${colors.map(color=>`<div class="bank-color ${color}"><h3>${color}<span>${{red:'CAPTURE',yellow:'MOVE',green:'BUILD',blue:'TRADE'}[color]}</span></h3><div class="bank-row">${sizes.map(size=>{
     const p={color,size},count=bank.filter(b=>b.color===color&&b.size===size).length;
     let available=false;try {available=!inputLocked&&(draft?!!placeSetupPiece({pieces:draft,player:setupPlayer},p):legal(state,bankAction(state,selected,p,source,intent)));} catch { /* Not a legal bank choice. */ }
-    return `<button class="bank-piece ${available?'available':''}" data-color="${color}" data-size="${size}" aria-label="Bank ${color} ${size}" ${inputLocked||!count||(draft?draft[setupPlayer].length===3:over)?'disabled':''} title="${color} size ${size}: ${count} available">${pyramid(p)}<span>×${count}</span></button>`;
+    return `<button class="bank-piece ${available?'available':''} ${teaching&&available?'learn-option':''}" data-color="${color}" data-size="${size}" aria-label="Bank ${color} ${size}" ${teaching&&available?'data-legal-option="bank" aria-description="Legal bank choice for your current action."':''} ${inputLocked||!count||teaching&&!available||(draft?draft[setupPlayer].length===3:over)?'disabled':''} title="${color} size ${size}: ${count} available">${pyramid(p)}<span>×${count}</span></button>`;
   }).join('')}</div></div>`).join('')}</section>
   </aside></div>
-  ${coachDialog()}<dialog id="result" aria-labelledby="result-title"><p class="result-eyebrow">GAME OVER</p><h2 id="result-title">${over?status:''}</h2><p>${over?outcomeText():''}</p><button id="result-new" class="primary">New game</button><button id="result-close">View final board</button></dialog>
-  <dialog id="game-menu"><h2>Mission control</h2>${isBotMode(mode)&&!choosingMode?difficultyControl('game-difficulty',botBusy):''}<div class="menu-buttons"><button id="reset">New game</button>${draft&&resumeSession&&!choosingMode?'<button id="resume">Resume saved game</button>':''}<button id="help">How to play</button><button id="export" ${draft||botBusy?'disabled':''}>Export save</button><button id="import">Import save</button><button id="resign" ${over||draft||inputLocked?'disabled':''}>Resign</button><button id="draw" ${over||draft||isBotMode(mode)?'disabled':''}>Agree draw</button><button id="close-menu">Back to space</button></div><input type="file" id="save-file" accept=".json,application/json" hidden><details><summary>Flight log (${log.length})</summary><ol>${log.map(l=>`<li>${escape(l)}</li>`).join('')}</ol></details><p>Your game saves automatically on this device.</p></dialog>
-  <dialog id="opponent-picker" aria-labelledby="opponent-title"><p class="result-eyebrow">A NEW EXPEDITION</p><h2 id="opponent-title">Choose your opponent</h2><p>Explore the galaxy with another person, or challenge Quux Bot.</p>${difficultyControl('new-difficulty')}<div class="opponent-options"><button id="play-local" aria-label="Another player"><strong>Another player</strong><span>Two people on this device</span></button><button id="play-quux" aria-label="Quux Bot"><strong>Quux Bot</strong><span>You command South. The bot commands North.</span></button><button id="play-practice" aria-label="Quux practice"><strong>Quux practice</strong><span>Play Quux Bot with hints, move ratings, and explanations.</span></button></div><p class="coin-note">A coin flip chooses who sets up and takes the first turn.</p>${resumeSession&&choosingMode?'<button id="resume">Resume saved game</button>':''}</dialog>
+  ${learningDialog()}${coachDialog()}<dialog id="result" aria-labelledby="result-title"><p class="result-eyebrow">GAME OVER</p><h2 id="result-title">${over?status:''}</h2><p>${over?outcomeText():''}</p><button id="result-new" class="primary">New game</button><button id="result-close">View final board</button></dialog>
+  <dialog id="game-menu"><h2>Mission control</h2>${isBotMode(mode)&&!choosingMode?difficultyControl('game-difficulty',botBusy):''}<div class="menu-buttons"><button id="reset">New game</button>${draft&&resumeSession&&!choosingMode?'<button id="resume">Resume saved game</button>':''}<button id="help">How to play</button>${teaching?`<button id="learn-rules" ${inputLocked?'disabled':''}>Rules walkthrough</button>`:''}<button id="export" ${draft||botBusy?'disabled':''}>Export save</button><button id="import">Import save</button><button id="resign" ${over||draft||inputLocked?'disabled':''}>Resign</button><button id="draw" ${over||draft||isBotMode(mode)?'disabled':''}>Agree draw</button><button id="close-menu">Back to space</button></div><input type="file" id="save-file" accept=".json,application/json" hidden><details><summary>Flight log (${log.length})</summary><ol>${log.map(l=>`<li>${escape(l)}</li>`).join('')}</ol></details><p>Your game saves automatically on this device.</p></dialog>
+  <dialog id="opponent-picker" aria-labelledby="opponent-title"><p class="result-eyebrow">A NEW EXPEDITION</p><h2 id="opponent-title">Choose your opponent</h2><p>Explore the galaxy with another person, or challenge Quux Bot.</p>${difficultyControl('new-difficulty')}<div class="opponent-options"><button id="play-local" aria-label="Another player"><strong>Another player</strong><span>Two people on this device</span></button><button id="play-quux" aria-label="Quux Bot"><strong>Quux Bot</strong><span>You command South. The bot commands North.</span></button><button id="play-practice" aria-label="Quux practice"><strong>Quux practice</strong><span>Play Quux Bot with hints, move ratings, and explanations.</span></button><button id="play-learning" aria-label="Learning mode"><strong>Learning mode</strong><span>Optional visual rules tour, legal-move highlights, and an easy bot.</span></button></div><p class="coin-note">A coin flip chooses who sets up and takes the first turn.</p>${resumeSession&&choosingMode?'<button id="resume">Resume saved game</button>':''}</dialog>
   <dialog id="rules"><h2>Your fleet. Your universe.</h2><p><b>Build:</b> click a system, then the smallest available bank piece of a color you already own there. You need green power.</p><p><b>Travel:</b> click your ship, then a connected system. Systems connect when their stars share no sizes. You need yellow power.</p><p><b>Trade:</b> click your ship, then Trade, then a different bank color of exactly the same size. You need blue power.</p><p><b>Discover a new star:</b> click your ship, Travel, a bank pyramid for the new star. It appears automatically in its star-size row. You need yellow power.</p><p><b>Capture:</b> click an enemy ship. You need red power and an equal or larger ship in that system.</p><p><b>Sacrifice:</b> click your ship, then Sacrifice. Instead of a basic action, gain its pip count in actions of its color anywhere you still have ships.</p><p><b>Catastrophe:</b> whenever any system has four or more pieces of one color, its catastrophe button appears on that system, even if you have no ships there. Count stars and both fleets. The active player may choose to remove that color. If the last star is removed, every ship there is destroyed; a surviving binary-star half protects other colors. Optional and free at any point in your turn.</p><p>Power comes from stars or your own local ships, never enemy ships. Confirm with End turn. An empty or destroyed homeworld loses at turn end. Undo works until you confirm. Systems have fixed positions. Same-size stars share a horizontal row; travel still depends on star sizes, not physical distance.</p><p>Based on Homeworlds Rules13, pp. 4–12. Game: John Cooper. Pyramid system: Andrew Looney. Unofficial implementation.</p><p>Quux Bot: original engine by Arthur O’Dwyer. <a href="./quux-LICENSE.txt" target="_blank" rel="noopener">License</a> · <a href="https://github.com/Quuxplusone/Homeworlds" target="_blank" rel="noopener">Engine source</a>.</p><button id="close-rules">Back to space</button></dialog></main>`;
   bindBoard();bindTools();
   document.querySelector('#play-local')!.addEventListener('click',()=>beginSetup('local'));
   document.querySelector('#play-quux')!.addEventListener('click',()=>beginSetup('quux'));
   document.querySelector('#play-practice')!.addEventListener('click',()=>beginSetup('practice'));
+  document.querySelector('#play-learning')!.addEventListener('click',()=>openLearning(true));
+  document.querySelector('#learn-rules')?.addEventListener('click',()=>openLearning(false));
+  document.querySelector('#walkthrough-yes')?.addEventListener('click',()=>{learningFlow!.screen='walkthrough';render();});
+  document.querySelector('#walkthrough-no')?.addEventListener('click',finishLearning);
+  document.querySelector('#lesson-back')?.addEventListener('click',()=>changeLesson(-1));
+  document.querySelector('#lesson-next')?.addEventListener('click',()=>changeLesson(1));
+  document.querySelector('#lesson-finish')?.addEventListener('click',finishLearning);
+  document.querySelector('#lesson-example')?.addEventListener('click',()=>{learningFlow!.after=!learningFlow!.after;render();});
+  const closeLearning=()=>{if(learningFlow?.screen==='choice'){learningFlow=null;render();}else finishLearning();};
+  document.querySelector('#learning-close')?.addEventListener('click',closeLearning);
+  document.querySelector('#learning-dialog')?.addEventListener('cancel',event=>{event.preventDefault();closeLearning();});
   document.querySelector('#hint')?.addEventListener('click',()=>void requestCoach('hint'));
   document.querySelector('#evaluate')?.addEventListener('click',()=>void requestCoach('review'));
   const closeCoach=()=>{document.querySelector<HTMLDialogElement>('#coach-dialog')?.close();clearCoach();render();};
@@ -290,9 +344,10 @@ function render():void {
   }));
   document.querySelector('#opponent-picker')!.addEventListener('cancel',event=>event.preventDefault());
   document.querySelector('#retry-bot')?.addEventListener('click',()=>{botError='';render();});
-  if(coachView)document.querySelector<HTMLDialogElement>('#coach-dialog')!.showModal();
+  if(learningFlow)document.querySelector<HTMLDialogElement>('#learning-dialog')!.showModal();
+  else if(coachView)document.querySelector<HTMLDialogElement>('#coach-dialog')!.showModal();
   else if(choosingMode)document.querySelector<HTMLDialogElement>('#opponent-picker')!.showModal();
-  else if(openDialog&&openDialog!=='opponent-picker')document.querySelector<HTMLDialogElement>('#'+openDialog)?.showModal();
+  else if(openDialog&&openDialog!=='opponent-picker'&&openDialog!=='learning-dialog')document.querySelector<HTMLDialogElement>('#'+openDialog)?.showModal();
   const space=document.querySelector<HTMLElement>('#space')!;
   boardResizeObserver.disconnect();boardResizeObserver.observe(space);fitBoard(space);
   scheduleBot();
@@ -361,5 +416,8 @@ function bindTools():void {
     catch(error){menu.close();notice=`Import failed: ${(error as Error).message}`;render();}
   });
 }
-document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!document.querySelector('dialog[open]')){source=null;intent='build';render();}});
+document.addEventListener('keydown',event=>{
+  if(learningFlow?.screen==='walkthrough'&&(event.key==='ArrowLeft'||event.key==='ArrowRight')){event.preventDefault();changeLesson(event.key==='ArrowLeft'?-1:1);return;}
+  if(event.key==='Escape'&&!document.querySelector('dialog[open]')){source=null;intent='build';render();}
+});
 if(introStartedAt!==null)advanceIntro();else render();
