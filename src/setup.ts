@@ -1,5 +1,5 @@
 import {colors,sizes,type Piece,type Opening,type Player} from './game';
-import type {GameMode} from './match';
+import {isBotMode,validDifficulty,type GameMode} from './match';
 export type Setup = [Piece[],Piece[]];
 export const setupKey='homeworlds.setup.v1';
 export function setupBank(draft:Setup):Piece[] {
@@ -31,21 +31,22 @@ export function openingFromSetup(draft:Setup):Opening[] {
  if(!draft.every(p=>p.length===3))throw Error('Complete both homeworlds first.');
  return draft.map(p=>({stars:[p[0],p[1]],shipColor:p[2].color}));
 }
-export interface SetupProgress {pieces:Setup;player:Player;starter?:Player;mode?:GameMode;humanPlayer?:Player;introStartedAt?:number}
+export interface SetupProgress {pieces:Setup;player:Player;starter?:Player;mode?:GameMode;humanPlayer?:Player;introStartedAt?:number;difficulty?:number}
 export function decodeSetupProgress(text:string):SetupProgress {
  const raw=JSON.parse(text);
  const starter=Array.isArray(raw)?0:raw?.starter??0;
  if(starter!==0&&starter!==1)throw Error('Invalid starting player.');
- if(!Array.isArray(raw)&&raw?.mode!==undefined&&raw.mode!=='local'&&raw.mode!=='quux')throw Error('Invalid game mode.');
+ if(!Array.isArray(raw)&&raw?.mode!==undefined&&raw.mode!=='local'&&raw.mode!=='quux'&&raw.mode!=='practice')throw Error('Invalid game mode.');
  if(!Array.isArray(raw)&&raw?.humanPlayer!==undefined&&raw.humanPlayer!==0&&raw.humanPlayer!==1)throw Error('Invalid human player.');
+ if(raw?.difficulty!==undefined&&!validDifficulty(raw.difficulty))throw Error('Invalid Quux difficulty.');
  const pieces=decodeSetup(JSON.stringify(Array.isArray(raw)?raw:raw?.pieces),starter);
  const intro=raw?.introStartedAt;
  if(intro!==undefined&&(!Number.isFinite(intro)||intro<0||pieces.some(p=>p.length)))throw Error('Invalid new-game introduction.');
- const introMetadata=intro===undefined?{}:{introStartedAt:intro};
+ const introMetadata={...(intro===undefined?{}:{introStartedAt:intro}),...(raw?.difficulty===undefined?{}:{difficulty:raw.difficulty})};
  const player=Array.isArray(raw)?(pieces[1].length?1:0):raw.player;
  if(player!==0&&player!==1||player===starter&&pieces[1-starter].length>0||player!==starter&&pieces[starter].length!==3)throw Error('Invalid setup confirmation.');
- if(raw?.mode==='quux'&&raw.humanPlayer!==1)return {pieces:[pieces[1],pieces[0]],player:(1-player)as Player,starter:(1-starter)as Player,mode:'quux',humanPlayer:1,...introMetadata};
- return {pieces,player,...(!Array.isArray(raw)&&raw.starter!==undefined?{starter}:{}),...(!Array.isArray(raw)&&raw.mode!==undefined?{mode:raw.mode}:{}),...(raw?.mode==='quux'?{humanPlayer:1 as Player}:{}),...introMetadata};
+ if(raw?.mode&&isBotMode(raw.mode)&&(raw.humanPlayer===0||raw.mode==='quux'&&raw.humanPlayer===undefined))return {pieces:[pieces[1],pieces[0]],player:(1-player)as Player,starter:(1-starter)as Player,mode:raw.mode,humanPlayer:1,...introMetadata};
+ return {pieces,player,...(!Array.isArray(raw)&&raw.starter!==undefined?{starter}:{}),...(!Array.isArray(raw)&&raw.mode!==undefined?{mode:raw.mode}:{}),...(raw?.mode&&isBotMode(raw.mode)?{humanPlayer:1 as Player}:{}),...introMetadata};
 }
 export function placeSetupPiece(progress:SetupProgress,piece:Piece):SetupProgress {
  if(progress.pieces[progress.player].length===3)throw Error('Review your homeworld and click End turn to confirm.');

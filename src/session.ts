@@ -1,11 +1,13 @@
 import {applyAction, colors, createInitialState, sizes, suggestedOpening, type Action, type GameState, type Opening,type Player} from './game';
-import {humanPlayer,type GameMode} from './match';
-export interface Session {version: 1; opening: Opening[]; actions: Action[];starter?:Player;mode?:GameMode;humanPlayer?:Player}
+import {humanPlayer,isBotMode,validDifficulty,type GameMode} from './match';
+export interface Session {version: 1; opening: Opening[]; actions: Action[];starter?:Player;mode?:GameMode;humanPlayer?:Player;difficulty?:number}
 export const storageKey = 'homeworlds.session.v1';
-export function newSession(opening: Opening[] = suggestedOpening,options:{starter?:Player;mode?:GameMode}={}): Session {
+export function newSession(opening: Opening[] = suggestedOpening,options:{starter?:Player;mode?:GameMode;difficulty?:number}={}): Session {
   const starter=options.starter??0,mode=options.mode??'local';
   createInitialState(opening,starter);
-  return {version: 1, opening: structuredClone(opening), actions: [],starter,mode,...(mode==='quux'?{humanPlayer}:{})};
+  const difficulty=options.difficulty??10;
+  if(!validDifficulty(difficulty))throw Error('Invalid Quux difficulty.');
+  return {version: 1, opening: structuredClone(opening), actions: [],starter,mode,...(isBotMode(mode)?{humanPlayer,difficulty}:{})};
 }
 export function replay(session: Session): GameState {
   return session.actions.reduce((state, action) => applyAction(state, action), createInitialState(session.opening,session.starter));
@@ -31,16 +33,17 @@ export function decodeSession(text: string): Session {
   if (!value || value.version !== 1 || !Array.isArray(value.opening) || !Array.isArray(value.actions) || value.actions.length > 10000) throw Error('Unsupported or invalid save file.');
   for (const action of value.actions) checkAction(action);
   const starter=value.starter??0,mode=value.mode??'local';
-  if((starter!==0&&starter!==1)||(mode!=='local'&&mode!=='quux'))throw Error('Invalid game mode or starting player.');
+  if((starter!==0&&starter!==1)||(mode!=='local'&&mode!=='quux'&&mode!=='practice'))throw Error('Invalid game mode or starting player.');
   if(value.humanPlayer!==undefined&&value.humanPlayer!==0&&value.humanPlayer!==1)throw Error('Invalid human player.');
-  let session:Session={version:1,opening:value.opening,actions:value.actions,starter,mode,...(mode==='quux'?{humanPlayer:value.humanPlayer??0}:{})};
+  if(value.difficulty!==undefined&&!validDifficulty(value.difficulty))throw Error('Invalid Quux difficulty.');
+  let session:Session={version:1,opening:value.opening,actions:value.actions,starter,mode,...(isBotMode(mode)?{humanPlayer:value.humanPlayer??(mode==='practice'?humanPlayer:0),difficulty:value.difficulty??10}:{})};
   createInitialState(value.opening,starter);
   const state=replay(session);
   const lastEnd=value.actions.map(a=>a.type).lastIndexOf('end');
-  if(mode==='quux'&&state.player!==session.humanPlayer&&state.outcome==='playing'&&lastEnd<value.actions.length-1)throw Error('A bot turn must be saved at its turn boundary.');
+  if(isBotMode(mode)&&state.player!==session.humanPlayer&&state.outcome==='playing'&&lastEnd<value.actions.length-1)throw Error('A bot turn must be saved at its turn boundary.');
   // Earlier bot saves placed the human at North. Exchange seats while retaining
   // the exact position, action history, ownership and identity of the starter.
-  if(mode==='quux'&&session.humanPlayer===0){
+  if(isBotMode(mode)&&session.humanPlayer===0){
     const swap=(id:string)=>id==='north'?'south':id==='south'?'north':id;
     session={...session,humanPlayer,starter:(1-starter)as Player,opening:[value.opening[1],value.opening[0]],actions:value.actions.map(action=>{
       const next={...action};

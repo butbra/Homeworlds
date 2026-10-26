@@ -1,9 +1,68 @@
 #include "state.h"
 #include "AI.h"
+#include "AllMoves.h"
+#include "ApplyMove.h"
+#include "PlanetNames.h"
+#include <algorithm>
 #include <cstdlib>
 #include <string>
 
 static std::string result;
+
+// Coaching exposes the existing evaluator and winning-reply test without
+// modifying get_ai_move, move generation, or any upstream decision code.
+static std::string json_string(const std::string &s) {
+    std::string out = "\"";
+    for (char c : s) {
+        if (c == '\\' || c == '"') out += '\\';
+        if (c == '\n') out += "\\n";
+        else out += c;
+    }
+    return out + "\"";
+}
+
+static std::string inspect_position(const GameState &st, int player) {
+    const bool own_lost = st.hasLost(player), enemy_lost = st.hasLost(1-player);
+    const int outcome = own_lost && enemy_lost ? 2 : own_lost ? 1-player : enemy_lost ? player : -1;
+    WholeMove reply;
+    const bool threatened = outcome == -1 && findWinningMove(st, 1-player, &reply);
+    const int score = outcome == 2 ? 0 : ai_static_evaluation(st, player);
+    return "{\"score\":" + std::to_string(score) +
+        ",\"outcome\":" + std::to_string(outcome) +
+        ",\"losesNext\":" + (threatened ? "true" : "false") +
+        ",\"winningReply\":" + json_string(threatened ? reply.toString() : "") + "}";
+}
+
+extern "C" const char *coach_position(const char *text, int player) {
+    const std::string input(text), separator = "\n===COACH===\n";
+    const auto split = input.find(separator);
+    GameState original;
+    const std::string opening = input.substr(0, split);
+    if ((player != 0 && player != 1) || !original.scan(opening.c_str()) || original.gameIsOver()) {
+        result = "ERROR: Invalid coaching position";
+        return result.c_str();
+    }
+    const WholeMove best = get_ai_move(original, player);
+    GameState after = original;
+    if (ApplyMove::Whole(after, player, best) != ApplyMove::SUCCESS) {
+        result = "ERROR: Quux recommendation failed validation";
+        return result.c_str();
+    }
+    const std::string best_review = inspect_position(after, player);
+    std::string candidate = "null";
+    if (split != std::string::npos) {
+        GameState staged;
+        if (!staged.scan(input.substr(split + separator.size()).c_str())) {
+            result = "ERROR: Invalid staged position";
+            return result.c_str();
+        }
+        candidate = inspect_position(staged, player);
+    }
+    result = "{\"bestMove\":" + json_string(best.toString()) +
+        ",\"best\":" + best_review + ",\"candidate\":" + candidate + "}";
+    return result.c_str();
+}
+
 extern "C" const char *choose_move(const char *text, int player) {
     GameState st;
     if ((player != 0 && player != 1) || !st.scan(text) || st.gameIsOver()) {
@@ -11,6 +70,31 @@ extern "C" const char *choose_move(const char *text, int player) {
     } else {
         result = get_ai_move(st, player).toString();
     }
+    return result.c_str();
+}
+
+// Lower levels deliberately deviate from the original ranked choice. Level 10
+// calls the untouched upstream selector, including its winning-reply checks.
+extern "C" const char *choose_move_level(const char *text, int player, unsigned seed, int level) {
+    if (level < 1 || level > 10) { result = "ERROR: Invalid difficulty"; return result.c_str(); }
+    if (level == 10) return choose_move(text, player);
+    GameState st;
+    if ((player != 0 && player != 1) || !st.scan(text) || st.gameIsOver()) {
+        result = "ERROR: Invalid playing position";
+        return result.c_str();
+    }
+    std::srand(seed);
+    const int weakness = 10-level;
+    // Nine percent more deliberate mistakes for each step down in difficulty.
+    if (std::rand()%100 >= weakness*9) return choose_move(text, player);
+    auto moves = get_all_moves_sorted_by_value(st, player, false);
+    const int n = moves.size();
+    if (n == 0) return choose_move(text, player);
+    const int pool = std::min(n, std::max(2, (weakness*weakness*n)/81));
+    const int rank = pool > 1 ? 1 + std::rand()%(pool-1) : 0;
+    WholeMove chosen = std::move(moves[rank]);
+    reassignPlanetNames(&chosen, st);
+    result = chosen.toString();
     return result.c_str();
 }
 

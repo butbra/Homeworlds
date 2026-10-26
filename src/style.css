@@ -56,3 +56,30 @@
 html,body,#app{height:100%;overflow:clip;overscroll-behavior:none}
 .board-overlay .ship-actions{pointer-events:auto;transform:none;bottom:auto;max-width:calc(100% - 16px)}
 .rail-controls #end:disabled{color:#71808e;background:#1b2531;border-color:#303d4a;opacity:.65}
+
+.coach-controls{display:grid;grid-template-columns:1fr 1.4fr;gap:6px;margin-top:9px}
+.coach-controls button{color:#bfe9dc;background:#102a28;border-color:#3d6a62}
+.coach-controls button:hover:not(:disabled){background:#1b403a;border-color:#8acdb8}
+#coach-dialog{width:min(570px,calc(100vw - 28px));max-height:calc(100dvh - 28px);padding:25px;background:linear-gradient(135deg,#142737,#0b141f 65%);border-color:#608c91}
+#coach-dialog h2{margin-bottom:14px}
+#coach-dialog h3{font-size:14px;color:#b9ded8;margin-top:21px}
+#coach-dialog .coach-steps{max-height:none;overflow:visible;padding-left:23px}
+#coach-dialog .coach-steps li{padding:4px 0;color:#d3e4ed}
+#coach-dialog p{line-height:1.65}
+.coach-rating{display:flex;align-items:center;gap:20px;padding:16px;border:1px solid #6e7e8e;border-radius:10px;background:#21314266;color:#d6e5f0}
+.coach-rating>strong{font-size:40px;font-weight:600;white-space:nowrap}
+.coach-rating small{font-size:18px;color:#a1b5c6;font-weight:400}
+.coach-rating>span{font-size:14px;line-height:1.5}
+.coach-rating.strong{border-color:#5f9a7b;background:#214e3633;color:#bde9d2}
+.coach-rating.danger{border-color:#ae7060;background:#6c322f33;color:#ffc0ab}
+.coach-thinking{padding:20px 0;color:#bde9d2}
+.coach-method{padding-top:12px;border-top:1px solid #49626c66;margin-top:20px}
+#coach-close{margin-top:18px}
+@media(max-width:700px){.coach-controls{gap:4px;margin-top:7px}.coach-controls button{font-size:9px;padding:8px 2px}#coach-dialog{padding:20px}.coach-rating{gap:14px;padding:12px}}
+@media(max-height:550px){.coach-controls{margin-top:5px}.coach-controls button{padding:5px}}
+
+.difficulty-control{margin:18px 0;padding:14px;border:1px solid #446071;border-radius:8px;background:#0b182580}
+.difficulty-control label{display:block;font-size:12px;color:#c4dce9}
+.difficulty-control output{display:block;margin-top:7px;color:#a5dbc9;font-size:13px}
+.difficulty-control input{width:100%;margin:16px 0 6px;accent-color:#9cd8c3;cursor:pointer}
+.difficulty-ends{display:flex;justify-content:space-between;font-size:9px;color:#8ba3b7}

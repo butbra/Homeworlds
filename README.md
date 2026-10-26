@@ -1,6 +1,6 @@
 # Homeworlds
 
-A Homeworlds game for the browser with two choices: **Another player** (two people on one device) or **Quux Bot** (you at South, the bot at North). Choose your homeworlds and command your fleets by clicking pieces. No account, backend, database, or credentials are needed.
+A Homeworlds game for the browser with three choices: **Another player** (two people on one device), **Quux Bot**, or **Quux practice** (hints and move reviews). In both Quux modes, you sit at South and the bot sits at North. Choose your homeworlds and command your fleets by clicking pieces. No account, backend, database, or credentials are needed.
 
 ## Play
 
@@ -23,6 +23,24 @@ Green builds, yellow moves or discovers, red captures, and blue trades. Instead 
 **Fresh visits and New game open an opponent chooser above an empty space board and a full bank.** The player names arrive on the north and south edges, then a central coin spins for about five seconds before revealing who sets up and moves first. After a brief result hold, setup unlocks automatically. The toss uses cryptographic randomness and its start time and outcome are persisted: reloading resumes the same introduction rather than rerolling. Reduced-motion mode keeps the reveal timing without the 3D spin. Setup is guided: the randomly chosen first player clicks two bank stars and then a large ship, confirms with **End turn**, and the other player repeats. Local play has no automatic starting configurations. Each human reviews their three pieces and explicitly confirms; the other player cannot start before that confirmation. Quux Bot chooses its own legal homeworld using the upstream CLI setup procedure and confirms automatically. Undo revises only the active human’s unconfirmed choices. Supply limits are enforced. **Resign** awards the opponent a win; **Agree draw** requires both players’ confirmation.
 
 Games autosave in this browser after every action. Partial setup survives reload automatically. On a fresh visit, an existing completed setup/game is offered through **Resume saved game**; it is never imposed as a starting configuration. Resume restores the position and current-turn undo. **Export save** downloads a portable JSON backup; **Import save** validates and replays every action before replacing the game. Autosave needs browser storage, so keep an exported backup if the browser blocks storage or you plan to clear site data. Save files are limited to 2 MB and 10,000 actions.
+
+## Quux practice and difficulty
+
+Choose **Quux practice** for the same game against Quux Bot with two extra controls above the bank.
+
+- **Hint** runs full-strength Quux for your side and lists its preferred complete turn, including sacrifices and catastrophes. If you have already staged actions, the hint explicitly starts from your turn's original position. Undo those actions to follow the suggested line.
+- **Evaluate move** becomes available once you have made a valid action. It reviews your entire staged turn as if you pressed End turn now, even if sacrifice actions remain. It reports a 1–10 rating, explains the actual board changes, and warns about immediate wins, homeworld losses, and opponent winning replies. You can reveal the Quux alternative from the review.
+
+Analysis never plays a move or ends your turn. Cancel stops the worker, and failures offer a retry without changing the board. Closing the review lets you continue, undo, or confirm. Explanations are generated locally from the actions, board differences and tactical checks. They describe consequences and useful ideas without inventing Quux's internal reasoning or claiming a guaranteed long-term plan. No external language model, API key or service is needed.
+
+The practice rating is a heuristic scale, not a winning probability. A confirmed win scores 10, an immediate loss 1, and an opponent winning reply 2. A simultaneous-elimination draw scores 5, or 3 if Quux could win immediately. Otherwise the score is `max(2, 10 − ceil(8 × gap / (gap + 40)))`, where `gap = max(0, Quux score − staged-turn score)` using the original evaluator from your perspective. Missing an immediate Quux win caps a non-winning turn at 5. Equally scored safe turns get 10 even when the action sequence differs. The score gap and tactical results are available under **About this analysis**.
+
+The **Quux difficulty** slider appears when choosing a new game and in **Game menu** during either bot mode. It is saved with both setup and gameplay. Older bot saves default to 10. Hints and reviews always use full-strength analysis regardless of the opponent's difficulty.
+
+- **10 · Full strength** uses the original `get_ai_move` unchanged.
+- **1–9** increasingly choose weaker legal turns as the level decreases. The deliberate-deviation chance is `9 × (10 − level)` percent per turn. A deviation samples from lower-ranked native candidates in an increasingly broad score-ranked pool and omits the original selector's immediate winning-reply safeguard. The bot still follows the rules, but may overlook threats or choose poor trades, builds and moves.
+
+These levels are designed for practice. They are not calibrated Elo ratings or a promise that every level will make a worse move in every position. Upstream candidate pruning may leave just one move in simple forced or immediately winning positions. The default remains full strength; the tournament data in this repository used the original selector.
 
 ## Quux Bot
 
@@ -67,7 +85,7 @@ npm run test:e2e
 
 Playwright uses `/usr/bin/chromium` when present; otherwise it uses its installed Chromium browser. Linux systems may also need `npx playwright install --with-deps chromium`.
 
-- 86 rules, setup, map layout, physical-bank interaction, bot, intro, and save-format tests cover inventory conservation, setup, connectivity, all action types, sacrifices, catastrophes, turn-end outcomes, and invalid imports.
+- 93 rules, setup, map layout, physical-bank interaction, bot, coaching, difficulty, intro, and save-format tests cover inventory conservation, setup, connectivity, all action types, sacrifices, catastrophes, turn-end outcomes, and invalid imports.
 - Desktop/mobile browser checks cover multi-turn play, undo, victory, click-driven building, trading, discovery, movement, capture, sacrifice, catastrophe, custom setup, reload recovery, save import/export, resignation, draws, fixed map rows and stable placement, fitting crowded boards without scrolling, and the action requirement for End turn.
 - The browser engine matches native Quux’s exact full-turn decisions on 17 recorded positions. Bot setup is checked across 60 seeded cases. Browser checks cover bot-first and human-first matches, actual bot moves, reload, cancellation, retry, and a catastrophe victory, plus the five-second coin reveal, name placement, intro recovery, reduced motion and the bank and turn controls in the right sidebar.
 - GitHub Actions runs the tests and production build on pushes and pull requests.
@@ -88,6 +106,7 @@ The rule-by-rule audit and PDF page references are in [docs/rules-audit.md](docs
 
 - `src/game.ts`: typed state, pure action reducer, and legal-order generation.
 - `src/session.ts`: versioned saves, match mode/starting player, schema checks, and legal-history replay.
+- `src/coach.ts`: full-turn coaching, rating, factual explanations, and verified reply translation.
 - `src/quux.ts`, `src/quux-worker.ts`, `src/quux-runtime.ts`: native Quux WebAssembly interface, full-turn translation, cancellation, and browser worker.
 - `vendor/quux/`: pinned upstream C++ engine, license, bridge, and precompiled WebAssembly.
 - `src/main.ts`, `src/style.css`: interactive space tabletop, bank, undo, click-based setup, and game controls.

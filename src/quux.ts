@@ -58,7 +58,7 @@ export function stopQuux():void {
   worker?.terminate();worker=null;
   rejectPending?.(Error('Quux Bot request cancelled.'));rejectPending=null;
 }
-export function askQuux(kind:'move'|'setup',text:string,player:Player):Promise<string> {
+export function askQuux(kind:'move'|'setup'|'coach',text:string,player:Player,difficulty=10):Promise<string> {
   stopQuux();
   return new Promise((resolve,reject)=>{
     const active=new Worker(new URL('./quux-worker.ts',import.meta.url),{type:'module'});worker=active;
@@ -71,6 +71,6 @@ export function askQuux(kind:'move'|'setup',text:string,player:Player):Promise<s
     active.onmessage=event=>event.data.ok?finish(null,event.data.result):finish(Error(event.data.error));
     active.onerror=()=>finish(Error('Could not run Quux Bot. Please retry.'));
     const seed=new Uint32Array(1);crypto.getRandomValues(seed);
-    active.postMessage({kind,text,player,seed:seed[0]});
+    active.postMessage({kind,text,player,seed:seed[0],difficulty});
   });
 }
