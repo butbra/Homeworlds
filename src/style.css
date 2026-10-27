@@ -176,6 +176,8 @@ html,body,#app{height:100%;overflow:clip;overscroll-behavior:none}
 .learning-mode .system.destination{border:1px dashed #a39769;box-shadow:none}
 .learning-mode .optional-catastrophe{border-color:#70564d;color:#bfa399;background:#34262366;box-shadow:none}
 .learning-mode .mentor-recommended{border-color:#ffe0a0!important;background:#78603233!important;box-shadow:0 0 0 1px #d7b46f88,0 0 18px #f3cc6a55!important;outline:2px solid #f2d18b;outline-offset:2px}
+.learning-mode .rail-controls #end.mentor-recommended:not(:disabled){background:#f2d18b!important;color:#101d2d}
+.learning-mode .rail-controls #end.mentor-recommended:not(:disabled):hover{background:#ffe4a8!important}
 .learning-mode .piece-button.mentor-recommended::after{content:'★';background:#ffe1a1;color:#4b3411}
 .learning-cue #explain-moves,.learning-cue #retry-advice{font-size:10px;margin:7px 5px 0 0;padding:6px 8px;border-color:#89744d;color:#ebd6aa}
 #mentor-dialog,#catastrophe-preview{width:min(700px,calc(100vw - 24px));background:linear-gradient(135deg,#162d34,#0c1420);border-color:#ac9762}
