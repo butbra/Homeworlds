@@ -105,3 +105,19 @@ test('new game cancels background teaching without stale suggestions or board ch
  await page.waitForTimeout(1100);await expect(page.locator('[data-move-advice]')).toHaveCount(0);
  await expect(page.locator('#mentor-dialog')).toHaveCount(0);
 });
+
+test('a winning catastrophe is explained as a win and guided to confirmation',async({page})=>{
+ await load(page,{...base,starter:0,opening:[{stars:[{color:'green',size:1},{color:'blue',size:3}],shipColor:'green'},opening[1]],actions:[
+  {type:'build',system:'north',color:'green'},{type:'end'},{type:'end'},
+  {type:'build',system:'north',color:'green'},{type:'end'},
+ ]});
+ await page.getByRole('button',{name:'green catastrophe at North homeworld',exact:true}).click();
+ await page.getByRole('button',{name:'Trigger catastrophe',exact:true}).click();
+ await expect(page.getByRole('button',{name:'End turn',exact:true})).toHaveAttribute('data-move-advice','recommended');
+ await expect(page.getByRole('button',{name:'Why / alternatives',exact:true})).toBeEnabled();
+ await page.getByRole('button',{name:'Why / alternatives',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Your staged turn wins'})).toBeVisible();
+ await page.getByRole('button',{name:'Back to board',exact:true}).click();
+ await page.getByRole('button',{name:'End turn',exact:true}).click();
+ await expect(page.locator('#result-title')).toHaveText('You win');
+});

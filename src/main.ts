@@ -285,6 +285,7 @@ function scheduleMentor():void {
 }
 function mentorDialog():string {
   if(!mentorDetails||mode!=='learning'||draft)return '';
+  if(winningConfirmation(state,history.length>0))return `<dialog id="mentor-dialog" aria-labelledby="mentor-title"><p class="result-eyebrow">LEARNING ADVICE</p><h2 id="mentor-title">Your staged turn wins</h2><p>The rules confirm that your opponent is eliminated and your homeworld survives. You do not need any more actions. Go back to the board and press End turn to confirm your victory.</p><button id="close-mentor">Back to board</button></dialog>`;
   const lines=mentorLines();
   return `<dialog id="mentor-dialog" aria-labelledby="mentor-title"><p class="result-eyebrow">LEARNING ADVICE</p><h2 id="mentor-title">Suggested turn and alternatives</h2><p>Gold marks the next click in your chosen line. Other outlines only mean legal. Advice uses full-strength Quux, even against the easy bot.</p>${lines.map((line,i)=>{
     const explanation=explainPlan(mentor!.start,line.actions,line.review);
