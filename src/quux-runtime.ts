@@ -25,14 +25,14 @@ export class QuuxRuntime {
     (runtime.instance.exports._initialize as ()=>void)();
     return runtime;
   }
-  call(kind:'move'|'setup'|'coach',text:string,player:number,seed=0,difficulty=10):string {
+  call(kind:'move'|'setup'|'coach'|'guide',text:string,player:number,seed=0,difficulty=10):string {
     const exports=this.instance.exports;
     const input=new TextEncoder().encode(text+'\0');
     const pointer=(exports.malloc as (size:number)=>number)(input.length);
     if(!pointer)throw Error('Quux Bot ran out of memory.');
     try {
       new Uint8Array((exports.memory as WebAssembly.Memory).buffer).set(input,pointer);
-      const fn=exports[kind==='move'&&difficulty!==10?'choose_move_level':{move:'choose_move',setup:'choose_setup',coach:'coach_position'}[kind]]as (ptr:number,player:number,seed:number,difficulty:number)=>number;
+      const fn=exports[kind==='move'&&difficulty!==10?'choose_move_level':{move:'choose_move',setup:'choose_setup',coach:'coach_position',guide:'guide_position'}[kind]]as (ptr:number,player:number,seed:number,difficulty:number)=>number;
       const output=fn(pointer,player,seed,difficulty);
       const bytes=new Uint8Array((exports.memory as WebAssembly.Memory).buffer);
       const end=bytes.indexOf(0,output);

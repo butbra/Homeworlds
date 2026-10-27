@@ -52,25 +52,32 @@ export function quuxActions(initial:GameState,text:string):Action[] {
   return actions;
 }
 
-let worker:Worker|null=null;
-let rejectPending:((reason:Error)=>void)|null=null;
-export function stopQuux():void {
-  worker?.terminate();worker=null;
-  rejectPending?.(Error('Quux Bot request cancelled.'));rejectPending=null;
+export type QuuxRequest='move'|'setup'|'coach'|'guide';
+/** Independent clients prevent background teaching from cancelling the opponent. */
+export class QuuxClient {
+  private worker:Worker|null=null;
+  private rejectPending:((reason:Error)=>void)|null=null;
+  stop():void {
+    this.worker?.terminate();this.worker=null;
+    this.rejectPending?.(Error('Quux request cancelled.'));this.rejectPending=null;
+  }
+  ask(kind:QuuxRequest,text:string,player:Player,difficulty=10):Promise<string> {
+    this.stop();
+    return new Promise((resolve,reject)=>{
+      const active=new Worker(new URL('./quux-worker.ts',import.meta.url),{type:'module'});this.worker=active;
+      const timer=setTimeout(()=>finish(Error('Quux needs more time. Retry the analysis or turn.')),60_000);
+      const finish=(error:Error|null,result?:string):void=>{
+        clearTimeout(timer);active.terminate();if(this.worker===active){this.worker=null;this.rejectPending=null;}
+        if(error)reject(error);else resolve(result!);
+      };
+      this.rejectPending=error=>finish(error);
+      active.onmessage=event=>event.data.ok?finish(null,event.data.result):finish(Error(event.data.error));
+      active.onerror=()=>finish(Error('Could not run Quux Bot. Please retry.'));
+      const seed=new Uint32Array(1);crypto.getRandomValues(seed);
+      active.postMessage({kind,text,player,seed:seed[0],difficulty});
+    });
+  }
 }
-export function askQuux(kind:'move'|'setup'|'coach',text:string,player:Player,difficulty=10):Promise<string> {
-  stopQuux();
-  return new Promise((resolve,reject)=>{
-    const active=new Worker(new URL('./quux-worker.ts',import.meta.url),{type:'module'});worker=active;
-    const timer=setTimeout(()=>finish(Error('Quux Bot needs more time. Retry its turn or start a new game.')),60_000);
-    function finish(error:Error|null,result?:string):void {
-      clearTimeout(timer);active.terminate();if(worker===active){worker=null;rejectPending=null;}
-      if(error)reject(error);else resolve(result!);
-    }
-    rejectPending=error=>finish(error);
-    active.onmessage=event=>event.data.ok?finish(null,event.data.result):finish(Error(event.data.error));
-    active.onerror=()=>finish(Error('Could not run Quux Bot. Please retry.'));
-    const seed=new Uint32Array(1);crypto.getRandomValues(seed);
-    active.postMessage({kind,text,player,seed:seed[0],difficulty});
-  });
-}
+const botClient=new QuuxClient();
+export const stopQuux=():void=>botClient.stop();
+export const askQuux=(kind:QuuxRequest,text:string,player:Player,difficulty=10):Promise<string>=>botClient.ask(kind,text,player,difficulty);

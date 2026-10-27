@@ -4,12 +4,13 @@
   "compiler": "WASI SDK 25.0",
   "optimization": "O2",
   "upstream_configuration": "ALLMOVES_USE_EXCEPTIONS=0 (supported equivalent early-exit implementation)",
-  "sha256": "166e1d11ba077c9857c9b5bdb2849d7cf40c348ebfe542be14450fe64e00b6d0",
-  "bytes": 738431,
+  "sha256": "9631863c725ff5c442dca6fd067b4a91e7b51b14909995e51d2677bc5569da92",
+  "bytes": 777923,
   "bridge_exports": [
     "choose_move",
     "choose_move_level",
     "choose_setup",
-    "coach_position"
+    "coach_position",
+    "guide_position"
   ]
 }

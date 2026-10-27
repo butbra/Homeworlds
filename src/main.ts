@@ -7,9 +7,10 @@ import {bankAction, legal, pyramid, type ShipSelection} from './tabletop';
 import { colors, sizes, createInitialState, applyAction, type Piece, type Action, type GameState, type Color, type Size,type Player } from './game';
 import {randomStarter,humanPlayer,quuxPlayer,isBotMode,validDifficulty,difficultyLabel,type GameMode} from './match';
 import {coachRequest,decodeAnalysis,bestTurn,describeTurn,explainTurn,describeReply,moveRating,type CoachAnalysis} from './coach';
-import {askQuux,stopQuux,quuxPosition,quuxSetupPosition,decodeQuuxSetup,quuxActions} from './quux';
+import {askQuux,stopQuux,quuxPosition,quuxSetupPosition,decodeQuuxSetup,quuxActions,QuuxClient} from './quux';
 import {introPhase,nextIntroBoundary,nameEntranceMs,coinRevealMs,type IntroPhase} from './intro';
-import {learningOptions,shipKey,lessons,lessonVisual} from './learning';
+import {learningOptions,shipKey,lessons,lessonVisual,lessonSystem} from './learning';
+import {guideRequest,decodeGuide,remainingPlan,explainPlan,nextClick,planSteps,catastropheImpact,winningConfirmation,type GuideResult} from './mentor';
 import {startingRecommendations,recommendedStart,nextRecommendedPiece,startingWarnings,useStartingRecommendation} from './openings';
 import {createLayout,layoutAfter,layoutBounds,type MapLayout} from './layout';
 
@@ -35,6 +36,11 @@ let coachBusy=false;
 let coachEpoch=0;
 let coachView:{kind:'hint'|'review';start:GameState;staged:GameState;actions:Action[];analysis?:CoachAnalysis;error?:string}|null=null;
 let learningFlow:{screen:'choice'|'walkthrough';index:number;after:boolean;launch:boolean}|null=null;
+const mentorClient=new QuuxClient();
+let mentorEpoch=0;
+let mentor:{start:GameState;turnKey:string;positionKey:string;busy:boolean;analysis?:GuideResult;error?:string;selected:number}|null=null;
+let mentorDetails=false;
+let catastrophePreview:Extract<Action,{type:'catastrophe'}>|null=null;
 let introStartedAt:number|null=null;
 let introTimer:ReturnType<typeof setTimeout>|undefined;
 let resumeSession: Session | null = null;
@@ -50,7 +56,8 @@ function save(): void {
   catch {notice += ' Browser storage unavailable; export a save to keep this game.';}
 }
 function clearCoach():void {coachEpoch++;if(coachBusy)stopQuux();coachBusy=false;coachView=null;}
-function cancelBot():void {learningFlow=null;clearCoach();botEpoch++;stopQuux();botBusy=false;botError='';clearTimeout(introTimer);introStartedAt=null;}
+function clearMentor():void {mentorEpoch++;mentorClient.stop();mentor=null;mentorDetails=false;catastrophePreview=null;}
+function cancelBot():void {clearMentor();learningFlow=null;clearCoach();botEpoch++;stopQuux();botBusy=false;botError='';clearTimeout(introTimer);introStartedAt=null;}
 function playerName(player:number):string {return isBotMode(mode)?(player===humanPlayer?'You':'Quux Bot'):`Player ${player+1}`;}
 function outcomeText():string {
   const text=resultDescription(state);
@@ -237,6 +244,58 @@ function learningDialog():string {
   const {index,after,launch}=learningFlow,lesson=lessons[index];
   return `<dialog id="learning-dialog" class="learning-dialog walkthrough" aria-labelledby="learning-title"><header class="lesson-header"><span>LEARNING MODE</span><span>Lesson ${index+1} of ${lessons.length}</span></header><div class="lesson-progress" role="progressbar" aria-label="Walkthrough progress" aria-valuemin="1" aria-valuemax="${lessons.length}" aria-valuenow="${index+1}"><i style="width:${(index+1)/lessons.length*100}%"></i></div><h2 id="learning-title" tabindex="-1">${lesson.title}</h2>${lessonVisual(lesson,after)}${lesson.example?.actions.length?`<button id="lesson-example" class="lesson-example-button">${after?'↶ Reset example':'▶ Show move'}</button>`:''}<div class="lesson-copy">${lesson.text.map(t=>`<p>${t}</p>`).join('')}<p class="lesson-tip">${lesson.tip}</p></div><footer class="lesson-navigation"><button id="lesson-back" aria-label="Previous lesson" ${index===0?'disabled':''}>← Back</button>${index===lessons.length-1?`<button id="lesson-finish" class="primary">${launch?'Start learning game':'Return to game'}</button>`:'<button id="lesson-next" aria-label="Next lesson" class="primary">Next →</button>'}</footer><button id="learning-close" class="lesson-exit">${launch?'Skip to game':'Back to game'}</button></dialog>`;
 }
+function mentorLines() {
+  if(!mentor?.analysis)return [];
+  return mentor.analysis.choices.flatMap((choice,index)=>{
+    const remaining=remainingPlan(mentor!.start,choice.actions,state);
+    return remaining?[{...choice,index,remaining}]:[];
+  });
+}
+function mentorStep() {
+  const win=winningConfirmation(state,history.length>0);if(win)return win;
+  const lines=mentorLines(),line=lines.find(l=>l.index===mentor?.selected)??lines[0];
+  const baseline=mentor?.analysis?.baseline;
+  if(history.length&&baseline&&!baseline.losesNext&&baseline.outcome!==1-humanPlayer&&(!line||baseline.score-line.review.score>24))return {text:'Quux found a stronger turn before your staged actions. Consider Undo to try it instead of confirming this line.',selector:'#undo'};
+  return line?nextClick(state,line.remaining,selected,source,intent):null;
+}
+function scheduleMentor():void {
+  if(mode!=='learning'||draft||locked()||state.outcome!=='playing'||state.player!==humanPlayer) {
+    if(mentor)clearMentor();return;
+  }
+  const start=history[0]?.state??state,turnKey=JSON.stringify(start),positionKey=JSON.stringify(state);
+  if(mentor?.turnKey===turnKey&&(mentor.positionKey===positionKey||mentorLines().length))return;
+  mentorClient.stop();const epoch=++mentorEpoch;
+  mentor={start,turnKey,positionKey,busy:true,selected:0};
+  const current=state;
+  const delay=history.length?450:0;
+  queueMicrotask(async()=>{
+    if(delay)await pause(delay);
+    if(epoch!==mentorEpoch)return;
+    render();
+    try {
+      const text=await mentorClient.ask('guide',guideRequest(start,current),humanPlayer);
+      if(epoch!==mentorEpoch)return;
+      mentor={start,turnKey,positionKey,busy:false,selected:0,analysis:decodeGuide(start,current,text)};
+    }catch(error) {
+      if(epoch!==mentorEpoch)return;
+      mentor={start,turnKey,positionKey,busy:false,selected:0,error:(error as Error).message};
+    }
+    render();
+  });
+}
+function mentorDialog():string {
+  if(!mentorDetails||mode!=='learning'||draft)return '';
+  const lines=mentorLines();
+  return `<dialog id="mentor-dialog" aria-labelledby="mentor-title"><p class="result-eyebrow">LEARNING ADVICE</p><h2 id="mentor-title">Suggested turn and alternatives</h2><p>Gold marks the next click in your chosen line. Other outlines only mean legal. Advice uses full-strength Quux, even against the easy bot.</p>${lines.map((line,i)=>{
+    const explanation=explainPlan(mentor!.start,line.actions,line.review);
+    return `<article class="mentor-line"><h3>${mentorStep()?.selector==='#undo'?'Your staged line':i===0?'Quux’s suggestion':'Reasonable alternative '+i}</h3>${mentorStep()?.selector==='#undo'?'<p class="mentor-risk">Quux preferred a stronger turn before these actions. Consider Undo to return to that choice.</p>':''}<ol>${planSteps(state,line.remaining).map(s=>`<li>${escape(s)}</li>`).join('')}</ol><h4>Why consider it</h4>${explanation.benefits.length?explanation.benefits.map(s=>`<p>${escape(s)}</p>`).join(''):'<p>This completes the line you have already staged.</p>'}${explanation.risks.length?`<h4>Watch out for</h4>${explanation.risks.map(s=>`<p class="mentor-risk">${escape(s)}</p>`).join('')}`:'<p>No immediate winning reply was found for your opponent after this complete line.</p>'}<button data-follow-line="${line.index}">Guide this line</button></article>`;
+  }).join('')}${lines.length===1?'<p>No similar-strength alternative was found among the checked lines.</p>':''}${!lines.length?'<p>No immediate-loss-free continuation was found for your staged position. Try Undo or review your homeworld before confirming. This does not prove that no better move exists.</p>':''}${history.length&&mentor?.analysis?.baseline&&!mentor.analysis.baseline.losesNext?`<details><summary>Quux’s original suggestion before your staged actions</summary><ol>${describeTurn(mentor.start,quuxActions(mentor.start,mentor.analysis.baselineMove)).map(s=>`<li>${escape(s)}</li>`).join('')}</ol><p>Undo your staged actions to follow this different line.</p></details>`:''}<p class="mentor-footnote">Recommendations compare complete turns using Quux’s evaluation and immediate winning-reply checks. They are useful guidance, not a guarantee of best play. You choose and perform every action.</p><button id="close-mentor">Back to board</button></dialog>`;
+}
+function catastropheDialog():string {
+  if(!catastrophePreview)return '';
+  const impact=catastropheImpact(state,catastrophePreview);
+  return `<dialog id="catastrophe-preview" aria-labelledby="catastrophe-title"><p class="result-eyebrow">OPTIONAL CATASTROPHE</p><h2 id="catastrophe-title">Before you destroy these pieces</h2><p>A catastrophe is available, but that does not make it a good move. It will remove ${impact.own} of your ships, ${impact.enemy} enemy ships, and ${impact.stars} star${impact.stars===1?'':'s'} at ${escape(impact.before.name)}.</p><div class="catastrophe-comparison"><div><h3>Before</h3>${lessonSystem(impact.before)}</div><div><h3>After</h3>${lessonSystem(impact.system)}</div></div>${impact.wholeSystem?'<p>The last star is destroyed, so every ship in this system is destroyed, even other colors.</p>':'<p>A star survives. Any ships of other colors are spared.</p>'}${impact.loses?'<p class="mentor-risk">Ending your turn after this would lose your homeworld. Undo or restore a ship before confirming.</p>':''}${impact.draws?'<p class="mentor-risk">Ending here would eliminate both players and draw the game.</p>':''}${impact.own>0&&impact.enemy===0?'<p class="mentor-risk">This destroys your ships without removing an enemy ship. Consider keeping the pieces.</p>':''}<button id="keep-pieces" class="primary">Keep pieces</button><button id="confirm-catastrophe">Trigger catastrophe</button></dialog>`;
+}
 function learningCue():string {
   if(mode!=='learning'||choosingMode||introStartedAt!==null)return '';
   let text='';
@@ -245,11 +304,15 @@ function learningCue():string {
   else if(state.outcome!=='playing')text='Game finished. Start another learning game whenever you are ready.';
   else if(botTurn())text='Watch Quux’s turn. Your legal choices will light up when it is your turn.';
   else if(applyAction(state,{type:'end'}).outcome===(1-humanPlayer))text='Your homeworld is empty or destroyed. Undo or restore a ship before End turn to avoid losing.';
-  else if(source)text=intent==='trade'?'Trade with a glowing bank piece. Size stays the same.':intent==='discover'?'Travel to a yellow-outlined system, or click a glowing bank piece to discover a new star.':'Choose Trade, Travel, or Sacrifice beside your ship. Yellow outlines are legal travel destinations.';
-  else if(state.allowance.remaining===0)text='Your action is complete. You can still use glowing catastrophe buttons, undo, or press End turn.';
-  else if(state.allowance.sacrificed)text=`${state.allowance.remaining} ${state.allowance.color} action${state.allowance.remaining===1?'':'s'} left. Choose a glowing ship, system, or bank piece. You may end early.`;
-  else text='Glowing ships can act. Red glows mark captures. Select a glowing system, then a glowing bank piece to build.';
-  return `<section class="learning-cue" aria-label="Learning help"><span>LEGAL MOVE HELP</span><p role="status">${text}</p>${draft&&!botTurn()?'<button id="starting-tips">Starting tips</button>':''}</section>`;
+  else {
+    const step=mentorStep();
+    const prefix=state.allowance.remaining===0?'Your action is complete. ':'';
+    text=prefix+(step?.text??(mentor?.busy?'Checking good moves. Other outlines show legal options only.':mentor?.error?'Advice unavailable. Outlines show legal options only.':'No safe continuation found in the checked lines. Consider Undo before ending.'));
+  }
+  const line=mentorLines().find(l=>l.index===mentor?.selected)??mentorLines()[0];
+  const explanation=!draft&&line&&mentor?explainPlan(mentor.start,line.actions,line.review):null;
+  const idea=mentorStep()?.selector==='#undo'?explanation?.risks[0]:explanation?.benefits[0];
+  return `<section class="learning-cue" aria-label="Learning help"><span>${draft?'STARTING HELP':'MOVE ADVICE · GOLD = SUGGESTED'}</span><p role="status">${text}</p>${idea?`<p class="mentor-summary">${escape(idea)}</p>`:''}${draft&&!botTurn()?'<button id="starting-tips">Starting tips</button>':''}${!draft&&!botTurn()&&state.outcome==='playing'?`<button id="explain-moves" ${mentor?.busy?'disabled':''}>Why / alternatives</button>${!mentor?.busy&&(mentor?.error||!mentorLines().length)?'<button id="retry-advice">Retry advice</button>':''}`:''}</section>`;
 }
 function startingTipsDialog():string {
   if(mode!=='learning'||!draft)return '';
@@ -311,7 +374,7 @@ function render():void {
       if(p.owner!==owner)return '';
       const key=shipKey(s.id,j),canSelect=guide?.ships.has(key),canCapture=guide?.captures.has(key);
       return `<button class="piece-button ${source?.system===s.id&&source.ship===j?'picked':''} ${canSelect||canCapture?'learn-option':''} ${canCapture?'learn-capture':''}" data-ship="${j}" data-source="${s.id}" ${canSelect||canCapture?'data-legal-option="'+(canCapture?'capture':'select')+'"':''} ${teaching&&!canSelect&&!canCapture?'disabled':''} aria-label="Player ${owner+1} ${p.color} ship ${p.size} at ${s.name}" ${canSelect||canCapture?'aria-description="'+(canCapture?'Legal capture. Click to take this ship.':'Legal actions available. Click to choose one.')+'"':''}>${pyramid(p,false,owner)}</button>`;
-    }).join('')}</div>`).join('')}</div></div><div class="system-meta">${s.homeworld===undefined?'FRONTIER':`PLAYER ${s.homeworld+1} HOMEWORLD`}${destination?'<span>MOVE HERE ↗</span>':guide?.buildSystems.has(s.id)&&!source?'<span class="learn-build-label">BUILD HERE +</span>':''}</div>${catastrophes.filter(c=>c.system===s.id).map(c=>`<button class="system-catastrophe ${guide?'learn-option':''}" data-cat="${c.color}" data-cat-system="${c.system}" aria-label="${c.color} catastrophe at ${c.name}" ${inputLocked?'disabled':''}>✹ ${c.color} catastrophe · ${c.count}</button>`).join('')}</article>`;
+    }).join('')}</div>`).join('')}</div></div><div class="system-meta">${s.homeworld===undefined?'FRONTIER':`PLAYER ${s.homeworld+1} HOMEWORLD`}${destination?'<span>MOVE HERE ↗</span>':guide?.buildSystems.has(s.id)&&!source?'<span class="learn-build-label">BUILD HERE +</span>':''}</div>${catastrophes.filter(c=>c.system===s.id).map(c=>`<button class="system-catastrophe ${teaching?'optional-catastrophe':''}" data-cat="${c.color}" data-cat-system="${c.system}" aria-label="${c.color} catastrophe at ${c.name}" ${inputLocked?'disabled':''}>${teaching?'Optional · ':'✹ '}${c.color} catastrophe · ${c.count}</button>`).join('')}</article>`;
   }).join('')}
   </div></section><div class="board-overlay">${actionMenu}${!choosingMode?playerPlate(0,phase)+playerPlate(1,phase):''}<p id="notice" class="board-notice" role="status" aria-live="polite">${boardNotice()}</p>${botError?'<button id="retry-bot" class="board-retry">Retry Quux Bot</button>':''}${coinIntro(phase)}</div></section>
   <aside class="sidebar" aria-label="Game sidebar">${controls}${learningCue()}<section class="bank" aria-label="Piece bank"><div class="bank-heading"><h2>THE BANK</h2><span>${bank.length} PIECES</span></div><p>Click a pyramid to bring it into play.</p>${colors.map(color=>`<div class="bank-color ${color}"><h3>${color}<span>${{red:'CAPTURE',yellow:'MOVE',green:'BUILD',blue:'TRADE'}[color]}</span></h3><div class="bank-row">${sizes.map(size=>{
@@ -321,7 +384,7 @@ function render():void {
     return `<button class="bank-piece ${available?'available':''} ${teaching&&available?'learn-option':''} ${recommended?'recommended':''}" ${recommended?'data-recommended="true"':''} data-color="${color}" data-size="${size}" aria-label="Bank ${color} ${size}" ${teaching&&available?`data-legal-option="bank" aria-description="Legal bank choice for your current action.${recommended?' Recommended next piece.':''}"`:''} ${inputLocked||!count||teaching&&!available||(draft?draft[setupPlayer].length===3:over)?'disabled':''} title="${color} size ${size}: ${count} available">${pyramid(p)}<span>×${count}</span>${recommended?'<span class="recommended-mark" aria-label="Recommended next piece">★</span>':''}</button>`;
   }).join('')}</div></div>`).join('')}</section>
   </aside></div>
-  ${startingTipsDialog()}${learningDialog()}${coachDialog()}<dialog id="result" aria-labelledby="result-title"><p class="result-eyebrow">GAME OVER</p><h2 id="result-title">${over?status:''}</h2><p>${over?outcomeText():''}</p><button id="result-new" class="primary">New game</button><button id="result-close">View final board</button></dialog>
+  ${catastropheDialog()}${mentorDialog()}${startingTipsDialog()}${learningDialog()}${coachDialog()}<dialog id="result" aria-labelledby="result-title"><p class="result-eyebrow">GAME OVER</p><h2 id="result-title">${over?status:''}</h2><p>${over?outcomeText():''}</p><button id="result-new" class="primary">New game</button><button id="result-close">View final board</button></dialog>
   <dialog id="game-menu"><h2>Mission control</h2>${isBotMode(mode)&&!choosingMode?difficultyControl('game-difficulty',botBusy):''}<div class="menu-buttons"><button id="reset">New game</button>${draft&&resumeSession&&!choosingMode?'<button id="resume">Resume saved game</button>':''}<button id="help">How to play</button>${teaching?`<button id="learn-rules" ${inputLocked?'disabled':''}>Rules walkthrough</button>`:''}<button id="export" ${draft||botBusy?'disabled':''}>Export save</button><button id="import">Import save</button><button id="resign" ${over||draft||inputLocked?'disabled':''}>Resign</button><button id="draw" ${over||draft||isBotMode(mode)?'disabled':''}>Agree draw</button><button id="close-menu">Back to space</button></div><input type="file" id="save-file" accept=".json,application/json" hidden><details><summary>Flight log (${log.length})</summary><ol>${log.map(l=>`<li>${escape(l)}</li>`).join('')}</ol></details><p>Your game saves automatically on this device.</p></dialog>
   <dialog id="opponent-picker" aria-labelledby="opponent-title"><p class="result-eyebrow">A NEW EXPEDITION</p><h2 id="opponent-title">Choose your opponent</h2><p>Explore the galaxy with another person, or challenge Quux Bot.</p>${difficultyControl('new-difficulty')}<div class="opponent-options"><button id="play-local" aria-label="Another player"><strong>Another player</strong><span>Two people on this device</span></button><button id="play-quux" aria-label="Quux Bot"><strong>Quux Bot</strong><span>You command South. The bot commands North.</span></button><button id="play-practice" aria-label="Quux practice"><strong>Quux practice</strong><span>Play Quux Bot with hints, move ratings, and explanations.</span></button><button id="play-learning" aria-label="Learning mode"><strong>Learning mode</strong><span>Optional visual rules tour, legal-move highlights, and an easy bot.</span></button></div><p class="coin-note">A coin flip chooses who sets up and takes the first turn.</p>${resumeSession&&choosingMode?'<button id="resume">Resume saved game</button>':''}</dialog>
   <dialog id="rules"><h2>Your fleet. Your universe.</h2><p><b>Build:</b> click a system, then the smallest available bank piece of a color you already own there. You need green power.</p><p><b>Travel:</b> click your ship, then a connected system. Systems connect when their stars share no sizes. You need yellow power.</p><p><b>Trade:</b> click your ship, then Trade, then a different bank color of exactly the same size. You need blue power.</p><p><b>Discover a new star:</b> click your ship, Travel, a bank pyramid for the new star. It appears automatically in its star-size row. You need yellow power.</p><p><b>Capture:</b> click an enemy ship. You need red power and an equal or larger ship in that system.</p><p><b>Sacrifice:</b> click your ship, then Sacrifice. Instead of a basic action, gain its pip count in actions of its color anywhere you still have ships.</p><p><b>Catastrophe:</b> whenever any system has four or more pieces of one color, its catastrophe button appears on that system, even if you have no ships there. Count stars and both fleets. The active player may choose to remove that color. If the last star is removed, every ship there is destroyed; a surviving binary-star half protects other colors. Optional and free at any point in your turn.</p><p>Power comes from stars or your own local ships, never enemy ships. Confirm with End turn. An empty or destroyed homeworld loses at turn end. Undo works until you confirm. Systems have fixed positions. Same-size stars share a horizontal row; travel still depends on star sizes, not physical distance.</p><p>Based on Homeworlds Rules13, pp. 4–12. Game: John Cooper. Pyramid system: Andrew Looney. Unofficial implementation.</p><p>Quux Bot: original engine by Arthur O’Dwyer. <a href="./quux-LICENSE.txt" target="_blank" rel="noopener">License</a> · <a href="https://github.com/Quuxplusone/Homeworlds" target="_blank" rel="noopener">Engine source</a>.</p><button id="close-rules">Back to space</button></dialog></main>`;
@@ -329,6 +392,21 @@ function render():void {
   document.querySelector('#play-local')!.addEventListener('click',()=>beginSetup('local'));
   document.querySelector('#play-quux')!.addEventListener('click',()=>beginSetup('quux'));
   document.querySelector('#play-practice')!.addEventListener('click',()=>beginSetup('practice'));
+  document.querySelector('#explain-moves')?.addEventListener('click',()=>{mentorDetails=true;render();});
+  document.querySelector('#close-mentor')?.addEventListener('click',()=>{document.querySelector<HTMLDialogElement>('#mentor-dialog')!.close();mentorDetails=false;render();});
+  document.querySelector('#mentor-dialog')?.addEventListener('cancel',()=>{mentorDetails=false;});
+  document.querySelector('#retry-advice')?.addEventListener('click',()=>{if(mentor)mentor.positionKey='';render();});
+  document.querySelectorAll<HTMLElement>('[data-follow-line]').forEach(button=>button.addEventListener('click',()=>{
+    if(mentor)mentor.selected=Number(button.dataset.followLine);
+    document.querySelector<HTMLDialogElement>('#mentor-dialog')!.close();mentorDetails=false;render();
+  }));
+  const keepPieces=()=>{document.querySelector<HTMLDialogElement>('#catastrophe-preview')?.close();catastrophePreview=null;render();};
+  document.querySelector('#keep-pieces')?.addEventListener('click',keepPieces);
+  document.querySelector('#catastrophe-preview')?.addEventListener('cancel',event=>{event.preventDefault();keepPieces();});
+  document.querySelector('#confirm-catastrophe')?.addEventListener('click',()=>{
+    const action=catastrophePreview;document.querySelector<HTMLDialogElement>('#catastrophe-preview')!.close();catastrophePreview=null;
+    if(action)act(action,`Invoked ${action.color} catastrophe`);
+  });
   document.querySelector('#starting-tips')?.addEventListener('click',()=>document.querySelector<HTMLDialogElement>('#starting-guide')!.showModal());
   document.querySelector('#close-starting-guide')?.addEventListener('click',()=>document.querySelector<HTMLDialogElement>('#starting-guide')!.close());
   document.querySelectorAll<HTMLElement>('[data-starting-preset]').forEach(button=>button.addEventListener('click',()=>{
@@ -366,13 +444,21 @@ function render():void {
   }));
   document.querySelector('#opponent-picker')!.addEventListener('cancel',event=>event.preventDefault());
   document.querySelector('#retry-bot')?.addEventListener('click',()=>{botError='';render();});
-  if(learningFlow)document.querySelector<HTMLDialogElement>('#learning-dialog')!.showModal();
+  if(catastrophePreview)document.querySelector<HTMLDialogElement>('#catastrophe-preview')!.showModal();
+  else if(mentorDetails)document.querySelector<HTMLDialogElement>('#mentor-dialog')?.showModal();
+  else if(learningFlow)document.querySelector<HTMLDialogElement>('#learning-dialog')!.showModal();
   else if(coachView)document.querySelector<HTMLDialogElement>('#coach-dialog')!.showModal();
   else if(choosingMode)document.querySelector<HTMLDialogElement>('#opponent-picker')!.showModal();
   else if(openDialog&&openDialog!=='opponent-picker'&&openDialog!=='learning-dialog')document.querySelector<HTMLDialogElement>('#'+openDialog)?.showModal();
   const space=document.querySelector<HTMLElement>('#space')!;
   boardResizeObserver.disconnect();boardResizeObserver.observe(space);fitBoard(space);
-  scheduleBot();
+  const suggestedMove=mode==='learning'&&!inputLocked&&!draft?mentorStep():null;
+  if(suggestedMove) {
+    const target=app.querySelector<HTMLElement>(suggestedMove.selector);
+    target?.classList.add('mentor-recommended');
+    if(target){target.dataset.moveAdvice='recommended';target.setAttribute('aria-description',suggestedMove.text);}
+  }
+  scheduleBot();scheduleMentor();
   if(over&&!draft&&announcedResult!==`${state.turn}:${state.outcome}`){announcedResult=`${state.turn}:${state.outcome}`;document.querySelector<HTMLDialogElement>('#result')!.showModal();}
 }
 function bindBoard():void {
@@ -401,7 +487,11 @@ function bindBoard():void {
   document.querySelectorAll<HTMLElement>('[data-intent]').forEach(button=>button.addEventListener('click',()=>{intent=button.dataset.intent as 'trade'|'discover';notice=intent==='trade'?'Click a different bank color of the same size.':'Click a connected system to travel there, or choose a bank star to discover one automatically.';render();}));
   document.querySelector('#clear')?.addEventListener('click',()=>{source=null;intent='build';render();});
   document.querySelector('#sacrifice')?.addEventListener('click',()=>{if(source)act({type:'sacrifice',...source},'Sacrificed ship');});
-  document.querySelectorAll<HTMLElement>('[data-cat]').forEach(button=>button.addEventListener('click',()=>act({type:'catastrophe',system:button.dataset.catSystem!,color:button.dataset.cat as Color},`Invoked ${button.dataset.cat} catastrophe`)));
+  document.querySelectorAll<HTMLElement>('[data-cat]').forEach(button=>button.addEventListener('click',()=>{
+    const action:Extract<Action,{type:'catastrophe'}>={type:'catastrophe',system:button.dataset.catSystem!,color:button.dataset.cat as Color};
+    if(mode==='learning'&&!locked()){catastrophePreview=action;render();}
+    else act(action,`Invoked ${button.dataset.cat} catastrophe`);
+  }));
   document.querySelector('#resume')?.addEventListener('click',()=>{if(resumeSession){restore(resumeSession);notice='Your saved game has been restored.';render();}});
 }
 function bindTools():void {

@@ -3,9 +3,12 @@
 #include "AllMoves.h"
 #include "ApplyMove.h"
 #include "PlanetNames.h"
+#include "ToComparableString.h"
 #include <algorithm>
 #include <cstdlib>
 #include <string>
+#include <cstdio>
+#include <set>
 
 static std::string result;
 
@@ -60,6 +63,73 @@ extern "C" const char *coach_position(const char *text, int player) {
     }
     result = "{\"bestMove\":" + json_string(best.toString()) +
         ",\"best\":" + best_review + ",\"candidate\":" + candidate + "}";
+    return result.c_str();
+}
+
+// Match a complete turn to an already staged position AND its remaining action
+// allowance. This never treats a half-played sacrifice as a fresh basic turn.
+static bool passes_staged(const GameState &original, int player, const WholeMove &move,
+                         const GameState &staged, int wanted_sac, int wanted_color, int wanted_left) {
+    GameState prefix = original;
+    int sac = 0, color = -1, left = 1;
+    const std::string target = staged.toComparableString();
+    auto matches = [&]() { return sac == wanted_sac && color == wanted_color && left == wanted_left && prefix.toComparableString() == target; };
+    if (matches()) return true;
+    for (const auto &action : move.actions) {
+        if (action.kind == SACRIFICE) { sac = 1; color = int(action.piece.color); left = 1+int(action.piece.size); }
+        else if (action.kind != CATASTROPHE) --left;
+        const auto rc = ApplyMove::Single(prefix, player, action);
+        if (rc != ApplyMove::SUCCESS && rc != ApplyMove::SUICIDE) return false;
+        if (matches()) return true;
+    }
+    return false;
+}
+
+extern "C" const char *guide_position(const char *text, int player) {
+    const std::string input(text), separator = "\n===GUIDE===\n";
+    const auto split = input.find(separator);
+    if (split == std::string::npos || (player != 0 && player != 1)) { result = "ERROR: Invalid guide request"; return result.c_str(); }
+    const auto header_start = split + separator.size(), board_start = input.find('\n', header_start);
+    int sac, color, left;
+    GameState original, staged;
+    if (board_start == std::string::npos || std::sscanf(input.substr(header_start,board_start-header_start).c_str(),"%d %d %d",&sac,&color,&left) != 3 ||
+        (sac != 0 && sac != 1) || left < 0 || left > 3 || (!sac && (color != -1 || left > 1)) || (sac && (color < 0 || color > 3)) ||
+        !original.scan(input.substr(0,split).c_str()) || original.gameIsOver() || !staged.scan(input.substr(board_start+1).c_str())) {
+        result = "ERROR: Invalid guide position"; return result.c_str();
+    }
+    const std::string current = inspect_position(staged,player);
+    const WholeMove native_best = get_ai_move(original,player);
+    GameState baseline_state = original;
+    const bool baseline_valid = ApplyMove::Whole(baseline_state,player,native_best) == ApplyMove::SUCCESS;
+    const std::string baseline = baseline_valid ? inspect_position(baseline_state,player) : "null";
+    auto moves = get_all_moves_sorted_by_value(original,player,false);
+    moves.insert(moves.begin(),native_best);
+    std::set<std::string> seen;
+    std::string choices;
+    int accepted = 0, checked = 0, best_score = 0;
+    bool winning = false, limited = false;
+    for (auto move : moves) {
+        if (!passes_staged(original,player,move,staged,sac,color,left)) continue;
+        // A pass with no staged action cannot be confirmed by this tabletop.
+        if (move.isPass() && !sac && left == 1) continue;
+        GameState after = original;
+        if (ApplyMove::Whole(after,player,move) != ApplyMove::SUCCESS || after.hasLost(player)) continue;
+        const auto fingerprint = after.toComparableString();
+        if (!seen.insert(fingerprint).second) continue;
+        const int score = ai_static_evaluation(after,player);
+        const bool win = after.hasLost(1-player);
+        if (accepted && ((winning && !win) || score < best_score-24)) continue;
+        if (checked >= 16) { limited = true; break; }
+        ++checked;
+        if (!win && findWinningMove(after,1-player,nullptr)) continue;
+        if (!accepted) { best_score = score; winning = win; }
+        reassignPlanetNames(&move,original);
+        if (accepted) choices += ",";
+        choices += "{\"move\":" + json_string(move.toString()) + ",\"review\":" + inspect_position(after,player) + "}";
+        if (++accepted == 3) break;
+    }
+    result = "{\"choices\":[" + choices + "],\"current\":" + current + ",\"baseline\":" + baseline + ",\"baselineMove\":" + json_string(native_best.toString()) +
+        ",\"checked\":" + std::to_string(checked) + ",\"limited\":" + (limited?"true":"false") + "}";
     return result.c_str();
 }
 

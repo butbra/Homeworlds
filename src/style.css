@@ -166,3 +166,28 @@ html,body,#app{height:100%;overflow:clip;overscroll-behavior:none}
 .starting-warnings{padding:12px;border-left:2px solid #dcaf72;background:#5b3b2533;font-size:12px;color:#f1d2a7}.starting-warnings p{margin:7px 0 0;color:#e4c8a6}
 #starting-guide .starting-note{font-size:11px;color:#94acbc}
 @media(max-width:500px){.starting-cards{grid-template-columns:1fr}.starting-card{padding:13px}.learning-cue #starting-tips{font-size:9px;padding:5px 8px}}
+
+/* Legal availability is quiet; only analysed recommendations receive gold. */
+.learning-mode .learn-option{border-color:#627f8c!important;background:#1e354222!important;box-shadow:none}
+.learning-mode .piece-button.learn-option::after{content:'·';background:#8baab7;color:#14242c}
+.learning-mode .piece-button.learn-capture{border-color:#986e66!important;background:#6a3d351f!important;box-shadow:none}
+.learning-mode .piece-button.learn-capture::after{content:'·';background:#bc9186}
+.learning-mode .learn-build-system:not(.destination){border-color:#6c8e88;box-shadow:inset 0 0 0 3px #030810}
+.learning-mode .system.destination{border:1px dashed #a39769;box-shadow:none}
+.learning-mode .optional-catastrophe{border-color:#70564d;color:#bfa399;background:#34262366;box-shadow:none}
+.learning-mode .mentor-recommended{border-color:#ffe0a0!important;background:#78603233!important;box-shadow:0 0 0 1px #d7b46f88,0 0 18px #f3cc6a55!important;outline:2px solid #f2d18b;outline-offset:2px}
+.learning-mode .piece-button.mentor-recommended::after{content:'★';background:#ffe1a1;color:#4b3411}
+.learning-cue #explain-moves,.learning-cue #retry-advice{font-size:10px;margin:7px 5px 0 0;padding:6px 8px;border-color:#89744d;color:#ebd6aa}
+#mentor-dialog,#catastrophe-preview{width:min(700px,calc(100vw - 24px));background:linear-gradient(135deg,#162d34,#0c1420);border-color:#ac9762}
+.mentor-line{border:1px solid #5d7680;border-radius:9px;padding:15px;margin:16px 0;background:#14263566}
+.mentor-line h3{font-size:17px;font-weight:500;color:#f0d9a5;margin:0 0 12px}
+.mentor-line h4{font-size:12px;color:#bddaca;margin:16px 0 6px}
+.mentor-line ol{max-height:none;overflow:visible;padding-left:20px}.mentor-line p{margin:9px 0}
+.mentor-line button{margin-top:13px}.mentor-risk{color:#f2b7a5!important;border-left:2px solid #bd806c;padding-left:10px}
+.mentor-footnote{font-size:11px!important;color:#8ba9bb!important}
+.catastrophe-comparison{display:flex;flex-wrap:wrap;gap:12px}.catastrophe-comparison>div{flex:1 1 210px;min-width:0}
+.catastrophe-comparison h3{font-size:12px;color:#adc8d6}.catastrophe-comparison .lesson-system{max-width:none}
+@media(max-width:700px){.learning-cue #explain-moves,.learning-cue #retry-advice{font-size:8px;padding:5px 6px}.mentor-line{padding:12px}}
+.learning-cue p.mentor-summary{font-size:10px;color:#9fbfac;border-left:1px solid #8eab96;padding-left:7px;line-height:1.45}
+@media(max-width:700px){.learning-cue p.mentor-summary{font-size:8px}}
+@media(max-height:550px){.learning-cue p.mentor-summary{display:none}}

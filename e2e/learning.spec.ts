@@ -153,6 +153,9 @@ test('legal captures glow red and dangerous home abandonment gets a warning',asy
 
 test('reopening the walkthrough preserves the match and the whole bank fits on a short screen',async({page})=>{
  await page.setViewportSize({width:844,height:390});await load(page);
+ // Background advice updates the controls once. Measure the settled board,
+ // rather than holding element handles across that asynchronous render.
+ await expect(page.locator('[data-move-advice="recommended"]')).toHaveCount(1);
  for(const button of await page.locator('.bank-piece').all()) {
   const rect=(await button.boundingBox())!;
   expect(rect.y).toBeGreaterThanOrEqual(0);expect(rect.y+rect.height).toBeLessThanOrEqual(390);
