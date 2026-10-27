@@ -34,6 +34,8 @@ During a learning game, mint outlines and plus markers identify selectable own s
 
 Legal choices are not necessarily strategically safe. Learning mode does not alter game rules or the existing End turn guard, which requires an action before a human can confirm. The tour explicitly mentions the rulebook's pass option and this interface restriction. Ordinary Quux and local modes retain their controls; hints and numerical move reviews remain in **Quux practice**.
 
+During Learning-mode setup, **Starting tips** compares four illustrated presets. Goldilocks, Banker and Fortress use red/blue stars and a large green ship, with the three different star-size pairings described in Rules13 pp. 20–21. Explorer offers blue/yellow stars with a large green ship as a travel-focused alternative. These are beginner-friendly options, not an exhaustive list or a proven ranking. A gold star marks the next recommended bank choice, adapting to either order of your selected stars and preferring a different size pair from the opponent when possible. Live notes flag missing green or blue power, repeated colors, same-size stars and matching the opponent's size pair. A preset replaces only your own unconfirmed pieces, respects the shared supply, and still requires **End turn** to confirm. Custom legal starts remain allowed.
+
 ## Quux practice and difficulty
 
 Choose **Quux practice** for the same game against Quux Bot with two extra controls above the bank.
@@ -95,7 +97,7 @@ npm run test:e2e
 
 Playwright uses `/usr/bin/chromium` when present; otherwise it uses its installed Chromium browser. Linux systems may also need `npx playwright install --with-deps chromium`.
 
-- 99 rules, setup, map layout, physical-bank interaction, bot, coaching, difficulty, learning, intro, and save-format tests cover inventory conservation, setup, connectivity, all action types, sacrifices, catastrophes, turn-end outcomes, and invalid imports.
+- 103 rules, setup, map layout, physical-bank interaction, bot, coaching, difficulty, learning, intro, and save-format tests cover inventory conservation, setup, connectivity, all action types, sacrifices, catastrophes, turn-end outcomes, and invalid imports.
 - Desktop/mobile browser checks cover multi-turn play, undo, victory, click-driven building, trading, discovery, movement, capture, sacrifice, catastrophe, custom setup, reload recovery, save import/export, resignation, draws, fixed map rows and stable placement, fitting crowded boards without scrolling, and the action requirement for End turn.
 - The browser engine matches native Quux’s exact full-turn decisions on 17 recorded positions. Bot setup is checked across 60 seeded cases. Browser checks cover bot-first and human-first matches, actual bot moves, reload, cancellation, retry, and a catastrophe victory, plus the five-second coin reveal, name placement, intro recovery, reduced motion and the bank and turn controls in the right sidebar.
 - GitHub Actions runs the tests and production build on pushes and pull requests.
@@ -116,6 +118,7 @@ The rule-by-rule audit and PDF page references are in [docs/rules-audit.md](docs
 
 - `src/game.ts`: typed state, pure action reducer, and legal-order generation.
 - `src/session.ts`: versioned saves, match mode/starting player, schema checks, and legal-history replay.
+- `src/openings.ts`: supply-checked starting recommendations and setup advice.
 - `src/learning.ts`: rule-derived legal highlights, visual lessons, and independently validated example positions.
 - `src/coach.ts`: full-turn coaching, rating, factual explanations, and verified reply translation.
 - `src/quux.ts`, `src/quux-worker.ts`, `src/quux-runtime.ts`: native Quux WebAssembly interface, full-turn translation, cancellation, and browser worker.

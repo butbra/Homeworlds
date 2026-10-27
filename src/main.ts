@@ -10,6 +10,7 @@ import {coachRequest,decodeAnalysis,bestTurn,describeTurn,explainTurn,describeRe
 import {askQuux,stopQuux,quuxPosition,quuxSetupPosition,decodeQuuxSetup,quuxActions} from './quux';
 import {introPhase,nextIntroBoundary,nameEntranceMs,coinRevealMs,type IntroPhase} from './intro';
 import {learningOptions,shipKey,lessons,lessonVisual} from './learning';
+import {startingRecommendations,recommendedStart,nextRecommendedPiece,startingWarnings,useStartingRecommendation} from './openings';
 import {createLayout,layoutAfter,layoutBounds,type MapLayout} from './layout';
 
 import {newSession, decodeSession, storageKey, type Session} from './session';
@@ -239,7 +240,8 @@ function learningDialog():string {
 function learningCue():string {
   if(mode!=='learning'||choosingMode||introStartedAt!==null)return '';
   let text='';
-  if(draft)text=botTurn()?'Quux is choosing its homeworld.':draft[setupPlayer].length===3?'Your homeworld is ready. Press End turn to confirm.':draft[setupPlayer].length===2?'Choose a glowing large ship. Small and medium pieces cannot be starting ships.':`Choose star ${draft[setupPlayer].length+1} from the glowing bank pieces.`;
+  const next=draft?nextRecommendedPiece({pieces:draft,player:setupPlayer}):undefined;
+  if(draft)text=botTurn()?'Quux is choosing its homeworld.':startingWarnings({pieces:draft,player:setupPlayer})[0]??(draft[setupPlayer].length===3?'Your homeworld is ready. Press End turn to confirm.':draft[setupPlayer].length===2?`Choose a large ship.${next?' ★ marks the recommended green ship.':''}`:`Choose star ${draft[setupPlayer].length+1}.${next?' ★ marks a recommended bank piece.':''}`);
   else if(state.outcome!=='playing')text='Game finished. Start another learning game whenever you are ready.';
   else if(botTurn())text='Watch Quux’s turn. Your legal choices will light up when it is your turn.';
   else if(applyAction(state,{type:'end'}).outcome===(1-humanPlayer))text='Your homeworld is empty or destroyed. Undo or restore a ship before End turn to avoid losing.';
@@ -247,7 +249,15 @@ function learningCue():string {
   else if(state.allowance.remaining===0)text='Your action is complete. You can still use glowing catastrophe buttons, undo, or press End turn.';
   else if(state.allowance.sacrificed)text=`${state.allowance.remaining} ${state.allowance.color} action${state.allowance.remaining===1?'':'s'} left. Choose a glowing ship, system, or bank piece. You may end early.`;
   else text='Glowing ships can act. Red glows mark captures. Select a glowing system, then a glowing bank piece to build.';
-  return `<section class="learning-cue" aria-label="Learning help"><span>LEGAL MOVE HELP</span><p role="status">${text}</p></section>`;
+  return `<section class="learning-cue" aria-label="Learning help"><span>LEGAL MOVE HELP</span><p role="status">${text}</p>${draft&&!botTurn()?'<button id="starting-tips">Starting tips</button>':''}</section>`;
+}
+function startingTipsDialog():string {
+  if(mode!=='learning'||!draft)return '';
+  const progress={pieces:draft,player:setupPlayer,starter,mode},preferred=recommendedStart(progress),warnings=startingWarnings(progress);
+  return `<dialog id="starting-guide" aria-labelledby="starting-title"><p class="result-eyebrow">A GOOD FIRST HOMEWORLD</p><h2 id="starting-title">Recommended starts</h2><p>Start with a large green ship and two differently sized stars. Blue lets you trade into other colors. Red gives your homeworld capture power. Yellow gives travel power.</p>${warnings.length?`<div class="starting-warnings"><strong>About your current choices</strong>${warnings.map(w=>`<p>${w}</p>`).join('')}</div>`:''}<div class="starting-cards">${startingRecommendations.map(r=>{
+    let available=true;try {useStartingRecommendation(progress,r.id);}catch{available=false;}
+    return `<article class="starting-card"><h3>${r.name}${preferred?.id===r.id?'<span>Suggested for you</span>':''}</h3><div class="starting-pieces" aria-label="${r.pieces[0].color} star ${r.pieces[0].size}, ${r.pieces[1].color} star ${r.pieces[1].size}, large green ship">${r.pieces.map((p,i)=>pyramid(p,i<2,i<2?-1:humanPlayer)).join('')}</div><p>${r.summary}</p><small>Connects to size-${r.connection} stars</small><button data-starting-preset="${r.id}" ${!available||locked()?'disabled':''}>${available?'Use '+r.name:'Pieces unavailable'}</button></article>`;
+  }).join('')}</div><p>Green builds your fleet. With a red-and-blue start, you can later trade a ship for yellow to gain travel. Build a second ship before sending your only home ship away.</p><p class="starting-note">These are beginner-friendly choices based on Rules13, pp. 4 and 20–22. There is no single proven best start. Same-size stars or matching your opponent’s size pair can create a cramped map.</p><p>Choosing one replaces only your unconfirmed pieces. You can still change them and must press End turn to confirm.</p><button id="close-starting-guide">Back to choosing pieces</button></dialog>`;
 }
 function starfield():string {
   let seed=93;
@@ -283,6 +293,7 @@ function render():void {
   const phase=introStartedAt===null?null:introPhase(introStartedAt,Date.now());
   const teaching=mode==='learning';
   const guide=teaching&&!draft&&!over&&!inputLocked?learningOptions(state,source):null;
+  const suggested=teaching&&draft&&!inputLocked?nextRecommendedPiece({pieces:draft,player:setupPlayer}):undefined;
   const systems=draft?draft.flatMap((p,i)=>p.length?[{id:i===0?'north':'south',name:i===0?'North homeworld':'South homeworld',homeworld:i,stars:p.slice(0,2),ships:p[2]?[{...p[2],owner:i}]:[]}]:[]):state.systems;
   const bank=draft?setupBank(draft):state.bank;
   const status=phase?'Choosing first player':draft?`${playerName(setupPlayer)} · Setup`:over?state.outcome==='draw'?'Game over · Draw':isBotMode(mode)&&state.outcome===humanPlayer?'You win':`${playerName(Number(state.outcome))} wins`:`Turn ${state.turn} · ${playerName(state.player)}`;
@@ -305,11 +316,12 @@ function render():void {
   </div></section><div class="board-overlay">${actionMenu}${!choosingMode?playerPlate(0,phase)+playerPlate(1,phase):''}<p id="notice" class="board-notice" role="status" aria-live="polite">${boardNotice()}</p>${botError?'<button id="retry-bot" class="board-retry">Retry Quux Bot</button>':''}${coinIntro(phase)}</div></section>
   <aside class="sidebar" aria-label="Game sidebar">${controls}${learningCue()}<section class="bank" aria-label="Piece bank"><div class="bank-heading"><h2>THE BANK</h2><span>${bank.length} PIECES</span></div><p>Click a pyramid to bring it into play.</p>${colors.map(color=>`<div class="bank-color ${color}"><h3>${color}<span>${{red:'CAPTURE',yellow:'MOVE',green:'BUILD',blue:'TRADE'}[color]}</span></h3><div class="bank-row">${sizes.map(size=>{
     const p={color,size},count=bank.filter(b=>b.color===color&&b.size===size).length;
+    const recommended=suggested?.color===color&&suggested.size===size;
     let available=false;try {available=!inputLocked&&(draft?!!placeSetupPiece({pieces:draft,player:setupPlayer},p):legal(state,bankAction(state,selected,p,source,intent)));} catch { /* Not a legal bank choice. */ }
-    return `<button class="bank-piece ${available?'available':''} ${teaching&&available?'learn-option':''}" data-color="${color}" data-size="${size}" aria-label="Bank ${color} ${size}" ${teaching&&available?'data-legal-option="bank" aria-description="Legal bank choice for your current action."':''} ${inputLocked||!count||teaching&&!available||(draft?draft[setupPlayer].length===3:over)?'disabled':''} title="${color} size ${size}: ${count} available">${pyramid(p)}<span>×${count}</span></button>`;
+    return `<button class="bank-piece ${available?'available':''} ${teaching&&available?'learn-option':''} ${recommended?'recommended':''}" ${recommended?'data-recommended="true"':''} data-color="${color}" data-size="${size}" aria-label="Bank ${color} ${size}" ${teaching&&available?`data-legal-option="bank" aria-description="Legal bank choice for your current action.${recommended?' Recommended next piece.':''}"`:''} ${inputLocked||!count||teaching&&!available||(draft?draft[setupPlayer].length===3:over)?'disabled':''} title="${color} size ${size}: ${count} available">${pyramid(p)}<span>×${count}</span>${recommended?'<span class="recommended-mark" aria-label="Recommended next piece">★</span>':''}</button>`;
   }).join('')}</div></div>`).join('')}</section>
   </aside></div>
-  ${learningDialog()}${coachDialog()}<dialog id="result" aria-labelledby="result-title"><p class="result-eyebrow">GAME OVER</p><h2 id="result-title">${over?status:''}</h2><p>${over?outcomeText():''}</p><button id="result-new" class="primary">New game</button><button id="result-close">View final board</button></dialog>
+  ${startingTipsDialog()}${learningDialog()}${coachDialog()}<dialog id="result" aria-labelledby="result-title"><p class="result-eyebrow">GAME OVER</p><h2 id="result-title">${over?status:''}</h2><p>${over?outcomeText():''}</p><button id="result-new" class="primary">New game</button><button id="result-close">View final board</button></dialog>
   <dialog id="game-menu"><h2>Mission control</h2>${isBotMode(mode)&&!choosingMode?difficultyControl('game-difficulty',botBusy):''}<div class="menu-buttons"><button id="reset">New game</button>${draft&&resumeSession&&!choosingMode?'<button id="resume">Resume saved game</button>':''}<button id="help">How to play</button>${teaching?`<button id="learn-rules" ${inputLocked?'disabled':''}>Rules walkthrough</button>`:''}<button id="export" ${draft||botBusy?'disabled':''}>Export save</button><button id="import">Import save</button><button id="resign" ${over||draft||inputLocked?'disabled':''}>Resign</button><button id="draw" ${over||draft||isBotMode(mode)?'disabled':''}>Agree draw</button><button id="close-menu">Back to space</button></div><input type="file" id="save-file" accept=".json,application/json" hidden><details><summary>Flight log (${log.length})</summary><ol>${log.map(l=>`<li>${escape(l)}</li>`).join('')}</ol></details><p>Your game saves automatically on this device.</p></dialog>
   <dialog id="opponent-picker" aria-labelledby="opponent-title"><p class="result-eyebrow">A NEW EXPEDITION</p><h2 id="opponent-title">Choose your opponent</h2><p>Explore the galaxy with another person, or challenge Quux Bot.</p>${difficultyControl('new-difficulty')}<div class="opponent-options"><button id="play-local" aria-label="Another player"><strong>Another player</strong><span>Two people on this device</span></button><button id="play-quux" aria-label="Quux Bot"><strong>Quux Bot</strong><span>You command South. The bot commands North.</span></button><button id="play-practice" aria-label="Quux practice"><strong>Quux practice</strong><span>Play Quux Bot with hints, move ratings, and explanations.</span></button><button id="play-learning" aria-label="Learning mode"><strong>Learning mode</strong><span>Optional visual rules tour, legal-move highlights, and an easy bot.</span></button></div><p class="coin-note">A coin flip chooses who sets up and takes the first turn.</p>${resumeSession&&choosingMode?'<button id="resume">Resume saved game</button>':''}</dialog>
   <dialog id="rules"><h2>Your fleet. Your universe.</h2><p><b>Build:</b> click a system, then the smallest available bank piece of a color you already own there. You need green power.</p><p><b>Travel:</b> click your ship, then a connected system. Systems connect when their stars share no sizes. You need yellow power.</p><p><b>Trade:</b> click your ship, then Trade, then a different bank color of exactly the same size. You need blue power.</p><p><b>Discover a new star:</b> click your ship, Travel, a bank pyramid for the new star. It appears automatically in its star-size row. You need yellow power.</p><p><b>Capture:</b> click an enemy ship. You need red power and an equal or larger ship in that system.</p><p><b>Sacrifice:</b> click your ship, then Sacrifice. Instead of a basic action, gain its pip count in actions of its color anywhere you still have ships.</p><p><b>Catastrophe:</b> whenever any system has four or more pieces of one color, its catastrophe button appears on that system, even if you have no ships there. Count stars and both fleets. The active player may choose to remove that color. If the last star is removed, every ship there is destroyed; a surviving binary-star half protects other colors. Optional and free at any point in your turn.</p><p>Power comes from stars or your own local ships, never enemy ships. Confirm with End turn. An empty or destroyed homeworld loses at turn end. Undo works until you confirm. Systems have fixed positions. Same-size stars share a horizontal row; travel still depends on star sizes, not physical distance.</p><p>Based on Homeworlds Rules13, pp. 4–12. Game: John Cooper. Pyramid system: Andrew Looney. Unofficial implementation.</p><p>Quux Bot: original engine by Arthur O’Dwyer. <a href="./quux-LICENSE.txt" target="_blank" rel="noopener">License</a> · <a href="https://github.com/Quuxplusone/Homeworlds" target="_blank" rel="noopener">Engine source</a>.</p><button id="close-rules">Back to space</button></dialog></main>`;
@@ -317,6 +329,16 @@ function render():void {
   document.querySelector('#play-local')!.addEventListener('click',()=>beginSetup('local'));
   document.querySelector('#play-quux')!.addEventListener('click',()=>beginSetup('quux'));
   document.querySelector('#play-practice')!.addEventListener('click',()=>beginSetup('practice'));
+  document.querySelector('#starting-tips')?.addEventListener('click',()=>document.querySelector<HTMLDialogElement>('#starting-guide')!.showModal());
+  document.querySelector('#close-starting-guide')?.addEventListener('click',()=>document.querySelector<HTMLDialogElement>('#starting-guide')!.close());
+  document.querySelectorAll<HTMLElement>('[data-starting-preset]').forEach(button=>button.addEventListener('click',()=>{
+    if(!draft||locked()||setupPlayer!==humanPlayer)return;
+    try {
+      draft=useStartingRecommendation({pieces:draft,player:setupPlayer,starter,mode},button.dataset.startingPreset!).pieces;
+      document.querySelector<HTMLDialogElement>('#starting-guide')!.close();
+      notice='Recommended homeworld selected. Review it, then press End turn to confirm.';saveSetup();render();
+    } catch(error){notice=(error as Error).message;render();}
+  }));
   document.querySelector('#play-learning')!.addEventListener('click',()=>openLearning(true));
   document.querySelector('#learn-rules')?.addEventListener('click',()=>openLearning(false));
   document.querySelector('#walkthrough-yes')?.addEventListener('click',()=>{learningFlow!.screen='walkthrough';render();});

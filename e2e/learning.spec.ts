@@ -165,3 +165,44 @@ test('reopening the walkthrough preserves the match and the whole bank fits on a
  expect(await page.evaluate(()=>localStorage.getItem('homeworlds.session.v1'))).toBe(before);
  await expect(page.locator('.status')).toHaveText('Turn 1 · You');
 });
+
+test('setup marks recommended pieces and offers real-piece presets without auto-confirming',async({page})=>{
+ await coin(page);await page.goto('/');
+ await page.getByRole('button',{name:'Learning mode',exact:true}).click();
+ await page.getByRole('button',{name:'Skip walkthrough',exact:true}).click();await page.clock.fastForward(6200);
+ await expect(bank(page,'red',1)).toHaveAttribute('data-recommended','true');
+ await bank(page,'red',1).click();await expect(bank(page,'blue',3)).toHaveAttribute('data-recommended','true');
+ await bank(page,'blue',3).click();await expect(bank(page,'green',3)).toHaveAttribute('data-recommended','true');
+ await page.getByRole('button',{name:'Starting tips',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Recommended starts'})).toBeVisible();
+ await expect(page.locator('.starting-card')).toHaveCount(4);
+ await expect(page.locator('.starting-pieces .pyramid')).toHaveCount(12);
+ await page.getByRole('button',{name:'Use Goldilocks',exact:true}).click();
+ await expect(page.locator('.status')).toHaveText('You · Setup');
+ await expect(page.getByRole('button',{name:'End turn',exact:true})).toBeEnabled();
+ const progress=await page.evaluate(()=>JSON.parse(localStorage.getItem('homeworlds.setup.v1')!));
+ expect(progress.player).toBe(1);expect(progress.pieces[0]).toEqual([]);
+ expect(progress.pieces[1]).toEqual([{color:'red',size:1},{color:'blue',size:3},{color:'green',size:3}]);
+ await page.getByRole('button',{name:'Undo action'}).click();
+ await expect(bank(page,'green',3)).toHaveAttribute('data-recommended','true');
+ await page.reload();await expect(page.getByRole('button',{name:'Starting tips',exact:true})).toBeVisible();
+ await expect(bank(page,'green',3)).toHaveAttribute('data-recommended','true');
+});
+
+test('a difficult legal start explains the risks and a preset can replace it',async({page})=>{
+ await coin(page);await page.goto('/');
+ await page.getByRole('button',{name:'Learning mode',exact:true}).click();
+ await page.getByRole('button',{name:'Skip walkthrough',exact:true}).click();await page.clock.fastForward(6200);
+ for(let i=0;i<3;i++)await bank(page,'red',3).click();
+ await expect(page.locator('.learning-cue')).toContainText('No green power');
+ await page.getByRole('button',{name:'Starting tips',exact:true}).click();
+ await expect(page.locator('.starting-warnings')).toContainText('No blue power');
+ await expect(page.locator('.starting-warnings')).toContainText('Same-size stars');
+ await page.screenshot({path:`/tmp/homeworlds-starting-tips-${test.info().project.name}.png`});
+ await page.getByRole('button',{name:'Use Explorer',exact:true}).click();
+ await expect(page.locator('.status')).toHaveText('You · Setup');
+ await expect(bank(page,'red',3)).toContainText('×3');
+ const progress=await page.evaluate(()=>JSON.parse(localStorage.getItem('homeworlds.setup.v1')!));
+ expect(progress.pieces[1]).toEqual([{color:'blue',size:1},{color:'yellow',size:2},{color:'green',size:3}]);
+ await expect(page.getByRole('button',{name:'End turn',exact:true})).toBeEnabled();
+});

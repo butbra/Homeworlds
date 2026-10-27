@@ -150,3 +150,19 @@ html,body,#app{height:100%;overflow:clip;overscroll-behavior:none}
 }
 @media(max-height:550px){.learning-cue{padding:6px 10px}.learning-cue>p{font-size:9px;margin-top:3px}.learning-mode .sidebar>.bank{max-height:none;flex:1 1 auto}.learning-mode .bank-piece{max-height:48px}.learning-mode .bank-piece .size-3{height:30px;width:24px}.learning-mode .bank-piece .size-2{height:25px;width:20px}.learning-mode .bank-piece .size-1{height:20px;width:16px}}
 @media(prefers-reduced-motion:reduce){.lesson-scene.after{animation:none}}
+
+.learning-cue #starting-tips{font-size:10px;padding:6px 10px;margin-top:7px;border-color:#9c8450;color:#f0d797;background:#3d321b55}
+.bank-piece.recommended{position:relative}
+.learning-mode .bank-piece.recommended{border-color:#efd18d!important;box-shadow:0 0 0 1px #d9b66566,0 0 15px #d1a34f44}
+.bank-piece .recommended-mark{position:absolute;top:1px;right:3px;color:#ffe3a0;font-size:12px;line-height:1;margin:0}
+#starting-guide{width:min(760px,calc(100vw - 24px));background:linear-gradient(130deg,#162c32,#0c1420);border-color:#b09a62}
+.starting-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0}
+.starting-card{padding:15px;border:1px solid #526976;border-radius:10px;background:#17293677;display:flex;flex-direction:column;align-items:start}
+.starting-card h3{font-size:17px;font-weight:500;color:#d4e9ec;margin:0 0 15px;width:100%}
+.starting-card h3 span{display:block;font-size:9px;color:#f0d797;margin-top:6px;text-transform:uppercase;letter-spacing:1px}
+.starting-pieces{display:flex;gap:12px;align-items:center;align-self:center}
+.starting-card p{font-size:12px;line-height:1.6;flex:1}.starting-card small{font-size:10px;color:#abcbbf;margin:0 0 10px}
+.starting-card button{font-size:12px;margin:0;width:100%}
+.starting-warnings{padding:12px;border-left:2px solid #dcaf72;background:#5b3b2533;font-size:12px;color:#f1d2a7}.starting-warnings p{margin:7px 0 0;color:#e4c8a6}
+#starting-guide .starting-note{font-size:11px;color:#94acbc}
+@media(max-width:500px){.starting-cards{grid-template-columns:1fr}.starting-card{padding:13px}.learning-cue #starting-tips{font-size:9px;padding:5px 8px}}
