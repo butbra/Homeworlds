@@ -5,7 +5,7 @@ export const storageKey = 'homeworlds.session.v1';
 export function newSession(opening: Opening[] = suggestedOpening,options:{starter?:Player;mode?:GameMode;difficulty?:number}={}): Session {
   const starter=options.starter??0,mode=options.mode??'local';
   createInitialState(opening,starter);
-  const difficulty=options.difficulty??(mode==='learning'?1:10);
+  const difficulty=options.difficulty??(mode==='learning'?4:10);
   if(!validDifficulty(difficulty))throw Error('Invalid Quux difficulty.');
   return {version: 1, opening: structuredClone(opening), actions: [],starter,mode,...(isBotMode(mode)?{humanPlayer,difficulty}:{})};
 }
@@ -36,7 +36,7 @@ export function decodeSession(text: string): Session {
   if((starter!==0&&starter!==1)||(mode!=='local'&&mode!=='quux'&&mode!=='practice'&&mode!=='learning'))throw Error('Invalid game mode or starting player.');
   if(value.humanPlayer!==undefined&&value.humanPlayer!==0&&value.humanPlayer!==1)throw Error('Invalid human player.');
   if(value.difficulty!==undefined&&!validDifficulty(value.difficulty))throw Error('Invalid Quux difficulty.');
-  let session:Session={version:1,opening:value.opening,actions:value.actions,starter,mode,...(isBotMode(mode)?{humanPlayer:value.humanPlayer??(mode==='quux'?0:humanPlayer),difficulty:value.difficulty??(mode==='learning'?1:10)}:{})};
+  let session:Session={version:1,opening:value.opening,actions:value.actions,starter,mode,...(isBotMode(mode)?{humanPlayer:value.humanPlayer??(mode==='quux'?0:humanPlayer),difficulty:value.difficulty??(mode==='learning'?4:10)}:{})};
   createInitialState(value.opening,starter);
   const state=replay(session);
   const lastEnd=value.actions.map(a=>a.type).lastIndexOf('end');

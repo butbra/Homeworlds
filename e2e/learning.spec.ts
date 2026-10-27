@@ -34,7 +34,7 @@ test('Learning mode asks about the walkthrough and can return without replacing 
  await expect(page.locator('.status')).toHaveText('Turn 1 · You');
 });
 
-test('walkthrough uses real pieces, legal before/after examples, arrows and an easy game at the end',async({page})=>{
+test('walkthrough uses real pieces, legal before/after examples, arrows and a level-4 game at the end',async({page})=>{
  test.setTimeout(60000);
  await coin(page);await page.goto('/');
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
@@ -74,7 +74,7 @@ test('walkthrough uses real pieces, legal before/after examples, arrows and an e
  await bank(page,'green',3).click();await page.getByRole('button',{name:'End turn',exact:true}).click();
  await expect(page.locator('.status')).toHaveText('Turn 1 · You');
  const save=await page.evaluate(()=>JSON.parse(localStorage.getItem('homeworlds.session.v1')!));
- expect(save).toMatchObject({mode:'learning',humanPlayer:1,difficulty:1,starter:1});
+ expect(save).toMatchObject({mode:'learning',humanPlayer:1,difficulty:4,starter:1});
  await expect(bank(page,'green',1)).toHaveAttribute('data-legal-option','bank');
  await expect(bank(page,'green',2)).toBeDisabled();
  await page.screenshot({path:`/tmp/homeworlds-learning-board-${test.info().project.name}.png`});
@@ -86,7 +86,7 @@ test('walkthrough uses real pieces, legal before/after examples, arrows and an e
  expect(errors).toEqual([]);
 });
 
-test('skipping the tour starts easy, highlights legal bank choices and restores them after undo/reload',async({page})=>{
+test('skipping the tour starts at level 4, highlights legal bank choices and restores them after undo/reload',async({page})=>{
  await coin(page);await page.goto('/');
  await page.getByRole('button',{name:'Learning mode',exact:true}).click();
  await page.getByRole('button',{name:'Skip walkthrough',exact:true}).click();await page.clock.fastForward(6200);

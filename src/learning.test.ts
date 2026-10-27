@@ -73,7 +73,7 @@ describe('visual learning mode',()=>{
  });
  it('keeps Learning mode, South seating, easy difficulty and a staged turn through save/reload',()=>{
   const session=newSession(undefined,{mode:'learning',starter:1});
-  expect(session).toMatchObject({mode:'learning',humanPlayer:1,difficulty:1});
+  expect(session).toMatchObject({mode:'learning',humanPlayer:1,difficulty:4});
   session.actions=[{type:'build',system:'south',color:'green'}];
   const decoded=decodeSession(JSON.stringify(session));expect(decoded).toEqual(session);
   expect(replay(decoded).allowance.remaining).toBe(0);
