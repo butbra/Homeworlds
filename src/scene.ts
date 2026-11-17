@@ -46,6 +46,7 @@ export function pieceModel(color:Color,size:number,star:boolean,owner:number):{g
    const pip=new THREE.Mesh(new THREE.CircleGeometry(.045,18),new THREE.MeshStandardMaterial({color:0x112033,roughness:.45}));
    pip.position.copy(a.clone().lerp(b,.5+(i-(size-1)/2)*.17).lerp(c,.17)).addScaledVector(normal,.004);
    pip.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),normal);
+   pip.userData.pip=true;
    body.add(pip);
   }
  }
@@ -151,7 +152,7 @@ export function renderTableScene(space:HTMLElement):void {
     const shadow=new THREE.Mesh(new THREE.CircleGeometry(1,28),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.36,depthWrite:false}));
     shadow.rotation.x=-Math.PI/2;shadow.position.copy(group.position);shadow.position.y=-.052;
     shadow.scale.set(scale*.57,scale*(star?.55:.8),1);shadow.renderOrder=2;scene.add(shadow);
-    group.traverse(o=>{o.renderOrder=3;});scene.add(group);
+    group.traverse(o=>{o.renderOrder=o.userData.pip?4:3;});scene.add(group);
    }
   }
   if(gpu)renderer.setSize(w,h,false);else renderer.setSize(w,h);
