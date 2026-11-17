@@ -14,6 +14,27 @@ const vertices=[
 const faces=[[0,1,4],[1,2,4],[2,3,4],[3,0,4],[3,2,1],[3,1,0]];
 const plane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
 const ray=new THREE.Raycaster();
+const cameraPosition=new THREE.Vector3(7,17,25);
+const shipYaw=Math.atan2(cameraPosition.x,cameraPosition.z);
+const shipPitch=(owner:number)=>owner===0?Math.PI-Math.atan2(1.25,.48):-Math.PI*75/180;
+// Determine one projection envelope for the physical pyramid, regardless of
+// how it is oriented. Fitting each orientation independently made ships 23%
+// larger than their same-size stars in actual 3D geometry.
+const cameraAxes=new THREE.OrthographicCamera(-1,1,1,-1,.1,180);
+cameraAxes.position.copy(cameraPosition);cameraAxes.lookAt(0,0,0);cameraAxes.updateMatrixWorld();
+const projectedExtents=[-1,0,1].map(owner=>{
+ const points=vertices.map(v=>{
+  const p=v.clone();
+  if(owner!==-1)p.applyAxisAngle(new THREE.Vector3(1,0,0),shipPitch(owner)).applyAxisAngle(new THREE.Vector3(0,1,0),shipYaw);
+  return p.project(cameraAxes);
+ });
+ return {width:Math.max(...points.map(p=>p.x))-Math.min(...points.map(p=>p.x)),height:Math.max(...points.map(p=>p.y))-Math.min(...points.map(p=>p.y))};
+});
+const sharedWidth=Math.max(...projectedExtents.map(p=>p.width));
+const sharedHeight=Math.max(...projectedExtents.map(p=>p.height));
+export function tabletopPieceScale(width:number,height:number,pixelsPerUnit:number):number {
+ return Math.min(width*.94/sharedWidth,height*.98/sharedHeight)/pixelsPerUnit;
+}
 let renderer:THREE.WebGLRenderer|SVGRenderer|undefined;
 let scene:THREE.Scene|undefined;
 let unavailable=false;
@@ -58,11 +79,11 @@ export function pieceModel(color:Color,size:number,star:boolean,owner:number):{g
  if(!star){
   // Keep the north-facing profile. Pitch away-facing ships up a little so
   // their pointed nose is visible rather than only the square rear face.
-  body.rotation.x=owner===0?Math.PI-Math.atan2(1.25,.48):-Math.PI*75/180;
+  body.rotation.x=shipPitch(owner);
   const floor=Math.min(...vertices.map(v=>v.clone().applyEuler(body.rotation).y));
   body.position.y=-floor;
   // Face straight along the board's depth, in opposing directions.
-  group.rotation.y=Math.atan2(7,25);
+  group.rotation.y=shipYaw;
  }
  group.updateMatrixWorld(true);
  return {group,points:vertices.map(v=>body.localToWorld(v.clone()))};
@@ -101,7 +122,7 @@ export function renderTableScene(space:HTMLElement):void {
   // An orthographic camera at tabletop height preserves readability at both
   // ends of the board without the miniature far-away pieces of a wide-angle lens.
   const camera=new THREE.OrthographicCamera(-view*ratio/2,view*ratio/2,view/2,-view/2,.1,180);
-  camera.position.set(7,17,25);camera.lookAt(0,0,0);camera.updateMatrixWorld();
+  camera.position.copy(cameraPosition);camera.lookAt(0,0,0);camera.updateMatrixWorld();
   const frame=space.getBoundingClientRect();
   const map=space.querySelector<HTMLElement>('#universe');
   const boardScale=map&&map.offsetWidth?map.getBoundingClientRect().width/map.offsetWidth:1;
@@ -134,7 +155,7 @@ export function renderTableScene(space:HTMLElement):void {
     // Use the layout dimensions, not transformed screen bounds: a CSS
     // animation, hover or rotation must never permanently resize a model.
     const width=icon.clientWidth*boardScale,height=icon.clientHeight*boardScale;
-    const scale=Math.min(width*.94/(maxX-minX),height*.98/(maxY-minY));
+    const scale=tabletopPieceScale(width,height,h/view);
     group.scale.setScalar(scale);
     const x=rect.x+rect.width/2-((maxX+minX)/2-origin.x)*scale;
     const y=rect.y+rect.height/2-((maxY+minY)/2-origin.y)*scale;

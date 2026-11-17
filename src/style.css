@@ -222,9 +222,9 @@ html,body,#app{height:100%;overflow:clip;overscroll-behavior:none}
 .space.table-view .system-pieces{min-height:100px;column-gap:7px}
 .space.table-view .system-pieces>.stars{border-color:#89b6da28}
 .space.table-view .fleet{max-width:130px}
-.space.table-view .piece-button>.pyramid.size-1{width:39px;height:52px}
+.space.table-view .piece-button>.pyramid.size-1{width:37px;height:49px}
 .space.table-view .piece-button>.pyramid.size-2{width:48px;height:64px}
-.space.table-view .piece-button>.pyramid.size-3{width:57px;height:76px}
+.space.table-view .piece-button>.pyramid.size-3{width:60px;height:80px}
 .space.table-view .piece-button>.pyramid{visibility:hidden}
 .space.table-view .piece-button>.table-mesh{display:block;position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 .space.table-view .piece-button.picked{border-color:#7d95a9;background:#a7dcff12;box-shadow:none}
@@ -238,9 +238,9 @@ html,body,#app{height:100%;overflow:clip;overscroll-behavior:none}
  .space.table-view .system-title button{font-size:11px}
  .space.table-view .system-pieces{min-height:75px;column-gap:3px}
  .space.table-view .fleet{max-width:65px}
- .space.table-view .piece-button>.pyramid.size-1{width:26px;height:35px}
+ .space.table-view .piece-button>.pyramid.size-1{width:23px;height:31px}
  .space.table-view .piece-button>.pyramid.size-2{width:30px;height:41px}
- .space.table-view .piece-button>.pyramid.size-3{width:35px;height:48px}
+ .space.table-view .piece-button>.pyramid.size-3{width:37px;height:49px}
 }
 
 /* Space has no dividers. Let the entire system expand before a fleet wraps. */
@@ -259,5 +259,6 @@ html,body,#app{height:100%;overflow:clip;overscroll-behavior:none}
 @media(max-width:700px){
  .space .universe,.space.table-view .universe{grid-template-columns:repeat(var(--map-columns),minmax(170px,max-content))}
  .space .fleet,.space.table-view .fleet{max-width:200px;gap:2px}
- .board-overlay #last-move{top:5px;left:5px;padding:5px 6px;font-size:9px}
+ .board-overlay #last-move{top:5px;left:5px;padding:5px 6px;font-size:9px;max-width:calc(100% - 115px);white-space:normal}
+ .space:not(.table-view) .piece-button>.pyramid.size-3{width:34px;height:48px}
 }
