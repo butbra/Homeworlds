@@ -7,6 +7,20 @@ export interface ReplayFrame {state:GameState;layout:MapLayout;action:Action|nul
 export interface ReviewPoint {frame:number;label:string;north:number|null;error?:boolean;request?:{text:string;player:Player}}
 export interface GameReview {frames:ReplayFrame[];points:ReviewPoint[]}
 
+export const reviewCacheKey='homeworlds.review.v1';
+/** A score is reusable only for precisely the same positions and mover. */
+export function evaluationKey(point:ReviewPoint):string|undefined {
+ return point.request?JSON.stringify([point.request.player,point.request.text]):undefined;
+}
+export function readReviewCache(raw:string|null):Map<string,number> {
+ try {const items:unknown=JSON.parse(raw??'[]');if(!Array.isArray(items))return new Map();
+  return new Map(items.filter((entry):entry is [string,number]=>Array.isArray(entry)&&typeof entry[0]==='string'&&Number.isInteger(entry[1])&&entry[1]>=0&&entry[1]<=100).slice(-512));
+ }catch {return new Map();}
+}
+export function applyReviewCache(review:GameReview,cache:ReadonlyMap<string,number>):void {
+ for(const point of review.points){const key=evaluationKey(point);if(key!==undefined&&cache.has(key))point.north=cache.get(key)!;}
+}
+
 /** Reconstruct exact board and map snapshots without changing the saved game. */
 export function createGameReview(session:Session):GameReview {
  let state=createInitialState(session.opening,session.starter),layout=createLayout(session.opening),turnStart=state,completedTurns=0;

@@ -16,7 +16,7 @@ import {createLayout,layoutAfter,layoutBounds,type MapLayout} from './layout';
 
 import {newSession, decodeSession, storageKey, type Session} from './session';
 import {lastOpponentMove} from './last-move';
-import {createGameReview,decodeReviewPoint,type GameReview} from './review';
+import {createGameReview,decodeReviewPoint,evaluationKey,readReviewCache,applyReviewCache,reviewCacheKey,type GameReview} from './review';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const boardResizeObserver=new ResizeObserver(entries=>entries.forEach(entry=>fitBoard(entry.target as HTMLElement)));
@@ -55,8 +55,11 @@ let log: string[] = [];
 let announcedResult='';
 let review:GameReview|null=null,replayIndex:number|null=null;
 const reviewClient=new QuuxClient();
-let reviewEpoch=0;
-function resetReview():void {reviewEpoch++;reviewClient.stop();review=null;replayIndex=null;}
+let reviewEpoch=0,reviewBusy=false;
+let reviewCache=new Map<string,number>();
+try {reviewCache=readReviewCache(localStorage.getItem(reviewCacheKey));}catch { /* Storage optional. */ }
+const reviewErrors=new Set<string>();
+function resetReview():void {reviewEpoch++;reviewClient.stop();review=null;replayIndex=null;reviewBusy=false;reviewErrors.clear();}
 function reviewChart():string {
  if(!review)return '';
  const points=review.points,n=points.length,done=points.filter(p=>p.north!==null||p.error).length,missing=points.filter(p=>p.error).length;
@@ -65,7 +68,8 @@ function reviewChart():string {
  const dots=(south:boolean)=>points.map((p,i)=>p.north===null?'':`<circle cx="${x(i)}" cy="${y(south?100-p.north:p.north)}" r="${n>60?1.5:3}" fill="${south?'#efc68c':'#8de0d3'}"><title>${p.label}: ${escape(playerName(south?1:0))} ${south?100-p.north:p.north}%</title></circle>`).join('');
  const ticks=[0,25,50,75,100].map(v=>`<line x1="39" x2="534" y1="${y(v)}" y2="${y(v)}" stroke="${v===50?'#52606d':'#28323f'}" stroke-dasharray="${v===50?'4 4':'0'}"/><text x="32" y="${y(v)+4}" text-anchor="end">${v}%</text>`).join('');
  const labels=points.map((p,i)=>i===0||i===n-1||n<=8||i%Math.ceil((n-1)/5)===0?`<text x="${x(i)}" y="193" text-anchor="${i===0?'start':i===n-1?'end':'middle'}">${p.label}</text>`:'').join('');
- return `<div class="review-chart-header"><strong>Estimated win probability</strong><span>${done<n?`Analyzing ${done}/${n} positions…`:missing?`${missing} position${missing===1?'':'s'} unavailable`:'Analysis complete'}</span></div><div class="review-legend"><span class="review-north">${escape(playerName(0))} · North</span><span class="review-south">${escape(playerName(1))} · South</span></div><svg class="review-chart" viewBox="0 0 550 204" role="img" aria-label="Estimated win chance by completed turn, beginning at fifty percent for each player">${ticks}<path d="${series(false)}" fill="none" stroke="#8de0d3" stroke-width="2.5" stroke-linejoin="round"/><path d="${series(true)}" fill="none" stroke="#efc68c" stroke-width="2.5" stroke-linejoin="round"/>${dots(false)}${dots(true)}${labels}</svg><p class="review-method">Starts at 50/50. Quux evaluates the actual position after every confirmed turn; its score is converted to estimated odds, not statistically calibrated probabilities. Final points reflect the actual result${state.outcome==='draw'?' (draw = 50/50)':''}.${missing?' Gaps are unavailable evaluations.':''}</p><details class="review-values"><summary>Win probability by turn</summary><div class="review-table-scroll"><table><thead><tr><th>Position</th><th>${escape(playerName(0))}</th><th>${escape(playerName(1))}</th></tr></thead><tbody>${points.map(p=>`<tr><td>${p.label}</td><td class="review-north">${p.north===null?'—':p.north+'%'}</td><td class="review-south">${p.north===null?'—':100-p.north+'%'}</td></tr>`).join('')}</tbody></table></div></details>`;
+ const columns=points.map((p,i)=>{const left=i===0?34:(x(i-1)+x(i))/2,right=i===n-1?550:(x(i)+x(i+1))/2;const label=`Replay ${p.label}${p.north===null?'':`: ${playerName(0)} ${p.north}%, ${playerName(1)} ${100-p.north}%`}`;return `<g class="review-point" role="button" tabindex="0" data-replay-frame="${p.frame}" aria-label="${escape(label)}"><title>${escape(label)}</title><rect x="${left}" y="6" width="${right-left}" height="194" fill="transparent"/><line x1="${x(i)}" x2="${x(i)}" y1="16" y2="176" stroke="#c7dbe7" stroke-dasharray="3 3"/></g>`;}).join('');
+ return `<div class="review-chart-header"><strong>Estimated win probability</strong><span>${done<n?`Analyzing ${done}/${n} positions…`:missing?`${missing} position${missing===1?'':'s'} unavailable`:'Analysis complete'}</span></div><div class="review-legend"><span class="review-north">${escape(playerName(0))} · North</span><span class="review-south">${escape(playerName(1))} · South</span></div><svg class="review-chart" viewBox="0 0 550 204" role="group" aria-label="Estimated win chance by completed turn; select a position to replay it">${ticks}<path d="${series(false)}" fill="none" stroke="#8de0d3" stroke-width="2.5" stroke-linejoin="round"/><path d="${series(true)}" fill="none" stroke="#efc68c" stroke-width="2.5" stroke-linejoin="round"/>${dots(false)}${dots(true)}${labels}${columns}</svg><p class="review-chart-tip">Click any point to jump to that position.</p><p class="review-method">Starts at 50/50. Quux evaluates the actual position after every confirmed turn; its score is converted to estimated odds, not statistically calibrated probabilities. Final points reflect the actual result${state.outcome==='draw'?' (draw = 50/50)':''}.${missing?' Gaps are unavailable evaluations.':''}</p><details class="review-values"><summary>Win probability by turn</summary><div class="review-table-scroll"><table><thead><tr><th>Position</th><th>${escape(playerName(0))}</th><th>${escape(playerName(1))}</th></tr></thead><tbody>${points.map(p=>`<tr><td><button class="review-table-link" data-replay-frame="${p.frame}">${p.label}</button></td><td class="review-north">${p.north===null?'—':p.north+'%'}</td><td class="review-south">${p.north===null?'—':100-p.north+'%'}</td></tr>`).join('')}</tbody></table></div></details>`;
 }
 function replayOdds():string {
  if(!review||replayIndex===null)return '';
@@ -73,20 +77,30 @@ function replayOdds():string {
  return last.north===null?`<span>${last.error?'Evaluation unavailable':'Quux evaluating…'}</span>`:`<span class="review-north">${escape(playerName(0))} ${last.north}%</span><span class="review-south">${escape(playerName(1))} ${100-last.north}%</span><small>${last.label} estimate</small>`;
 }
 function updateReview():void {
- const chart=document.querySelector('#result-chart');if(chart){const expanded=chart.querySelector('details')?.open;chart.innerHTML=reviewChart();if(expanded)chart.querySelector('details')!.open=true;}
+ const chart=document.querySelector('#result-chart');if(chart&&state.outcome!=='playing'){const expanded=chart.querySelector('details')?.open;chart.innerHTML=reviewChart();if(expanded)chart.querySelector('details')!.open=true;}
  const odds=document.querySelector('#replay-odds');if(odds)odds.innerHTML=replayOdds();
 }
-function startReview():void {
- if(review)return;
- review=createGameReview(session);const current=review,epoch=++reviewEpoch;
+function syncReview():void {
+ const prior=review;review=createGameReview(session);applyReviewCache(review,reviewCache);
+ if(prior)for(const p of review.points){const previous=prior.points.find(old=>old.frame===p.frame&&evaluationKey(old)===evaluationKey(p));if(previous?.request&&previous.north!==null)p.north=previous.north;}
+ for(const point of review.points){const key=evaluationKey(point);if(key&&reviewErrors.has(key))point.error=true;}
+ if(reviewBusy)return;
+ reviewBusy=true;const epoch=reviewEpoch;
  queueMicrotask(async()=>{
-  for(const point of current.points){
-   if(epoch!==reviewEpoch)return;
-   if(!point.request)continue;
-   try {const answer=await reviewClient.ask('coach',point.request.text,point.request.player);if(epoch!==reviewEpoch)return;point.north=decodeReviewPoint(answer,point.request.player);}
-   catch {if(epoch!==reviewEpoch)return;point.error=true;}
-   updateReview();
-  }
+  try {
+   while(epoch===reviewEpoch&&review){
+    const point=review.points.find(p=>p.request&&p.north===null&&!p.error);
+    if(!point?.request)break;
+    const key=evaluationKey(point)!;
+    try {const answer=await reviewClient.ask('coach',point.request.text,point.request.player);if(epoch!==reviewEpoch)return;
+      const north=decodeReviewPoint(answer,point.request.player);reviewCache.set(key,north);
+      while(reviewCache.size>512)reviewCache.delete(reviewCache.keys().next().value!);
+      try {localStorage.setItem(reviewCacheKey,JSON.stringify([...reviewCache]));}catch { /* Storage optional. */ }
+      for(const p of review.points)if(evaluationKey(p)===key)p.north=north;
+    }catch {if(epoch!==reviewEpoch)return;reviewErrors.add(key);for(const p of review.points)if(evaluationKey(p)===key)p.error=true;}
+    updateReview();
+   }
+  }finally {if(epoch===reviewEpoch)reviewBusy=false;}
  });
 }
 function seekReplay(index:number):void {
@@ -138,6 +152,7 @@ function restore(next: Session,cancel=true): void {
   });
   selected = state.player === 0 ? 'north' : 'south';
   source = null; intent = 'build';
+  syncReview();
 }
 try {
   const stored=localStorage.getItem(storageKey);
@@ -215,6 +230,7 @@ function act(action:Action,label:string,fromBot=false):boolean {
     const discovered=action.type==='discover'?`system-${state.nextSystem}`:null;
     mapLayout=layoutAfter(mapLayout,state,action,next);
     session.actions.push(action);state=next;notice=label;
+    if(action.type==='end'||state.outcome!=='playing')syncReview();
     if(discovered)selected=discovered;
     source=null;intent='build';
     if(action.type==='end'){clearMoveHighlight();selected=state.player===0?'north':'south';}
@@ -414,7 +430,7 @@ function boardNotice():string {
 function render():void {
   const openDialog=document.querySelector<HTMLDialogElement>('dialog[open]')?.id;
   const over=state.outcome!=='playing';
-  if(over&&!draft)startReview();
+  if(over&&!draft&&!review)syncReview();
   const frame=replayIndex!==null?review?.frames[replayIndex]:undefined;
   const boardState=frame?.state??state,boardLayout=frame?.layout??mapLayout;
   const inputLocked=locked()||over;
@@ -451,7 +467,7 @@ function render():void {
     return `<button class="bank-piece ${available?'available':''} ${teaching&&available?'learn-option':''} ${recommended?'recommended':''}" ${recommended?'data-recommended="true"':''} data-color="${color}" data-size="${size}" aria-label="Bank ${color} ${size}" ${teaching&&available?`data-legal-option="bank" aria-description="Legal bank choice for your current action.${recommended?' Recommended next piece.':''}"`:''} ${inputLocked||!count||teaching&&!available||(draft?draft[setupPlayer].length===3:over)?'disabled':''} title="${color} size ${size}: ${count} available">${pyramid(p)}<span>×${count}</span>${recommended?'<span class="recommended-mark" aria-label="Recommended next piece">★</span>':''}</button>`;
   }).join('')}</div></div>`).join('')}</section>
   </aside></div>
-  ${catastropheDialog()}${mentorDialog()}${startingTipsDialog()}${learningDialog()}${coachDialog()}<dialog id="result" aria-labelledby="result-title"><p class="result-eyebrow">GAME OVER</p><h2 id="result-title">${over?status:''}</h2><p>${over?outcomeText():''}</p><div id="result-chart">${reviewChart()}</div>${over&&!draft?'<div class="review-launch"><button id="review-start" class="primary">Replay from start</button><button id="review-end">Replay from end</button></div>':''}<div class="review-footer"><button id="result-new">New game</button><button id="result-close">View final board</button></div></dialog>
+  ${catastropheDialog()}${mentorDialog()}${startingTipsDialog()}${learningDialog()}${coachDialog()}<dialog id="result" aria-labelledby="result-title"><p class="result-eyebrow">GAME OVER</p><h2 id="result-title">${over?status:''}</h2><p>${over?outcomeText():''}</p><div id="result-chart">${over?reviewChart():''}</div>${over&&!draft?'<div class="review-launch"><button id="review-start" class="primary">Replay from start</button><button id="review-end">Replay from end</button></div>':''}<div class="review-footer"><button id="result-new">New game</button><button id="result-close">View final board</button></div></dialog>
   <dialog id="game-menu"><h2>Mission control</h2>${isBotMode(mode)&&!choosingMode?difficultyControl('game-difficulty',botBusy):''}<div class="menu-buttons"><button id="reset">New game</button>${draft&&resumeSession&&!choosingMode?'<button id="resume">Resume saved game</button>':''}<button id="help">How to play</button>${teaching?`<button id="learn-rules" ${inputLocked?'disabled':''}>Rules walkthrough</button>`:''}<button id="export" ${draft||botBusy?'disabled':''}>Export save</button><button id="import">Import save</button><button id="resign" ${over||draft||inputLocked?'disabled':''}>Resign</button><button id="draw" ${over||draft||isBotMode(mode)?'disabled':''}>Agree draw</button><button id="close-menu">Back to space</button></div><input type="file" id="save-file" accept=".json,application/json" hidden><details><summary>Flight log (${log.length})</summary><ol>${log.map(l=>`<li>${escape(l)}</li>`).join('')}</ol></details><p>Your game saves automatically on this device.</p></dialog>
   <dialog id="opponent-picker" aria-labelledby="opponent-title"><p class="result-eyebrow">A NEW EXPEDITION</p><h2 id="opponent-title">Choose your opponent</h2><p>Explore the galaxy with another person, or challenge Quux Bot.</p>${difficultyControl('new-difficulty')}<div class="opponent-options"><button id="play-local" aria-label="Another player"><strong>Another player</strong><span>Two people on this device</span></button><button id="play-quux" aria-label="Quux Bot"><strong>Quux Bot</strong><span>You command South. The bot commands North.</span></button><button id="play-practice" aria-label="Quux practice"><strong>Quux practice</strong><span>Play Quux Bot with hints, move ratings, and explanations.</span></button><button id="play-learning" aria-label="Learning mode"><strong>Learning mode</strong><span>Optional visual rules tour, legal-move highlights, and an easy bot.</span></button></div><p class="coin-note">A coin flip chooses who sets up and takes the first turn.</p>${resumeSession&&choosingMode?'<button id="resume">Resume saved game</button>':''}</dialog>
   <dialog id="rules"><h2>Your fleet. Your universe.</h2><p><b>Build:</b> click a system, then the smallest available bank piece of a color you already own there. You need green power.</p><p><b>Travel:</b> click your ship, then a connected system. Systems connect when their stars share no sizes. You need yellow power.</p><p><b>Trade:</b> click your ship, then Trade, then a different bank color of exactly the same size. You need blue power.</p><p><b>Discover a new star:</b> click your ship, Travel, a bank pyramid for the new star. It appears automatically in its star-size row. You need yellow power.</p><p><b>Capture:</b> click an enemy ship. You need red power and an equal or larger ship in that system.</p><p><b>Sacrifice:</b> click your ship, then Sacrifice. Instead of a basic action, gain its pip count in actions of its color anywhere you still have ships.</p><p><b>Catastrophe:</b> whenever any system has four or more pieces of one color, its catastrophe button appears on that system, even if you have no ships there. Count stars and both fleets. The active player may choose to remove that color. If the last star is removed, every ship there is destroyed; a surviving binary-star half protects other colors. Optional and free at any point in your turn.</p><p>Power comes from stars or your own local ships, never enemy ships. Confirm with End turn. An empty or destroyed homeworld loses at turn end. Undo works until you confirm. Systems have fixed positions. Same-size stars share a horizontal row; travel still depends on star sizes, not physical distance.</p><p>Based on Homeworlds Rules13, pp. 4–12. Game: John Cooper. Pyramid system: Andrew Looney. Unofficial implementation.</p><p>Quux Bot: original engine by Arthur O’Dwyer. <a href="./quux-LICENSE.txt" target="_blank" rel="noopener">License</a> · <a href="https://github.com/Quuxplusone/Homeworlds" target="_blank" rel="noopener">Engine source</a>.</p><button id="close-rules">Back to space</button></dialog></main>`;
@@ -587,6 +603,10 @@ function bindTools():void {
   document.querySelector('#show-review')?.addEventListener('click',()=>result.showModal());
   document.querySelector('#review-start')?.addEventListener('click',()=>seekReplay(0));
   document.querySelector('#review-end')?.addEventListener('click',()=>seekReplay(review!.frames.length-1));
+  const chart=document.querySelector('#result-chart')!;
+  const jump=(event:Event)=>{const point=(event.target as Element).closest<HTMLElement|SVGElement>('[data-replay-frame]');if(point)seekReplay(Number(point.dataset.replayFrame));};
+  chart.addEventListener('click',jump);
+  chart.addEventListener('keydown',event=>{const key=(event as KeyboardEvent).key;if((key==='Enter'||key===' ')&&(event.target as Element).closest('.review-point')){event.preventDefault();jump(event);}});
   document.querySelector('#replay-first')?.addEventListener('click',()=>seekReplay(0));
   document.querySelector('#replay-prev')?.addEventListener('click',()=>seekReplay(replayIndex!-1));
   document.querySelector('#replay-next')?.addEventListener('click',()=>seekReplay(replayIndex!+1));
