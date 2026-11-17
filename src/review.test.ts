@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
-import {createGameReview,decodeReviewPoint,northWinEstimate} from './review';
+import {createGameReview,decodeReviewPoint,northWinEstimate,evaluationKey,readReviewCache,applyReviewCache} from './review';
 import {newSession,replay} from './session';
 import {QuuxRuntime} from './quux-runtime';
 
@@ -29,6 +29,16 @@ describe('post-game review',()=>{
   expect(northWinEstimate({...review,losesNext:true},1)).toBe(98);
   expect(northWinEstimate({...review,outcome:2},0)).toBe(50);
   expect(northWinEstimate({...review,outcome:0},1)).toBe(100);
+ });
+ it('reuses exact completed-turn evaluations after later turns and a reload, never for a different mover',()=>{
+  const session=game(),partial={...session,actions:session.actions.slice(0,2)};
+  const first=createGameReview(partial).points[1],key=evaluationKey(first)!;
+  const cache=readReviewCache(JSON.stringify([[key,73],['bad',101],['wrong','73']]));
+  expect(cache.size).toBe(1);
+  const finished=createGameReview(session);applyReviewCache(finished,cache);
+  expect(finished.points.map(p=>p.north)).toEqual([50,73,null,null,100]);
+  expect(evaluationKey({...first,request:{...first.request!,player:1}})).not.toBe(key);
+  expect(readReviewCache('not JSON').size).toBe(0);
  });
  it('evaluates actual completed turns with the original Quux WebAssembly engine',async()=>{
   const engine=await QuuxRuntime.create(readFileSync(new URL('../vendor/quux/quux.wasm',import.meta.url)));

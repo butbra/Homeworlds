@@ -8,6 +8,9 @@ test('finished game automatically analyzes its actual moves and can replay in ei
  await expect(result.getByText('Analysis complete',{exact:true})).toBeVisible({timeout:20000});
  await expect(result.locator('.review-chart circle')).toHaveCount(10);
  const before=await page.evaluate(()=>localStorage.getItem('homeworlds.session.v1'));
+ await result.getByRole('button',{name:/^Replay Turn 2:/}).click();
+ await expect(page.locator('.replay-controls .status')).toHaveText('GAME REPLAY · 4/7 actions');
+ await page.locator('#replay-exit').click();
  await result.getByRole('button',{name:'Replay from start'}).click();await expect(page.locator('.system')).toHaveCount(2);
  await expect(page.locator('.replay-controls .status')).toHaveText('GAME REPLAY · 0/7 actions');
  await expect(page.locator('#replay-odds')).toContainText('Player 1 50%');
@@ -20,4 +23,18 @@ test('finished game automatically analyzes its actual moves and can replay in ei
  await page.locator('#replay-prev').click();await expect(page.locator('.replay-controls .status')).toHaveText('GAME REPLAY · 6/7 actions');
  await expect(page.locator('.bank-piece').first()).toBeDisabled();
  expect(await page.evaluate(()=>localStorage.getItem('homeworlds.session.v1'))).toBe(before);
+});
+
+test('confirmed turns are analyzed and cached before the game ends, including after a reload',async({page})=>{
+ const saved={version:1,opening:[{stars:[{color:'yellow',size:1},{color:'blue',size:3}],shipColor:'green'},{stars:[{color:'red',size:2},{color:'blue',size:1}],shipColor:'green'}],actions:[{type:'build',system:'north',color:'green'},{type:'end'},{type:'build',system:'south',color:'green'}]};
+ await page.addInitScript(value=>{if(!localStorage.getItem('homeworlds.session.v1'))localStorage.setItem('homeworlds.session.v1',JSON.stringify(value));},saved);
+ await page.goto('/');await page.getByRole('button',{name:'Resume saved game'}).click();
+ const cached=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('homeworlds.review.v1')??'[]').length);
+ await expect.poll(cached,{timeout:20000}).toBe(1);
+ await page.getByRole('button',{name:'End turn'}).click();await expect.poll(cached,{timeout:20000}).toBe(2);
+ await expect(page.locator('#result')).not.toBeVisible();
+ await page.reload();await page.getByRole('button',{name:'Resume saved game'}).click();
+ await page.getByRole('button',{name:'Game menu'}).click();page.once('dialog',dialog=>dialog.accept());await page.getByRole('button',{name:'Resign',exact:true}).click();
+ await expect(page.locator('#result')).toBeVisible();await expect(page.locator('#result').getByText('Analysis complete',{exact:true})).toBeVisible();
+ await expect(page.locator('.review-chart circle')).toHaveCount(8);
 });
