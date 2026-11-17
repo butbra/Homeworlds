@@ -54,7 +54,9 @@ export function pieceModel(color:Color,size:number,star:boolean,owner:number):{g
   body.rotation.x=(Math.PI-Math.atan2(1.25,.48))*(owner===0?1:-1);
   const floor=Math.min(...vertices.map(v=>v.clone().applyEuler(body.rotation).y));
   body.position.y=-floor;
-  group.rotation.y=Math.PI*.50;
+  // Align with the camera's horizontal axis: opposing ships point directly
+  // left/right on screen instead of diagonally across their system.
+  group.rotation.y=Math.PI/2+Math.atan2(7,25);
  }
  group.updateMatrixWorld(true);
  return {group,points:vertices.map(v=>body.localToWorld(v.clone()))};

@@ -16,5 +16,9 @@ describe('physical tabletop geometry',()=>{
   }
   expect(north[4].x).toBeCloseTo(-south[4].x);
   expect(north[4].z).toBeCloseTo(-south[4].z);
+  // The ship's ground-plane direction is perpendicular to the camera's
+  // horizontal line of sight, so it reads as a clean left/right profile.
+  expect(north[4].x*7+north[4].z*25).toBeCloseTo(0);
+  expect(south[4].x*7+south[4].z*25).toBeCloseTo(0);
  });
 });
