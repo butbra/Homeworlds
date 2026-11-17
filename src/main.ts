@@ -16,6 +16,7 @@ import {createLayout,layoutAfter,layoutBounds,type MapLayout} from './layout';
 
 import {newSession, decodeSession, storageKey, type Session} from './session';
 import {lastOpponentMove} from './last-move';
+import {createGameReview,decodeReviewPoint,type GameReview} from './review';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const boardResizeObserver=new ResizeObserver(entries=>entries.forEach(entry=>fitBoard(entry.target as HTMLElement)));
@@ -52,6 +53,52 @@ try {tableView=localStorage.getItem('homeworlds.table-view')==='true';} catch { 
 let history: { state: GameState; log: string[]; actionCount: number;layout:MapLayout }[] = [];
 let log: string[] = [];
 let announcedResult='';
+let review:GameReview|null=null,replayIndex:number|null=null;
+const reviewClient=new QuuxClient();
+let reviewEpoch=0;
+function resetReview():void {reviewEpoch++;reviewClient.stop();review=null;replayIndex=null;}
+function reviewChart():string {
+ if(!review)return '';
+ const points=review.points,n=points.length,done=points.filter(p=>p.north!==null||p.error).length,missing=points.filter(p=>p.error).length;
+ const x=(i:number)=>39+495*i/Math.max(1,n-1),y=(v:number)=>16+160*(1-v/100);
+ const series=(south:boolean)=>points.map((p,i)=>p.north===null?'':`${i===0||points[i-1].north===null?'M':'L'}${x(i).toFixed(2)} ${y(south?100-p.north:p.north).toFixed(2)}`).join(' ');
+ const dots=(south:boolean)=>points.map((p,i)=>p.north===null?'':`<circle cx="${x(i)}" cy="${y(south?100-p.north:p.north)}" r="${n>60?1.5:3}" fill="${south?'#efc68c':'#8de0d3'}"><title>${p.label}: ${escape(playerName(south?1:0))} ${south?100-p.north:p.north}%</title></circle>`).join('');
+ const ticks=[0,25,50,75,100].map(v=>`<line x1="39" x2="534" y1="${y(v)}" y2="${y(v)}" stroke="${v===50?'#52606d':'#28323f'}" stroke-dasharray="${v===50?'4 4':'0'}"/><text x="32" y="${y(v)+4}" text-anchor="end">${v}%</text>`).join('');
+ const labels=points.map((p,i)=>i===0||i===n-1||n<=8||i%Math.ceil((n-1)/5)===0?`<text x="${x(i)}" y="193" text-anchor="${i===0?'start':i===n-1?'end':'middle'}">${p.label}</text>`:'').join('');
+ return `<div class="review-chart-header"><strong>Estimated win probability</strong><span>${done<n?`Analyzing ${done}/${n} positions…`:missing?`${missing} position${missing===1?'':'s'} unavailable`:'Analysis complete'}</span></div><div class="review-legend"><span class="review-north">${escape(playerName(0))} · North</span><span class="review-south">${escape(playerName(1))} · South</span></div><svg class="review-chart" viewBox="0 0 550 204" role="img" aria-label="Estimated win chance by completed turn, beginning at fifty percent for each player">${ticks}<path d="${series(false)}" fill="none" stroke="#8de0d3" stroke-width="2.5" stroke-linejoin="round"/><path d="${series(true)}" fill="none" stroke="#efc68c" stroke-width="2.5" stroke-linejoin="round"/>${dots(false)}${dots(true)}${labels}</svg><p class="review-method">Starts at 50/50. Quux evaluates the actual position after every confirmed turn; its score is converted to estimated odds, not statistically calibrated probabilities. Final points reflect the actual result${state.outcome==='draw'?' (draw = 50/50)':''}.${missing?' Gaps are unavailable evaluations.':''}</p><details class="review-values"><summary>Win probability by turn</summary><div class="review-table-scroll"><table><thead><tr><th>Position</th><th>${escape(playerName(0))}</th><th>${escape(playerName(1))}</th></tr></thead><tbody>${points.map(p=>`<tr><td>${p.label}</td><td class="review-north">${p.north===null?'—':p.north+'%'}</td><td class="review-south">${p.north===null?'—':100-p.north+'%'}</td></tr>`).join('')}</tbody></table></div></details>`;
+}
+function replayOdds():string {
+ if(!review||replayIndex===null)return '';
+ const last=review.points.filter(p=>p.frame<=replayIndex!).at(-1)!;
+ return last.north===null?`<span>${last.error?'Evaluation unavailable':'Quux evaluating…'}</span>`:`<span class="review-north">${escape(playerName(0))} ${last.north}%</span><span class="review-south">${escape(playerName(1))} ${100-last.north}%</span><small>${last.label} estimate</small>`;
+}
+function updateReview():void {
+ const chart=document.querySelector('#result-chart');if(chart){const expanded=chart.querySelector('details')?.open;chart.innerHTML=reviewChart();if(expanded)chart.querySelector('details')!.open=true;}
+ const odds=document.querySelector('#replay-odds');if(odds)odds.innerHTML=replayOdds();
+}
+function startReview():void {
+ if(review)return;
+ review=createGameReview(session);const current=review,epoch=++reviewEpoch;
+ queueMicrotask(async()=>{
+  for(const point of current.points){
+   if(epoch!==reviewEpoch)return;
+   if(!point.request)continue;
+   try {const answer=await reviewClient.ask('coach',point.request.text,point.request.player);if(epoch!==reviewEpoch)return;point.north=decodeReviewPoint(answer,point.request.player);}
+   catch {if(epoch!==reviewEpoch)return;point.error=true;}
+   updateReview();
+  }
+ });
+}
+function seekReplay(index:number):void {
+ if(!review)return;
+ document.querySelector<HTMLDialogElement>('#result')?.close();clearMoveHighlight();source=null;intent='build';
+ replayIndex=Math.max(0,Math.min(review.frames.length-1,index));render();
+}
+function replayControls():string {
+ if(!review||replayIndex===null)return '';
+ const frame=review.frames[replayIndex],last=review.frames.length-1;
+ return `<section class="rail-controls replay-controls" aria-label="Replay controls"><div class="status">GAME REPLAY · ${replayIndex}/${last} actions</div><p class="replay-description">${frame.actor!==null?`<strong>${escape(playerName(frame.actor))} · Turn ${review.frames[replayIndex-1].state.turn}</strong><br>`:''}${escape(frame.description)}</p><div id="replay-odds" class="replay-odds">${replayOdds()}</div><label for="replay-seek">Replay position</label><input id="replay-seek" type="range" min="0" max="${last}" value="${replayIndex}"><div class="replay-nav"><button id="replay-first" ${replayIndex===0?'disabled':''}>Start</button><button id="replay-prev" ${replayIndex===0?'disabled':''}>← Back</button><button id="replay-next" ${replayIndex===last?'disabled':''}>Next →</button><button id="replay-last" ${replayIndex===last?'disabled':''}>End</button></div><button id="replay-exit" class="primary">Return to summary</button></section>`;
+}
 let moveHighlightUntil=0,moveHighlightTimer:ReturnType<typeof setTimeout>|undefined;
 function clearMoveHighlight():void {
  clearTimeout(moveHighlightTimer);moveHighlightUntil=0;
@@ -73,8 +120,9 @@ function outcomeText():string {
   return isBotMode(mode)?text.replaceAll('Player 1','Quux Bot').replaceAll('Player 2','You').replaceAll('You has','You have').replaceAll('You wins','You win'):text;
 }
 function botTurn():boolean {return !learningFlow&&!choosingMode&&introStartedAt===null&&isBotMode(mode)&&(draft?setupPlayer===quuxPlayer:state.outcome==='playing'&&state.player===quuxPlayer);}
-function locked():boolean {return !!learningFlow||choosingMode||introStartedAt!==null||botBusy||coachBusy||botTurn();}
+function locked():boolean {return replayIndex!==null||!!learningFlow||choosingMode||introStartedAt!==null||botBusy||coachBusy||botTurn();}
 function restore(next: Session,cancel=true): void {
+  resetReview();
   clearMoveHighlight();
   if(cancel)cancelBot();
   session = next;mode=next.mode??'local';difficulty=next.difficulty??10;starter=next.starter??0;choosingMode=false;draft=null;resumeSession=null;announcedResult='';
@@ -99,6 +147,7 @@ try {
 } catch {notice='Choose your starting pieces. A previous save could not be loaded.';}
 function saveSetup():void {try {if(draft)localStorage.setItem(setupKey,JSON.stringify({pieces:draft,player:setupPlayer,starter,mode,...(isBotMode(mode)?{humanPlayer,difficulty}:{}),...(introStartedAt!==null?{introStartedAt}:{})}));} catch {notice='Browser storage unavailable; keep this page open during setup.';}}
 function beginSetup(nextMode:GameMode):void {
+  resetReview();
   clearMoveHighlight();
   cancelBot();mode=nextMode;starter=randomStarter();setupPlayer=starter;choosingMode=false;
   if(mode==='learning')difficulty=4;
@@ -114,6 +163,7 @@ function advanceIntro():void {
   render();
 }
 function chooseNewGame():void {
+  resetReview();
   cancelBot();choosingMode=true;draft=[[],[]];source=null;state=createInitialState();mapLayout=createLayout();
   try {const saved=localStorage.getItem(storageKey);resumeSession=saved?decodeSession(saved):null;} catch {resumeSession=null;}
   notice='Choose another player on this device or play Quux Bot. A coin flip chooses who starts.';render();
@@ -338,15 +388,15 @@ function starfield():string {
   let seed=93;
   return Array.from({length:160},(_,i)=>{seed=(seed*16807)%2147483647;const x=seed%10000/100;seed=(seed*16807)%2147483647;const y=seed%10000/100;return `<i style="left:${x}%;top:${y}%;--light:${i%9===0?'.9':'.35'};--radius:${i%9===0?'2':'1'}px"></i>`;}).join('');
 }
-function playerPlate(player:Player,phase:IntroPhase|null):string {
-  const over=state.outcome!=='playing'&&!draft;
-  const active=phase?phase==='revealed'&&starter===player:draft?setupPlayer===player:over?state.outcome===player:state.player===player;
+function playerPlate(player:Player,phase:IntroPhase|null,boardState=state):string {
+  const over=boardState.outcome!=='playing'&&!draft;
+  const active=phase?phase==='revealed'&&starter===player:draft?setupPlayer===player:over?boardState.outcome===player:boardState.player===player;
   let detail='';
   if(phase)detail=phase==='revealed'&&active?'GOES FIRST':'';
-  else if(over)detail=state.outcome==='draw'?'DRAW':state.outcome===player?'WINNER':'GAME OVER';
+  else if(over)detail=boardState.outcome==='draw'?'DRAW':boardState.outcome===player?'WINNER':'GAME OVER';
   else if(draft&&active)detail=botTurn()?'Choosing homeworld…':draft[player].length===3?'Confirm with End turn':draft[player].length===2?'Choose a large ship':`Choose star ${draft[player].length+1}`;
   else if(active&&botTurn())detail=botError?'Waiting to retry':'Thinking…';
-  const allowance=!phase&&!draft&&!over&&active?`<span class="player-allowance">${state.allowance.remaining} ${state.allowance.sacrificed?state.allowance.color+' ':''}action${state.allowance.remaining===1?'':'s'}</span>`:'';
+  const allowance=!phase&&!draft&&!over&&active?`<span class="player-allowance">${boardState.allowance.remaining} ${boardState.allowance.sacrificed?boardState.allowance.color+' ':''}action${boardState.allowance.remaining===1?'':'s'}</span>`:'';
   return `<div class="player-nameplate ${player===0?'north':'south'} ${active?'is-active':''} ${phase==='names'?'arriving':''}" data-player-name="${player}" aria-label="${player===0?'North':'South'} player"><small>${player===0?'NORTH':'SOUTH'}</small><strong>${playerName(player)}</strong>${detail?`<span class="player-detail">${detail}</span>`:''}${allowance}</div>`;
 }
 function coinIntro(phase:IntroPhase|null):string {
@@ -364,25 +414,28 @@ function boardNotice():string {
 function render():void {
   const openDialog=document.querySelector<HTMLDialogElement>('dialog[open]')?.id;
   const over=state.outcome!=='playing';
-  const inputLocked=locked();
+  if(over&&!draft)startReview();
+  const frame=replayIndex!==null?review?.frames[replayIndex]:undefined;
+  const boardState=frame?.state??state,boardLayout=frame?.layout??mapLayout;
+  const inputLocked=locked()||over;
   const phase=introStartedAt===null?null:introPhase(introStartedAt,Date.now());
   const teaching=mode==='learning';
   const guide=teaching&&!draft&&!over&&!inputLocked?learningOptions(state,source):null;
   const suggested=teaching&&draft&&!inputLocked?nextRecommendedPiece({pieces:draft,player:setupPlayer}):undefined;
-  const systems=draft?draft.flatMap((p,i)=>p.length?[{id:i===0?'north':'south',name:i===0?'North homeworld':'South homeworld',homeworld:i,stars:p.slice(0,2),ships:p[2]?[{...p[2],owner:i}]:[]}]:[]):state.systems;
-  const previousMove=!draft&&!choosingMode?lastOpponentMove(session,isBotMode(mode)?humanPlayer:state.player):null;
+  const systems=draft?draft.flatMap((p,i)=>p.length?[{id:i===0?'north':'south',name:i===0?'North homeworld':'South homeworld',homeworld:i,stars:p.slice(0,2),ships:p[2]?[{...p[2],owner:i}]:[]}]:[]):boardState.systems;
+  const previousMove=!draft&&!choosingMode&&!frame?lastOpponentMove(session,isBotMode(mode)?humanPlayer:state.player):null;
   const markedMove=Date.now()<moveHighlightUntil?previousMove:null;
-  const bank=draft?setupBank(draft):state.bank;
+  const bank=draft?setupBank(draft):boardState.bank;
   const status=phase?'Choosing first player':draft?`${playerName(setupPlayer)} · Setup`:over?state.outcome==='draw'?'Game over · Draw':isBotMode(mode)&&state.outcome===humanPlayer?'You win':`${playerName(Number(state.outcome))} wins`:`Turn ${state.turn} · ${playerName(state.player)}`;
   const catastrophes=draft||over?[]:state.systems.flatMap(s=>colors.flatMap(color=>{const count=[...s.stars,...s.ships].filter(p=>p.color===color).length;return count>=4?[{system:s.id,name:s.name,color,count}]:[];}));
-  const {minColumn,columns}=layoutBounds(mapLayout);
-  const slotStyle=(id:string)=>{const slot=mapLayout.slots[id];return `grid-row:${slot.row+1};grid-column:${id==='north'||id==='south'?'1 / -1':slot.column-minColumn+1}`;};
+  const {minColumn,columns}=layoutBounds(boardLayout);
+  const slotStyle=(id:string)=>{const slot=boardLayout.slots[id];return `grid-row:${slot.row+1};grid-column:${id==='north'||id==='south'?'1 / -1':slot.column-minColumn+1}`;};
   const actionMenu=source&&!inputLocked?`<div class="ship-actions context-actions" aria-label="Selected ship actions"><button data-intent="trade" ${intent==='trade'?'class="active"':''} ${teaching&&!guide?.trade?'disabled':''}>Trade</button><button data-intent="discover" ${intent==='discover'?'class="active"':''} ${teaching&&!guide?.travel?'disabled':''}>Travel</button><button id="sacrifice" ${legal(state,{type:'sacrifice',...source})?'':'disabled'}>Sacrifice</button><button id="clear">Cancel</button></div>`:'';
-  const controls=`<section class="rail-controls" aria-label="Turn controls"><div class="status ${!phase&&(draft?setupPlayer:state.player)===1?'south-turn':''}">${status}</div><nav><button id="undo" aria-label="Undo action" ${inputLocked||(draft?!draft[setupPlayer].length:!history.length)?'disabled':''}>↶ Undo</button><button id="end" aria-label="End turn" class="primary" ${inputLocked||(draft?draft[setupPlayer].length!==3:over||!history.length)?'disabled':''}>End turn →</button><button id="menu" aria-label="Game menu">☰</button></nav>${mode==='practice'?`<div class="coach-controls"><button id="hint" ${inputLocked||draft||over?'disabled':''}>Hint</button><button id="evaluate" ${inputLocked||draft||over||!history.length?'disabled':''}>Evaluate move</button></div>`:''}</section>`;
+  const controls=frame?replayControls():`<section class="rail-controls" aria-label="Turn controls"><div class="status ${!phase&&(draft?setupPlayer:state.player)===1?'south-turn':''}">${status}</div><nav><button id="undo" aria-label="Undo action" ${inputLocked||(draft?!draft[setupPlayer].length:!history.length)?'disabled':''}>↶ Undo</button><button id="end" aria-label="End turn" class="primary" ${inputLocked||(draft?draft[setupPlayer].length!==3:over||!history.length)?'disabled':''}>End turn →</button><button id="menu" aria-label="Game menu">☰</button></nav>${over&&!draft?'<button id="show-review" class="primary">Game summary &amp; replay</button>':''}${mode==='practice'?`<div class="coach-controls"><button id="hint" ${inputLocked||draft||over?'disabled':''}>Hint</button><button id="evaluate" ${inputLocked||draft||over||!history.length?'disabled':''}>Evaluate move</button></div>`:''}</section>`;
   app.innerHTML=`<main class="tabletop ${teaching?'learning-mode':''}"><div class="play-area"><section class="board-region" aria-label="Game board"><section class="space ${tableView?'table-view':''}" id="space" aria-label="Space playing surface"><div class="starfield" aria-hidden="true">${starfield()}</div><div class="map-label">SECTOR 01 <span>LOCAL EXPLORATION</span></div><div id="universe" class="universe" style="--map-columns:${columns}">
   ${['north','south'].filter(id=>!systems.some(s=>s.id===id)).map(id=>`<div class="layout-anchor" data-layout-anchor="${id}" style="${slotStyle(id)}" aria-hidden="true"></div>`).join('')}
   ${systems.map(s=>{
-    const slot=mapLayout.slots[s.id];
+    const slot=boardLayout.slots[s.id];
     const destination=source&&source.system!==s.id&&legal(state,{type:'move',...source,destination:s.id});
     return `<article class="system ${selected===s.id?'selected':''} ${destination?'destination':''} ${guide?.buildSystems.has(s.id)?'learn-build-system':''} ${markedMove?.system===s.id&&markedMove.ship===null?'previous-move':''}" data-system="${s.id}" data-map-row="${slot.row}" data-map-column="${slot.column}" style="${slotStyle(s.id)}" aria-label="${s.name}"><div class="system-title"><button data-select="${s.id}" aria-label="Select ${s.name}">${s.homeworld===undefined?'✧':'⌂'} ${s.name}</button></div><div class="system-pieces"><div class="stars">${s.stars.map((p,j)=>`<button class="piece-button" data-star="${s.id}" aria-label="${s.name} ${p.color} star ${p.size}">${pyramid(p,true)}<span class="piece-caption">${j===0?'':' '}</span></button>`).join('')||'<span class="destroyed">No stars</span>'}</div><div class="fleets">${[0,1].map(owner=>`<div class="fleet" data-player="${owner}" aria-label="Player ${owner+1} fleet">${s.ships.map((p,j)=>{
       if(p.owner!==owner)return '';
@@ -390,15 +443,15 @@ function render():void {
       return `<button class="piece-button ${source?.system===s.id&&source.ship===j?'picked':''} ${canSelect||canCapture?'learn-option':''} ${canCapture?'learn-capture':''} ${markedMove?.system===s.id&&markedMove.ship===j?'previous-move':''}" data-ship="${j}" data-source="${s.id}" ${canSelect||canCapture?'data-legal-option="'+(canCapture?'capture':'select')+'"':''} ${teaching&&!canSelect&&!canCapture?'disabled':''} aria-label="Player ${owner+1} ${p.color} ship ${p.size} at ${s.name}" ${canSelect||canCapture?'aria-description="'+(canCapture?'Legal capture. Click to take this ship.':'Legal actions available. Click to choose one.')+'"':''}>${pyramid(p,false,owner)}</button>`;
     }).join('')}</div>`).join('')}</div></div><div class="system-meta">${s.homeworld===undefined?'FRONTIER':`PLAYER ${s.homeworld+1} HOMEWORLD`}${destination?'<span>MOVE HERE ↗</span>':guide?.buildSystems.has(s.id)&&!source?'<span class="learn-build-label">BUILD HERE +</span>':''}</div>${catastrophes.filter(c=>c.system===s.id).map(c=>`<button class="system-catastrophe ${teaching?'optional-catastrophe':''}" data-cat="${c.color}" data-cat-system="${c.system}" aria-label="${c.color} catastrophe at ${c.name}" ${inputLocked?'disabled':''}>${teaching?'Optional · ':'✹ '}${c.color} catastrophe · ${c.count}</button>`).join('')}</article>`;
   }).join('')}
-  </div></section><div class="board-overlay">${actionMenu}${!choosingMode?playerPlate(0,phase)+playerPlate(1,phase):''}<p id="notice" class="board-notice" role="status" aria-live="polite">${boardNotice()}</p>${botError?'<button id="retry-bot" class="board-retry">Retry Quux Bot</button>':''}${coinIntro(phase)}${!draft&&!choosingMode?`<button id="last-move" aria-pressed="${!!markedMove}" ${!previousMove?'disabled':''} title="Highlight the opponent’s last completed action for three seconds">Highlight last opponent move</button>`:''}<button id="view-toggle" class="view-toggle" aria-label="Tabletop perspective" aria-pressed="${tableView}" title="Switch between overhead and tabletop views">${tableView?'▦ Overhead':'◈ Table view'}</button></div></section>
-  <aside class="sidebar" aria-label="Game sidebar">${controls}${learningCue()}<section class="bank" aria-label="Piece bank"><div class="bank-heading"><h2>THE BANK</h2><span>${bank.length} PIECES</span></div><p>Click a pyramid to bring it into play.</p>${colors.map(color=>`<div class="bank-color ${color}"><h3>${color}<span>${{red:'CAPTURE',yellow:'MOVE',green:'BUILD',blue:'TRADE'}[color]}</span></h3><div class="bank-row">${sizes.map(size=>{
+  </div></section><div class="board-overlay">${actionMenu}${!choosingMode?playerPlate(0,phase,boardState)+playerPlate(1,phase,boardState):''}<p id="notice" class="board-notice" role="status" aria-live="polite">${frame?'':boardNotice()}</p>${botError?'<button id="retry-bot" class="board-retry">Retry Quux Bot</button>':''}${coinIntro(phase)}${!draft&&!choosingMode&&!frame?`<button id="last-move" aria-pressed="${!!markedMove}" ${!previousMove?'disabled':''} title="Highlight the opponent’s last completed action for three seconds">Highlight last opponent move</button>`:''}<button id="view-toggle" class="view-toggle" aria-label="Tabletop perspective" aria-pressed="${tableView}" title="Switch between overhead and tabletop views">${tableView?'▦ Overhead':'◈ Table view'}</button></div></section>
+  <aside class="sidebar" aria-label="Game sidebar">${controls}${frame?'':learningCue()}<section class="bank" aria-label="Piece bank"><div class="bank-heading"><h2>THE BANK</h2><span>${bank.length} PIECES</span></div><p>Click a pyramid to bring it into play.</p>${colors.map(color=>`<div class="bank-color ${color}"><h3>${color}<span>${{red:'CAPTURE',yellow:'MOVE',green:'BUILD',blue:'TRADE'}[color]}</span></h3><div class="bank-row">${sizes.map(size=>{
     const p={color,size},count=bank.filter(b=>b.color===color&&b.size===size).length;
     const recommended=suggested?.color===color&&suggested.size===size;
     let available=false;try {available=!inputLocked&&(draft?!!placeSetupPiece({pieces:draft,player:setupPlayer},p):legal(state,bankAction(state,selected,p,source,intent)));} catch { /* Not a legal bank choice. */ }
     return `<button class="bank-piece ${available?'available':''} ${teaching&&available?'learn-option':''} ${recommended?'recommended':''}" ${recommended?'data-recommended="true"':''} data-color="${color}" data-size="${size}" aria-label="Bank ${color} ${size}" ${teaching&&available?`data-legal-option="bank" aria-description="Legal bank choice for your current action.${recommended?' Recommended next piece.':''}"`:''} ${inputLocked||!count||teaching&&!available||(draft?draft[setupPlayer].length===3:over)?'disabled':''} title="${color} size ${size}: ${count} available">${pyramid(p)}<span>×${count}</span>${recommended?'<span class="recommended-mark" aria-label="Recommended next piece">★</span>':''}</button>`;
   }).join('')}</div></div>`).join('')}</section>
   </aside></div>
-  ${catastropheDialog()}${mentorDialog()}${startingTipsDialog()}${learningDialog()}${coachDialog()}<dialog id="result" aria-labelledby="result-title"><p class="result-eyebrow">GAME OVER</p><h2 id="result-title">${over?status:''}</h2><p>${over?outcomeText():''}</p><button id="result-new" class="primary">New game</button><button id="result-close">View final board</button></dialog>
+  ${catastropheDialog()}${mentorDialog()}${startingTipsDialog()}${learningDialog()}${coachDialog()}<dialog id="result" aria-labelledby="result-title"><p class="result-eyebrow">GAME OVER</p><h2 id="result-title">${over?status:''}</h2><p>${over?outcomeText():''}</p><div id="result-chart">${reviewChart()}</div>${over&&!draft?'<div class="review-launch"><button id="review-start" class="primary">Replay from start</button><button id="review-end">Replay from end</button></div>':''}<div class="review-footer"><button id="result-new">New game</button><button id="result-close">View final board</button></div></dialog>
   <dialog id="game-menu"><h2>Mission control</h2>${isBotMode(mode)&&!choosingMode?difficultyControl('game-difficulty',botBusy):''}<div class="menu-buttons"><button id="reset">New game</button>${draft&&resumeSession&&!choosingMode?'<button id="resume">Resume saved game</button>':''}<button id="help">How to play</button>${teaching?`<button id="learn-rules" ${inputLocked?'disabled':''}>Rules walkthrough</button>`:''}<button id="export" ${draft||botBusy?'disabled':''}>Export save</button><button id="import">Import save</button><button id="resign" ${over||draft||inputLocked?'disabled':''}>Resign</button><button id="draw" ${over||draft||isBotMode(mode)?'disabled':''}>Agree draw</button><button id="close-menu">Back to space</button></div><input type="file" id="save-file" accept=".json,application/json" hidden><details><summary>Flight log (${log.length})</summary><ol>${log.map(l=>`<li>${escape(l)}</li>`).join('')}</ol></details><p>Your game saves automatically on this device.</p></dialog>
   <dialog id="opponent-picker" aria-labelledby="opponent-title"><p class="result-eyebrow">A NEW EXPEDITION</p><h2 id="opponent-title">Choose your opponent</h2><p>Explore the galaxy with another person, or challenge Quux Bot.</p>${difficultyControl('new-difficulty')}<div class="opponent-options"><button id="play-local" aria-label="Another player"><strong>Another player</strong><span>Two people on this device</span></button><button id="play-quux" aria-label="Quux Bot"><strong>Quux Bot</strong><span>You command South. The bot commands North.</span></button><button id="play-practice" aria-label="Quux practice"><strong>Quux practice</strong><span>Play Quux Bot with hints, move ratings, and explanations.</span></button><button id="play-learning" aria-label="Learning mode"><strong>Learning mode</strong><span>Optional visual rules tour, legal-move highlights, and an easy bot.</span></button></div><p class="coin-note">A coin flip chooses who sets up and takes the first turn.</p>${resumeSession&&choosingMode?'<button id="resume">Resume saved game</button>':''}</dialog>
   <dialog id="rules"><h2>Your fleet. Your universe.</h2><p><b>Build:</b> click a system, then the smallest available bank piece of a color you already own there. You need green power.</p><p><b>Travel:</b> click your ship, then a connected system. Systems connect when their stars share no sizes. You need yellow power.</p><p><b>Trade:</b> click your ship, then Trade, then a different bank color of exactly the same size. You need blue power.</p><p><b>Discover a new star:</b> click your ship, Travel, a bank pyramid for the new star. It appears automatically in its star-size row. You need yellow power.</p><p><b>Capture:</b> click an enemy ship. You need red power and an equal or larger ship in that system.</p><p><b>Sacrifice:</b> click your ship, then Sacrifice. Instead of a basic action, gain its pip count in actions of its color anywhere you still have ships.</p><p><b>Catastrophe:</b> whenever any system has four or more pieces of one color, its catastrophe button appears on that system, even if you have no ships there. Count stars and both fleets. The active player may choose to remove that color. If the last star is removed, every ship there is destroyed; a surviving binary-star half protects other colors. Optional and free at any point in your turn.</p><p>Power comes from stars or your own local ships, never enemy ships. Confirm with End turn. An empty or destroyed homeworld loses at turn end. Undo works until you confirm. Systems have fixed positions. Same-size stars share a horizontal row; travel still depends on star sizes, not physical distance.</p><p>Based on Homeworlds Rules13, pp. 4–12. Game: John Cooper. Pyramid system: Andrew Looney. Unofficial implementation.</p><p>Quux Bot: original engine by Arthur O’Dwyer. <a href="./quux-LICENSE.txt" target="_blank" rel="noopener">License</a> · <a href="https://github.com/Quuxplusone/Homeworlds" target="_blank" rel="noopener">Engine source</a>.</p><button id="close-rules">Back to space</button></dialog></main>`;
@@ -499,7 +552,7 @@ function bindBoard():void {
   space.addEventListener('click',event=>{
     const target=event.target as Element;
     if(target.closest('.ship-actions,[data-cat]')) return;
-    if(draft||locked()) return;
+    if(draft||locked()||state.outcome!=='playing') return;
     const shipButton=target.closest<HTMLElement>('[data-ship]');
     if(shipButton) {
       const system=shipButton.dataset.source!,index=Number(shipButton.dataset.ship);
@@ -531,14 +584,23 @@ function bindTools():void {
   const result=document.querySelector<HTMLDialogElement>('#result')!;
   document.querySelector('#result-close')!.addEventListener('click',()=>result.close());
   document.querySelector('#result-new')!.addEventListener('click',chooseNewGame);
+  document.querySelector('#show-review')?.addEventListener('click',()=>result.showModal());
+  document.querySelector('#review-start')?.addEventListener('click',()=>seekReplay(0));
+  document.querySelector('#review-end')?.addEventListener('click',()=>seekReplay(review!.frames.length-1));
+  document.querySelector('#replay-first')?.addEventListener('click',()=>seekReplay(0));
+  document.querySelector('#replay-prev')?.addEventListener('click',()=>seekReplay(replayIndex!-1));
+  document.querySelector('#replay-next')?.addEventListener('click',()=>seekReplay(replayIndex!+1));
+  document.querySelector('#replay-last')?.addEventListener('click',()=>seekReplay(review!.frames.length-1));
+  document.querySelector<HTMLInputElement>('#replay-seek')?.addEventListener('change',event=>seekReplay(Number((event.target as HTMLInputElement).value)));
+  document.querySelector('#replay-exit')?.addEventListener('click',()=>{replayIndex=null;render();document.querySelector<HTMLDialogElement>('#result')!.showModal();});
   const menu=document.querySelector<HTMLDialogElement>('#game-menu')!;
   const rules=document.querySelector<HTMLDialogElement>('#rules')!;
-  document.querySelector('#menu')!.addEventListener('click',()=>menu.showModal());
+  document.querySelector('#menu')?.addEventListener('click',()=>menu.showModal());
   document.querySelector('#close-menu')!.addEventListener('click',()=>menu.close());
   document.querySelector('#help')!.addEventListener('click',()=>{menu.close();rules.showModal();});
   document.querySelector('#close-rules')!.addEventListener('click',()=>rules.close());
   document.querySelector('#reset')!.addEventListener('click',()=>{if(draft||window.confirm('Start a new game? Export your current game first to keep a copy.'))chooseNewGame();});
-  document.querySelector('#end')!.addEventListener('click',()=>{
+  document.querySelector('#end')?.addEventListener('click',()=>{
     if(locked())return;
     if(!draft){act({type:'end'},'Ended turn');return;}
     try {
@@ -546,7 +608,7 @@ function bindTools():void {
       render();
     } catch(error){notice=(error as Error).message;render();}
   });
-  document.querySelector('#undo')!.addEventListener('click',()=>{if(locked())return;if(draft){draft=undoSetup({pieces:draft,player:setupPlayer}).pieces;notice='Starting piece returned to the bank.';saveSetup();render();return;}const previous=history.pop();if(previous){state=previous.state;mapLayout=previous.layout;log=previous.log;session.actions.length=previous.actionCount;source=null;intent='build';notice='Action undone.';save();render();}});
+  document.querySelector('#undo')?.addEventListener('click',()=>{if(locked())return;if(draft){draft=undoSetup({pieces:draft,player:setupPlayer}).pieces;notice='Starting piece returned to the bank.';saveSetup();render();return;}const previous=history.pop();if(previous){state=previous.state;mapLayout=previous.layout;log=previous.log;session.actions.length=previous.actionCount;source=null;intent='build';notice='Action undone.';save();render();}});
   document.querySelector('#resign')!.addEventListener('click',()=>{if(window.confirm(`${playerName(state.player)}: resign and award the other player the win?`)){menu.close();act({type:'resign'},'Resigned');}});
   document.querySelector('#draw')!.addEventListener('click',()=>{if(window.confirm('Player 1: do you agree to a draw?')&&window.confirm('Player 2: do you also agree to a draw?')){menu.close();act({type:'draw'},'Both players agreed to a draw');}});
   document.querySelector('#export')!.addEventListener('click',()=>{
@@ -562,6 +624,7 @@ function bindTools():void {
   });
 }
 document.addEventListener('keydown',event=>{
+  if(replayIndex!==null&&!document.querySelector('dialog[open]')&&!(event.target instanceof HTMLInputElement)&&(event.key==='ArrowLeft'||event.key==='ArrowRight')){event.preventDefault();seekReplay(replayIndex+(event.key==='ArrowLeft'?-1:1));return;}
   if(learningFlow?.screen==='walkthrough'&&(event.key==='ArrowLeft'||event.key==='ArrowRight')){event.preventDefault();changeLesson(event.key==='ArrowLeft'?-1:1);return;}
   if(event.key==='Escape'&&!document.querySelector('dialog[open]')){source=null;intent='build';render();}
 });
