@@ -8,8 +8,8 @@ export function fitBoard(space:HTMLElement):void {
  map.style.setProperty('--board-scale',String(scale));
  // Spread the rows over the available height even when width limits the scale.
  map.style.minWidth=`${space.clientWidth/scale}px`;
- const compact=space.classList.contains('table-view')&&map.querySelectorAll('.system').length<=2;
- map.style.minHeight=`${space.clientHeight/scale*(compact?.76:1)}px`;
+ const compact=space.classList.contains('table-view');
+ map.style.minHeight=`${space.clientHeight/scale*(compact?.80:1)}px`;
  renderTableScene(space);
 
  // Keep action controls at their normal size, anchored to the scaled system.
