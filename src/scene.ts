@@ -55,9 +55,9 @@ export function pieceModel(color:Color,size:number,star:boolean,owner:number):{g
   body.rotation.x=(Math.PI-Math.atan2(1.25,.48))*(owner===0?1:-1);
   const floor=Math.min(...vertices.map(v=>v.clone().applyEuler(body.rotation).y));
   body.position.y=-floor;
-  // Align with the camera's horizontal axis: opposing ships point directly
-  // left/right on screen instead of diagonally across their system.
-  group.rotation.y=Math.PI/2+Math.atan2(7,25);
+  // Align with the camera's line of sight: North faces the viewer, and
+  // South faces away. The fleets face each other across the board.
+  group.rotation.y=Math.atan2(7,25);
  }
  group.updateMatrixWorld(true);
  return {group,points:vertices.map(v=>body.localToWorld(v.clone()))};
@@ -123,14 +123,30 @@ export function renderTableScene(space:HTMLElement):void {
   for(const card of space.querySelectorAll<HTMLElement>('.system')){
    const area=card.querySelector<HTMLElement>('.system-pieces')!;
    const r=area.getBoundingClientRect();
-   // Each star system is a low metallic platform, lit by the same scene.
+   // A dark gravitational well with a luminous, layered accretion disk.
+   // Keep its geometry planar so it doesn't read like a physical platform.
    const center=ground(r.x+r.width/2,r.y+r.height*.62);
    const width=view/h*r.width*.53,depth=view/h*r.height*.52/Math.sin(Math.atan2(17,Math.hypot(7,25)));
    const selected=card.classList.contains('selected'),destination=card.classList.contains('destination');
-   const pad=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.14,64),new THREE.MeshStandardMaterial({color:0x17283a,metalness:.48,roughness:.54}));
-   pad.scale.set(width,1,depth);pad.position.copy(center);pad.position.y=-.14;pad.rotation.y=yaw;pad.receiveShadow=true;pad.renderOrder=0;scene.add(pad);
-   const band=new THREE.Mesh(new THREE.RingGeometry(.96,1,64),new THREE.MeshBasicMaterial({color:selected?0xc6e9ff:destination?0x64efbd:0x496d91,transparent:true,opacity:selected?.95:.76,side:THREE.DoubleSide}));
-   band.rotation.set(-Math.PI/2,0,yaw);band.scale.set(width,depth,1);band.position.copy(center);band.position.y=-.063;band.renderOrder=1;scene.add(band);
+   const well=new THREE.Group();well.position.copy(center);well.position.y=-.15;well.rotation.y=yaw;well.scale.set(width,1,depth);scene.add(well);
+   const disk=new THREE.Mesh(new THREE.CircleGeometry(.94,96),new THREE.MeshBasicMaterial({color:0x02040c}));
+   disk.rotation.x=-Math.PI/2;disk.renderOrder=0;well.add(disk);
+   const ring=(inner:number,outer:number,color:number,opacity:number,start=0,length=Math.PI*2)=>{
+    const mesh=new THREE.Mesh(new THREE.RingGeometry(inner,outer,96,1,start,length),new THREE.MeshBasicMaterial({color,transparent:true,opacity,depthWrite:false,side:THREE.DoubleSide}));
+    mesh.rotation.x=-Math.PI/2;mesh.position.y=.01;mesh.renderOrder=1;well.add(mesh);
+   };
+   // Diffuse blue-violet outer glow and a narrow, hot inner photon ring.
+   const accent=destination?0x77ffca:selected?0xc5e6ff:0x8e87ff;
+   ring(.78,1.14,0x526fff,.055);
+   ring(.79,1.08,0x7356f6,.09);
+   ring(.82,1.025,0x748aff,.13);
+   ring(.84,.99,0x49358e,.5);
+   ring(.86,.965,0x667ce3,.45);
+   ring(.88,.936,0x9ba7f7,.6);
+   ring(.89,.91,accent,.85);
+   ring(.88,.96,0xffbb88,.34,Math.PI*.1,Math.PI*.72);
+   ring(.89,.925,0xffe5b7,.82,Math.PI*.22,Math.PI*.43);
+   ring(.93,1.035,accent,selected||destination?.54:.22,Math.PI*1.05,Math.PI*.68);
    for(const button of area.querySelectorAll<HTMLElement>('.piece-button')){
     const icon=button.querySelector<SVGElement>('.pyramid');if(!icon)continue;
     const color=icon.dataset.meshColor as Color;
