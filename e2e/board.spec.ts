@@ -4,7 +4,7 @@ test('last move marks the exact opponent ship for three seconds and fleets stay 
  const saved={version:1,opening:[{stars:[{color:'yellow',size:1},{color:'blue',size:3}],shipColor:'green'},{stars:[{color:'red',size:2},{color:'blue',size:1}],shipColor:'green'}],actions:[{type:'build',system:'north',color:'green'},{type:'end'}]};
  await page.addInitScript(value=>{localStorage.setItem('homeworlds.session.v1',JSON.stringify(value));localStorage.setItem('homeworlds.table-view','true');},saved);
  await page.goto('/');await page.getByRole('button',{name:'Resume saved game'}).click();
- const button=page.getByRole('button',{name:'Last move'});
+ const button=page.getByRole('button',{name:'Highlight last opponent move',exact:true});
  await button.click();
  await expect(page.locator('.previous-move')).toHaveCount(1);
  await expect(page.getByRole('button',{name:'Player 1 green ship 1 at North homeworld',exact:true})).toHaveClass(/previous-move/);
