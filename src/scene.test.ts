@@ -16,9 +16,10 @@ describe('physical tabletop geometry',()=>{
   }
   expect(north[4].x).toBeCloseTo(-south[4].x);
   expect(north[4].z).toBeCloseTo(-south[4].z);
-  // Both ground-plane directions align with the camera's line of sight.
-  expect(north[4].x*25-north[4].z*7).toBeCloseTo(0);
-  expect(south[4].x*25-south[4].z*7).toBeCloseTo(0);
+  // Both ground-plane directions are near the camera's line of sight.
+  const cosOffset=Math.cos(Math.PI/15);
+  expect(Math.abs(north[4].x*7+north[4].z*25)/Math.hypot(north[4].x,north[4].z)/Math.hypot(7,25)).toBeCloseTo(cosOffset);
+  expect(Math.abs(south[4].x*7+south[4].z*25)/Math.hypot(south[4].x,south[4].z)/Math.hypot(7,25)).toBeCloseTo(cosOffset);
   expect(north[4].x*7+north[4].z*25).toBeGreaterThan(0);
   expect(south[4].x*7+south[4].z*25).toBeLessThan(0);
  });
