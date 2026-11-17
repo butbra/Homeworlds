@@ -262,3 +262,23 @@ html,body,#app{height:100%;overflow:clip;overscroll-behavior:none}
  .board-overlay #last-move{top:5px;left:5px;padding:5px 6px;font-size:9px;max-width:calc(100% - 115px);white-space:normal}
  .space:not(.table-view) .piece-button>.pyramid.size-3{width:34px;height:48px}
 }
+
+/* Game recap and read-only move-by-move review. */
+#result{width:min(650px,calc(100vw - 24px));max-width:650px;padding:24px}
+#result h2{margin-bottom:6px}
+#result-chart{background:#0a111b;border:1px solid #354359;border-radius:10px;padding:15px;margin:16px 0}
+.review-chart-header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.review-chart-header strong{font-size:14px;color:#e0eaf1}.review-chart-header>span{font-size:10px;color:#8fa5bc}
+.review-legend{display:flex;gap:14px;font-size:11px;margin:9px 0 0}.review-legend span::before{content:'';display:inline-block;width:9px;height:9px;margin-right:5px;background:currentColor;border-radius:50%}
+.review-north{color:#8de0d3}.review-south{color:#efc68c}
+.review-chart{width:100%;display:block;margin:3px 0}.review-chart text{font-size:10px;fill:#91a3b6;font-family:inherit}
+#result .review-method{font-size:10px;line-height:1.5;margin:4px 0;color:#91a3b6}
+.review-values{font-size:11px;margin-top:9px;color:#b1c5d6}.review-table-scroll{max-height:180px;overflow:auto}.review-values table{width:100%;border-collapse:collapse;margin-top:6px;font-variant-numeric:tabular-nums}.review-values td,.review-values th{text-align:left;padding:5px;border-bottom:1px solid #28323f}.review-values td:not(:first-child),.review-values th:not(:first-child){text-align:right}
+.review-launch,.review-footer{display:flex;flex-wrap:wrap;gap:8px}.review-launch button{flex:1;margin:0}.review-footer{margin-top:10px}.review-footer button{margin:0}
+#show-review{width:100%;margin-top:10px}
+.replay-controls .status{font-weight:700;color:#b9d9f0}.replay-description{font-size:12px;line-height:1.5;min-height:48px;margin:0 0 8px}.replay-description strong{color:#deedff}
+.replay-odds{display:flex;flex-wrap:wrap;gap:7px;font-size:11px;min-height:18px;margin-bottom:10px}.replay-odds small{color:#778c9f;width:100%;font-size:9px}
+.replay-controls label{display:block;font-size:10px;color:#8daac1}.replay-controls input{width:100%;accent-color:#8de0d3;margin:8px 0}
+.replay-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:4px 0 9px}.replay-nav button{padding:7px 2px;font-size:10px}#replay-exit{width:100%}
+@media(max-width:700px){#result{padding:15px}#result-chart{padding:9px}.review-launch button{font-size:11px}.replay-description{font-size:10px}.replay-nav{grid-template-columns:repeat(2,1fr)}.replay-odds{font-size:10px}}
+@media(max-height:550px){.replay-controls{padding:7px}.replay-description{min-height:0;font-size:10px}.replay-odds{margin-bottom:3px}.replay-controls input{margin:3px 0}.replay-nav{margin:2px 0 4px}}
