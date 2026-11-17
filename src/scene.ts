@@ -51,13 +51,13 @@ export function pieceModel(color:Color,size:number,star:boolean,owner:number):{g
   }
  }
  if(!star){
-  // A ship lies on one triangular face. Opponents point in opposite directions.
-  body.rotation.x=(Math.PI-Math.atan2(1.25,.48))*(owner===0?1:-1);
+  // Keep the north-facing profile. Pitch away-facing ships up a little so
+  // their pointed nose is visible rather than only the square rear face.
+  body.rotation.x=owner===0?Math.PI-Math.atan2(1.25,.48):-Math.PI*.4;
   const floor=Math.min(...vertices.map(v=>v.clone().applyEuler(body.rotation).y));
   body.position.y=-floor;
-  // Face along the board's depth with a slight offset, so both the pointed
-  // front and the sloped faces remain visible from the tabletop camera.
-  group.rotation.y=Math.atan2(7,25)+Math.PI/15;
+  // Face straight along the board's depth, in opposing directions.
+  group.rotation.y=Math.atan2(7,25);
  }
  group.updateMatrixWorld(true);
  return {group,points:vertices.map(v=>body.localToWorld(v.clone()))};
@@ -95,7 +95,7 @@ export function renderTableScene(space:HTMLElement):void {
   // An orthographic camera at tabletop height preserves readability at both
   // ends of the board without the miniature far-away pieces of a wide-angle lens.
   const camera=new THREE.OrthographicCamera(-view*ratio/2,view*ratio/2,view/2,-view/2,.1,180);
-  camera.position.set(7,29,25);camera.lookAt(0,0,0);camera.updateMatrixWorld();
+  camera.position.set(7,17,25);camera.lookAt(0,0,0);camera.updateMatrixWorld();
   const frame=space.getBoundingClientRect();
   const ground=(x:number,y:number)=>{
    ray.setFromCamera(new THREE.Vector2((x-frame.left)/w*2-1,1-(y-frame.top)/h*2),camera);
@@ -126,7 +126,7 @@ export function renderTableScene(space:HTMLElement):void {
    // A dark gravitational well with a luminous, layered accretion disk.
    // Keep its geometry planar so it doesn't read like a physical platform.
    const center=ground(r.x+r.width/2,r.y+r.height*.62);
-   const width=view/h*r.width*.53,depth=view/h*r.height*.52/Math.sin(Math.atan2(29,Math.hypot(7,25)));
+   const width=view/h*r.width*.53,depth=view/h*r.height*.52/Math.sin(Math.atan2(17,Math.hypot(7,25)));
    const selected=card.classList.contains('selected'),destination=card.classList.contains('destination');
    const well=new THREE.Group();well.position.copy(center);well.position.y=-.15;well.rotation.y=yaw;well.scale.set(width,1,depth);scene.add(well);
    const disk=new THREE.Mesh(new THREE.CircleGeometry(.94,96),new THREE.MeshBasicMaterial({color:0x02040c}));
