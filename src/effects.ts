@@ -16,6 +16,9 @@ function run(element:HTMLElement,keyframes:Keyframe[],duration=440):void {
 /** Effects only decorate committed actions; they never delay turns or mutate game state. */
 export function animateAction(before:ActionVisual,next:GameState,action:Action,durationScale=1):void {
  if(matchMedia('(prefers-reduced-motion: reduce)').matches||!('system'in action))return;
+ // The tabletop scene animates its own 3D geometry. Transforming its hidden
+ // HTML hit targets would corrupt their measured size and duplicate travel.
+ if(document.querySelector('#space.table-view')&&action.type!=='catastrophe')return;
  const old=before.rect;
  if(action.type==='catastrophe'&&old) {
   const x=old.x+old.width/2,y=old.y+old.height/2;

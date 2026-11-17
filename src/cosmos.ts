@@ -38,28 +38,21 @@ export function paintCosmos(space:HTMLElement):void {
   const r=bright>.991?1.7:bright>.963?.95:bright>.8?.62:.28+random()*.26;
   star(ctx,x,y,r,bright>.963?.55+random()*.4:.13+random()*.42,tint,bright>.991);
  }
- // Individual systems are soft elliptical fields of starlight, not disks
- // with hard outlines. Their outer edges disappear into the global sky.
+ // Each system is only a localized concentration of stars. No filled disk,
+ // halo, ring, or light haze: particle density alone defines its shape.
  const frame=space.getBoundingClientRect();
  const cards=Array.from(space.querySelectorAll<HTMLElement>('.system'));
- const layout=cards.map(card=>{const r=card.querySelector<HTMLElement>('.system-pieces')!.getBoundingClientRect();return `${card.dataset.system}:${Math.round(r.x-frame.x)}:${Math.round(r.y-frame.y)}:${Math.round(r.width)}:${Math.round(r.height)}:${card.classList.contains('destination')}`;}).join('|');
+ const layout=cards.map(card=>{const r=card.querySelector<HTMLElement>('.system-pieces')!.getBoundingClientRect();return `${card.dataset.system}:${Math.round(r.x-frame.x)}:${Math.round(r.y-frame.y)}:${Math.round(r.width)}:${Math.round(r.height)}`;}).join('|');
  for(const [i,card] of cards.entries()){
   const r=card.querySelector<HTMLElement>('.system-pieces')!.getBoundingClientRect();
-  const x=r.x-frame.x+r.width*.5,y=r.y-frame.y+r.height*.61,rx=r.width*.59,ry=r.height*.68;
-  const destination=card.classList.contains('destination');
-  ctx.save();ctx.translate(x,y);ctx.scale(rx,ry);
-  const halo=ctx.createRadialGradient(0,0,0,0,0,1);
-  halo.addColorStop(0,'rgba(40,40,44,.83)');
-  halo.addColorStop(.50,'rgba(30,30,34,.74)');
-  halo.addColorStop(.72,destination?'rgba(64,92,76,.30)':'rgba(49,48,55,.46)');
-  halo.addColorStop(.88,'rgba(33,33,37,.16)');halo.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=halo;ctx.fillRect(-1,-1,2,2);ctx.restore();
-  const local=randomSource(1321+i*433),n=Math.floor(Math.max(42,r.width*.58));
+  const x=r.x-frame.x+r.width*.5,y=r.y-frame.y+r.height*.53,rx=r.width*.56,ry=r.height*.66;
+  const seed=[...(card.dataset.system??String(i))].reduce((value,c)=>(value*31+c.charCodeAt(0))%2147483647,1321);
+  const local=randomSource(seed||1321),n=Math.floor(Math.max(110,r.width*1.30));
   for(let j=0;j<n;j++){
-   const angle=local()*Math.PI*2,d=Math.sqrt(local())*.94;
+   const angle=local()*Math.PI*2,d=Math.pow(local(),.67)*.97;
    const lx=x+rx*d*Math.cos(angle),ly=y+ry*d*Math.sin(angle),bright=local();
-   const tint=tints[Math.floor(local()*tints.length)],size=bright>.96?1.1:bright>.75?.68:.3+local()*.25;
-   star(ctx,lx,ly,size,(1-d)*(.38+bright*.65),tint,bright>.985);
+   const tint=tints[Math.floor(local()*tints.length)],size=bright>.96?.95:bright>.75?.68:.30+local()*.25;
+   star(ctx,lx,ly,size,Math.pow(1-d,.58)*(.32+bright*.56),tint);
   }
  }
  // Crossfade the old cluster field when system positions change, keeping the
