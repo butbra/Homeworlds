@@ -1,3 +1,4 @@
+import {renderTableScene} from './scene';
 /** Fit every fixed map slot inside the board; never create a scrollable surface. */
 export function fitBoard(space:HTMLElement):void {
  const map=space.querySelector<HTMLElement>('#universe');
@@ -5,11 +6,11 @@ export function fitBoard(space:HTMLElement):void {
  map.style.minWidth='0px';map.style.minHeight='0px';
  const scale=Math.min(1,space.clientWidth/map.offsetWidth,space.clientHeight/map.offsetHeight);
  map.style.setProperty('--board-scale',String(scale));
- // The camera distance scales with the viewport, keeping its perspective stable.
- map.style.setProperty('--table-distance',`${space.clientHeight*2}px`);
  // Spread the rows over the available height even when width limits the scale.
  map.style.minWidth=`${space.clientWidth/scale}px`;
- map.style.minHeight=`${space.clientHeight/scale*(space.classList.contains('table-view')?1.8:1)}px`;
+ const compact=space.classList.contains('table-view')&&map.querySelectorAll('.system').length<=2;
+ map.style.minHeight=`${space.clientHeight/scale*(compact?.76:1)}px`;
+ renderTableScene(space);
 
  // Keep action controls at their normal size, anchored to the scaled system.
  const board=space.parentElement!,menu=board.querySelector<HTMLElement>('.ship-actions');
