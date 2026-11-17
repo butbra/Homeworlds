@@ -15,6 +15,7 @@ import {startingRecommendations,recommendedStart,nextRecommendedPiece,startingWa
 import {createLayout,layoutAfter,layoutBounds,type MapLayout} from './layout';
 
 import {newSession, decodeSession, storageKey, type Session} from './session';
+import {lastOpponentMove} from './last-move';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const boardResizeObserver=new ResizeObserver(entries=>entries.forEach(entry=>fitBoard(entry.target as HTMLElement)));
@@ -51,6 +52,12 @@ try {tableView=localStorage.getItem('homeworlds.table-view')==='true';} catch { 
 let history: { state: GameState; log: string[]; actionCount: number;layout:MapLayout }[] = [];
 let log: string[] = [];
 let announcedResult='';
+let moveHighlightUntil=0,moveHighlightTimer:ReturnType<typeof setTimeout>|undefined;
+function clearMoveHighlight():void {
+ clearTimeout(moveHighlightTimer);moveHighlightUntil=0;
+ document.querySelectorAll('.previous-move').forEach(el=>el.classList.remove('previous-move'));
+ document.querySelector('#last-move')?.setAttribute('aria-pressed','false');
+}
 
 function escape(text: string): string { return text.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!)); }
 function save(): void {
@@ -68,6 +75,7 @@ function outcomeText():string {
 function botTurn():boolean {return !learningFlow&&!choosingMode&&introStartedAt===null&&isBotMode(mode)&&(draft?setupPlayer===quuxPlayer:state.outcome==='playing'&&state.player===quuxPlayer);}
 function locked():boolean {return !!learningFlow||choosingMode||introStartedAt!==null||botBusy||coachBusy||botTurn();}
 function restore(next: Session,cancel=true): void {
+  clearMoveHighlight();
   if(cancel)cancelBot();
   session = next;mode=next.mode??'local';difficulty=next.difficulty??10;starter=next.starter??0;choosingMode=false;draft=null;resumeSession=null;announcedResult='';
   try {localStorage.removeItem(setupKey);} catch { /* Storage optional. */ }
@@ -91,6 +99,7 @@ try {
 } catch {notice='Choose your starting pieces. A previous save could not be loaded.';}
 function saveSetup():void {try {if(draft)localStorage.setItem(setupKey,JSON.stringify({pieces:draft,player:setupPlayer,starter,mode,...(isBotMode(mode)?{humanPlayer,difficulty}:{}),...(introStartedAt!==null?{introStartedAt}:{})}));} catch {notice='Browser storage unavailable; keep this page open during setup.';}}
 function beginSetup(nextMode:GameMode):void {
+  clearMoveHighlight();
   cancelBot();mode=nextMode;starter=randomStarter();setupPlayer=starter;choosingMode=false;
   if(mode==='learning')difficulty=4;
   draft=[[],[]];announcedResult='';source=null;selected=starter===0?'north':'south';mapLayout=createLayout();
@@ -158,7 +167,7 @@ function act(action:Action,label:string,fromBot=false):boolean {
     session.actions.push(action);state=next;notice=label;
     if(discovered)selected=discovered;
     source=null;intent='build';
-    if(action.type==='end') selected=state.player===0?'north':'south';
+    if(action.type==='end'){clearMoveHighlight();selected=state.player===0?'north':'south';}
     if(!state.systems.some(s=>s.id===selected)) selected=state.systems[0]?.id??'';
     // A browser reload retries an unfinished bot turn from its saved turn boundary.
     if(!fromBot||action.type==='end')save();render();animateAction(visual,state,action,fromBot?1.8:1);
@@ -361,6 +370,8 @@ function render():void {
   const guide=teaching&&!draft&&!over&&!inputLocked?learningOptions(state,source):null;
   const suggested=teaching&&draft&&!inputLocked?nextRecommendedPiece({pieces:draft,player:setupPlayer}):undefined;
   const systems=draft?draft.flatMap((p,i)=>p.length?[{id:i===0?'north':'south',name:i===0?'North homeworld':'South homeworld',homeworld:i,stars:p.slice(0,2),ships:p[2]?[{...p[2],owner:i}]:[]}]:[]):state.systems;
+  const previousMove=!draft&&!choosingMode?lastOpponentMove(session,isBotMode(mode)?humanPlayer:state.player):null;
+  const markedMove=Date.now()<moveHighlightUntil?previousMove:null;
   const bank=draft?setupBank(draft):state.bank;
   const status=phase?'Choosing first player':draft?`${playerName(setupPlayer)} · Setup`:over?state.outcome==='draw'?'Game over · Draw':isBotMode(mode)&&state.outcome===humanPlayer?'You win':`${playerName(Number(state.outcome))} wins`:`Turn ${state.turn} · ${playerName(state.player)}`;
   const catastrophes=draft||over?[]:state.systems.flatMap(s=>colors.flatMap(color=>{const count=[...s.stars,...s.ships].filter(p=>p.color===color).length;return count>=4?[{system:s.id,name:s.name,color,count}]:[];}));
@@ -373,13 +384,13 @@ function render():void {
   ${systems.map(s=>{
     const slot=mapLayout.slots[s.id];
     const destination=source&&source.system!==s.id&&legal(state,{type:'move',...source,destination:s.id});
-    return `<article class="system ${selected===s.id?'selected':''} ${destination?'destination':''} ${guide?.buildSystems.has(s.id)?'learn-build-system':''}" data-system="${s.id}" data-map-row="${slot.row}" data-map-column="${slot.column}" style="${slotStyle(s.id)}" aria-label="${s.name}"><div class="system-title"><button data-select="${s.id}" aria-label="Select ${s.name}">${s.homeworld===undefined?'✧':'⌂'} ${s.name}</button></div><div class="system-pieces"><div class="stars">${s.stars.map((p,j)=>`<button class="piece-button" data-star="${s.id}" aria-label="${s.name} ${p.color} star ${p.size}">${pyramid(p,true)}<span class="piece-caption">${j===0?'':' '}</span></button>`).join('')||'<span class="destroyed">No stars</span>'}</div><div class="fleets">${[0,1].map(owner=>`<div class="fleet" data-player="${owner}" aria-label="Player ${owner+1} fleet">${s.ships.map((p,j)=>{
+    return `<article class="system ${selected===s.id?'selected':''} ${destination?'destination':''} ${guide?.buildSystems.has(s.id)?'learn-build-system':''} ${markedMove?.system===s.id&&markedMove.ship===null?'previous-move':''}" data-system="${s.id}" data-map-row="${slot.row}" data-map-column="${slot.column}" style="${slotStyle(s.id)}" aria-label="${s.name}"><div class="system-title"><button data-select="${s.id}" aria-label="Select ${s.name}">${s.homeworld===undefined?'✧':'⌂'} ${s.name}</button></div><div class="system-pieces"><div class="stars">${s.stars.map((p,j)=>`<button class="piece-button" data-star="${s.id}" aria-label="${s.name} ${p.color} star ${p.size}">${pyramid(p,true)}<span class="piece-caption">${j===0?'':' '}</span></button>`).join('')||'<span class="destroyed">No stars</span>'}</div><div class="fleets">${[0,1].map(owner=>`<div class="fleet" data-player="${owner}" aria-label="Player ${owner+1} fleet">${s.ships.map((p,j)=>{
       if(p.owner!==owner)return '';
       const key=shipKey(s.id,j),canSelect=guide?.ships.has(key),canCapture=guide?.captures.has(key);
-      return `<button class="piece-button ${source?.system===s.id&&source.ship===j?'picked':''} ${canSelect||canCapture?'learn-option':''} ${canCapture?'learn-capture':''}" data-ship="${j}" data-source="${s.id}" ${canSelect||canCapture?'data-legal-option="'+(canCapture?'capture':'select')+'"':''} ${teaching&&!canSelect&&!canCapture?'disabled':''} aria-label="Player ${owner+1} ${p.color} ship ${p.size} at ${s.name}" ${canSelect||canCapture?'aria-description="'+(canCapture?'Legal capture. Click to take this ship.':'Legal actions available. Click to choose one.')+'"':''}>${pyramid(p,false,owner)}</button>`;
+      return `<button class="piece-button ${source?.system===s.id&&source.ship===j?'picked':''} ${canSelect||canCapture?'learn-option':''} ${canCapture?'learn-capture':''} ${markedMove?.system===s.id&&markedMove.ship===j?'previous-move':''}" data-ship="${j}" data-source="${s.id}" ${canSelect||canCapture?'data-legal-option="'+(canCapture?'capture':'select')+'"':''} ${teaching&&!canSelect&&!canCapture?'disabled':''} aria-label="Player ${owner+1} ${p.color} ship ${p.size} at ${s.name}" ${canSelect||canCapture?'aria-description="'+(canCapture?'Legal capture. Click to take this ship.':'Legal actions available. Click to choose one.')+'"':''}>${pyramid(p,false,owner)}</button>`;
     }).join('')}</div>`).join('')}</div></div><div class="system-meta">${s.homeworld===undefined?'FRONTIER':`PLAYER ${s.homeworld+1} HOMEWORLD`}${destination?'<span>MOVE HERE ↗</span>':guide?.buildSystems.has(s.id)&&!source?'<span class="learn-build-label">BUILD HERE +</span>':''}</div>${catastrophes.filter(c=>c.system===s.id).map(c=>`<button class="system-catastrophe ${teaching?'optional-catastrophe':''}" data-cat="${c.color}" data-cat-system="${c.system}" aria-label="${c.color} catastrophe at ${c.name}" ${inputLocked?'disabled':''}>${teaching?'Optional · ':'✹ '}${c.color} catastrophe · ${c.count}</button>`).join('')}</article>`;
   }).join('')}
-  </div></section><div class="board-overlay">${actionMenu}${!choosingMode?playerPlate(0,phase)+playerPlate(1,phase):''}<p id="notice" class="board-notice" role="status" aria-live="polite">${boardNotice()}</p>${botError?'<button id="retry-bot" class="board-retry">Retry Quux Bot</button>':''}${coinIntro(phase)}<button id="view-toggle" class="view-toggle" aria-label="Tabletop perspective" aria-pressed="${tableView}" title="Switch between overhead and tabletop views">${tableView?'▦ Overhead':'◈ Table view'}</button></div></section>
+  </div></section><div class="board-overlay">${actionMenu}${!choosingMode?playerPlate(0,phase)+playerPlate(1,phase):''}<p id="notice" class="board-notice" role="status" aria-live="polite">${boardNotice()}</p>${botError?'<button id="retry-bot" class="board-retry">Retry Quux Bot</button>':''}${coinIntro(phase)}${!draft&&!choosingMode?`<button id="last-move" aria-pressed="${!!markedMove}" ${!previousMove?'disabled':''} title="Highlight the opponent’s last completed action for three seconds">↶ Last move</button>`:''}<button id="view-toggle" class="view-toggle" aria-label="Tabletop perspective" aria-pressed="${tableView}" title="Switch between overhead and tabletop views">${tableView?'▦ Overhead':'◈ Table view'}</button></div></section>
   <aside class="sidebar" aria-label="Game sidebar">${controls}${learningCue()}<section class="bank" aria-label="Piece bank"><div class="bank-heading"><h2>THE BANK</h2><span>${bank.length} PIECES</span></div><p>Click a pyramid to bring it into play.</p>${colors.map(color=>`<div class="bank-color ${color}"><h3>${color}<span>${{red:'CAPTURE',yellow:'MOVE',green:'BUILD',blue:'TRADE'}[color]}</span></h3><div class="bank-row">${sizes.map(size=>{
     const p={color,size},count=bank.filter(b=>b.color===color&&b.size===size).length;
     const recommended=suggested?.color===color&&suggested.size===size;
@@ -392,6 +403,12 @@ function render():void {
   <dialog id="opponent-picker" aria-labelledby="opponent-title"><p class="result-eyebrow">A NEW EXPEDITION</p><h2 id="opponent-title">Choose your opponent</h2><p>Explore the galaxy with another person, or challenge Quux Bot.</p>${difficultyControl('new-difficulty')}<div class="opponent-options"><button id="play-local" aria-label="Another player"><strong>Another player</strong><span>Two people on this device</span></button><button id="play-quux" aria-label="Quux Bot"><strong>Quux Bot</strong><span>You command South. The bot commands North.</span></button><button id="play-practice" aria-label="Quux practice"><strong>Quux practice</strong><span>Play Quux Bot with hints, move ratings, and explanations.</span></button><button id="play-learning" aria-label="Learning mode"><strong>Learning mode</strong><span>Optional visual rules tour, legal-move highlights, and an easy bot.</span></button></div><p class="coin-note">A coin flip chooses who sets up and takes the first turn.</p>${resumeSession&&choosingMode?'<button id="resume">Resume saved game</button>':''}</dialog>
   <dialog id="rules"><h2>Your fleet. Your universe.</h2><p><b>Build:</b> click a system, then the smallest available bank piece of a color you already own there. You need green power.</p><p><b>Travel:</b> click your ship, then a connected system. Systems connect when their stars share no sizes. You need yellow power.</p><p><b>Trade:</b> click your ship, then Trade, then a different bank color of exactly the same size. You need blue power.</p><p><b>Discover a new star:</b> click your ship, Travel, a bank pyramid for the new star. It appears automatically in its star-size row. You need yellow power.</p><p><b>Capture:</b> click an enemy ship. You need red power and an equal or larger ship in that system.</p><p><b>Sacrifice:</b> click your ship, then Sacrifice. Instead of a basic action, gain its pip count in actions of its color anywhere you still have ships.</p><p><b>Catastrophe:</b> whenever any system has four or more pieces of one color, its catastrophe button appears on that system, even if you have no ships there. Count stars and both fleets. The active player may choose to remove that color. If the last star is removed, every ship there is destroyed; a surviving binary-star half protects other colors. Optional and free at any point in your turn.</p><p>Power comes from stars or your own local ships, never enemy ships. Confirm with End turn. An empty or destroyed homeworld loses at turn end. Undo works until you confirm. Systems have fixed positions. Same-size stars share a horizontal row; travel still depends on star sizes, not physical distance.</p><p>Based on Homeworlds Rules13, pp. 4–12. Game: John Cooper. Pyramid system: Andrew Looney. Unofficial implementation.</p><p>Quux Bot: original engine by Arthur O’Dwyer. <a href="./quux-LICENSE.txt" target="_blank" rel="noopener">License</a> · <a href="https://github.com/Quuxplusone/Homeworlds" target="_blank" rel="noopener">Engine source</a>.</p><button id="close-rules">Back to space</button></dialog></main>`;
   bindBoard();bindTools();
+  document.querySelector('#last-move')?.addEventListener('click',()=>{
+    if(!previousMove)return;
+    clearMoveHighlight();moveHighlightUntil=Date.now()+3000;
+    if(!systems.some(s=>s.id===previousMove.system))notice=`Opponent: ${previousMove.description} (system removed)`;
+    render();moveHighlightTimer=setTimeout(clearMoveHighlight,3000);
+  });
   document.querySelector('#play-local')!.addEventListener('click',()=>beginSetup('local'));
   document.querySelector('#play-quux')!.addEventListener('click',()=>beginSetup('quux'));
   document.querySelector('#play-practice')!.addEventListener('click',()=>beginSetup('practice'));

@@ -1,5 +1,21 @@
 import {test,expect} from '@playwright/test';
 
+test('last move marks the exact opponent ship for three seconds and fleets stay horizontal',async({page})=>{
+ const saved={version:1,opening:[{stars:[{color:'yellow',size:1},{color:'blue',size:3}],shipColor:'green'},{stars:[{color:'red',size:2},{color:'blue',size:1}],shipColor:'green'}],actions:[{type:'build',system:'north',color:'green'},{type:'end'}]};
+ await page.addInitScript(value=>{localStorage.setItem('homeworlds.session.v1',JSON.stringify(value));localStorage.setItem('homeworlds.table-view','true');},saved);
+ await page.goto('/');await page.getByRole('button',{name:'Resume saved game'}).click();
+ const button=page.getByRole('button',{name:'Last move'});
+ await button.click();
+ await expect(page.locator('.previous-move')).toHaveCount(1);
+ await expect(page.getByRole('button',{name:'Player 1 green ship 1 at North homeworld',exact:true})).toHaveClass(/previous-move/);
+ await expect(button).toHaveAttribute('aria-pressed','true');
+ await expect(page.locator('.previous-move')).toHaveCount(0,{timeout:4500});
+ await expect(button).toHaveAttribute('aria-pressed','false');
+ const fleet=page.locator('[data-system=north] .fleet[data-player="0"]');
+ expect(await fleet.evaluate(el=>{const pieces=Array.from(el.querySelectorAll('button'));return pieces[0].offsetTop+pieces[0].offsetHeight/2===pieces[1].offsetTop+pieces[1].offsetHeight/2||Math.abs(pieces[0].getBoundingClientRect().y+pieces[0].getBoundingClientRect().height/2-pieces[1].getBoundingClientRect().y-pieces[1].getBoundingClientRect().height/2)<2;})).toBe(true);
+ expect(await page.locator('[data-system=north] .stars').evaluate(el=>getComputedStyle(el).borderLeftWidth)).toBe('0px');
+});
+
 test('tabletop builds have their full layout size before the turn ends',async({page})=>{
  const saved={version:1,opening:[{stars:[{color:'yellow',size:1},{color:'blue',size:3}],shipColor:'green'},{stars:[{color:'red',size:2},{color:'blue',size:1}],shipColor:'green'}],actions:[]};
  await page.addInitScript(value=>{localStorage.setItem('homeworlds.session.v1',JSON.stringify(value));localStorage.setItem('homeworlds.table-view','true');},saved);
