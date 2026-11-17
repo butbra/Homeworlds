@@ -199,7 +199,9 @@ html,body,#app{height:100%;overflow:clip;overscroll-behavior:none}
 
 /* Separate 3D scene, with accessible screen-space labels and hit targets. */
 .table-mesh{display:none}
-.space.table-view{background:radial-gradient(ellipse at 48% 48%,#163047 0%,#0a1727 43%,#040914 80%,#02050b 100%)}
+.space.table-view{background:radial-gradient(ellipse at 48% 48%,#0c0c0e 0%,#070709 58%,#020203 100%)}
+.space.table-view .starfield{display:none}
+.space.table-view .table-cosmos{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;display:block}
 .space.table-view .universe{
  grid-template-columns:repeat(var(--map-columns),minmax(290px,max-content));
  grid-template-rows:repeat(5,minmax(62px,max-content));gap:15px 25px;
