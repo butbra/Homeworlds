@@ -5,6 +5,8 @@ export function fitBoard(space:HTMLElement):void {
  map.style.minWidth='0px';map.style.minHeight='0px';
  const scale=Math.min(1,space.clientWidth/map.offsetWidth,space.clientHeight/map.offsetHeight);
  map.style.setProperty('--board-scale',String(scale));
+ // The camera distance scales with the viewport, keeping its perspective stable.
+ map.style.setProperty('--table-distance',`${space.clientHeight*3}px`);
  // Spread the rows over the available height even when width limits the scale.
  map.style.minWidth=`${space.clientWidth/scale}px`;
  map.style.minHeight=`${space.clientHeight/scale}px`;

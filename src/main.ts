@@ -46,6 +46,8 @@ let introTimer:ReturnType<typeof setTimeout>|undefined;
 let resumeSession: Session | null = null;
 let notice = 'Choose another player on this device or play Quux Bot. A coin flip chooses who starts.';
 let mapLayout=createLayout();
+let tableView=false;
+try {tableView=localStorage.getItem('homeworlds.table-view')==='true';} catch { /* Storage optional. */ }
 let history: { state: GameState; log: string[]; actionCount: number;layout:MapLayout }[] = [];
 let log: string[] = [];
 let announcedResult='';
@@ -366,7 +368,7 @@ function render():void {
   const slotStyle=(id:string)=>{const slot=mapLayout.slots[id];return `grid-row:${slot.row+1};grid-column:${id==='north'||id==='south'?'1 / -1':slot.column-minColumn+1}`;};
   const actionMenu=source&&!inputLocked?`<div class="ship-actions context-actions" aria-label="Selected ship actions"><button data-intent="trade" ${intent==='trade'?'class="active"':''} ${teaching&&!guide?.trade?'disabled':''}>Trade</button><button data-intent="discover" ${intent==='discover'?'class="active"':''} ${teaching&&!guide?.travel?'disabled':''}>Travel</button><button id="sacrifice" ${legal(state,{type:'sacrifice',...source})?'':'disabled'}>Sacrifice</button><button id="clear">Cancel</button></div>`:'';
   const controls=`<section class="rail-controls" aria-label="Turn controls"><div class="status ${!phase&&(draft?setupPlayer:state.player)===1?'south-turn':''}">${status}</div><nav><button id="undo" aria-label="Undo action" ${inputLocked||(draft?!draft[setupPlayer].length:!history.length)?'disabled':''}>↶ Undo</button><button id="end" aria-label="End turn" class="primary" ${inputLocked||(draft?draft[setupPlayer].length!==3:over||!history.length)?'disabled':''}>End turn →</button><button id="menu" aria-label="Game menu">☰</button></nav>${mode==='practice'?`<div class="coach-controls"><button id="hint" ${inputLocked||draft||over?'disabled':''}>Hint</button><button id="evaluate" ${inputLocked||draft||over||!history.length?'disabled':''}>Evaluate move</button></div>`:''}</section>`;
-  app.innerHTML=`<main class="tabletop ${teaching?'learning-mode':''}"><div class="play-area"><section class="board-region" aria-label="Game board"><section class="space" id="space" aria-label="Space playing surface"><div class="starfield" aria-hidden="true">${starfield()}</div><div class="map-label">SECTOR 01 <span>LOCAL EXPLORATION</span></div><div id="universe" class="universe" style="--map-columns:${columns}">
+  app.innerHTML=`<main class="tabletop ${teaching?'learning-mode':''}"><div class="play-area"><section class="board-region" aria-label="Game board"><section class="space ${tableView?'table-view':''}" id="space" aria-label="Space playing surface"><div class="starfield" aria-hidden="true">${starfield()}</div><div class="map-label">SECTOR 01 <span>LOCAL EXPLORATION</span></div><div id="universe" class="universe" style="--map-columns:${columns}">
   ${['north','south'].filter(id=>!systems.some(s=>s.id===id)).map(id=>`<div class="layout-anchor" data-layout-anchor="${id}" style="${slotStyle(id)}" aria-hidden="true"></div>`).join('')}
   ${systems.map(s=>{
     const slot=mapLayout.slots[s.id];
@@ -377,7 +379,7 @@ function render():void {
       return `<button class="piece-button ${source?.system===s.id&&source.ship===j?'picked':''} ${canSelect||canCapture?'learn-option':''} ${canCapture?'learn-capture':''}" data-ship="${j}" data-source="${s.id}" ${canSelect||canCapture?'data-legal-option="'+(canCapture?'capture':'select')+'"':''} ${teaching&&!canSelect&&!canCapture?'disabled':''} aria-label="Player ${owner+1} ${p.color} ship ${p.size} at ${s.name}" ${canSelect||canCapture?'aria-description="'+(canCapture?'Legal capture. Click to take this ship.':'Legal actions available. Click to choose one.')+'"':''}>${pyramid(p,false,owner)}</button>`;
     }).join('')}</div>`).join('')}</div></div><div class="system-meta">${s.homeworld===undefined?'FRONTIER':`PLAYER ${s.homeworld+1} HOMEWORLD`}${destination?'<span>MOVE HERE ↗</span>':guide?.buildSystems.has(s.id)&&!source?'<span class="learn-build-label">BUILD HERE +</span>':''}</div>${catastrophes.filter(c=>c.system===s.id).map(c=>`<button class="system-catastrophe ${teaching?'optional-catastrophe':''}" data-cat="${c.color}" data-cat-system="${c.system}" aria-label="${c.color} catastrophe at ${c.name}" ${inputLocked?'disabled':''}>${teaching?'Optional · ':'✹ '}${c.color} catastrophe · ${c.count}</button>`).join('')}</article>`;
   }).join('')}
-  </div></section><div class="board-overlay">${actionMenu}${!choosingMode?playerPlate(0,phase)+playerPlate(1,phase):''}<p id="notice" class="board-notice" role="status" aria-live="polite">${boardNotice()}</p>${botError?'<button id="retry-bot" class="board-retry">Retry Quux Bot</button>':''}${coinIntro(phase)}</div></section>
+  </div></section><div class="board-overlay">${actionMenu}${!choosingMode?playerPlate(0,phase)+playerPlate(1,phase):''}<p id="notice" class="board-notice" role="status" aria-live="polite">${boardNotice()}</p>${botError?'<button id="retry-bot" class="board-retry">Retry Quux Bot</button>':''}${coinIntro(phase)}<button id="view-toggle" class="view-toggle" aria-label="Tabletop perspective" aria-pressed="${tableView}" title="Switch between overhead and tabletop views">${tableView?'▦ Overhead':'◈ Table view'}</button></div></section>
   <aside class="sidebar" aria-label="Game sidebar">${controls}${learningCue()}<section class="bank" aria-label="Piece bank"><div class="bank-heading"><h2>THE BANK</h2><span>${bank.length} PIECES</span></div><p>Click a pyramid to bring it into play.</p>${colors.map(color=>`<div class="bank-color ${color}"><h3>${color}<span>${{red:'CAPTURE',yellow:'MOVE',green:'BUILD',blue:'TRADE'}[color]}</span></h3><div class="bank-row">${sizes.map(size=>{
     const p={color,size},count=bank.filter(b=>b.color===color&&b.size===size).length;
     const recommended=suggested?.color===color&&suggested.size===size;
@@ -464,6 +466,15 @@ function render():void {
 }
 function bindBoard():void {
   const space=document.querySelector<HTMLElement>('#space')!;
+  const viewToggle=document.querySelector<HTMLButtonElement>('#view-toggle')!;
+  viewToggle.addEventListener('click',()=>{
+    tableView=!tableView;
+    try {localStorage.setItem('homeworlds.table-view',String(tableView));} catch { /* Storage optional. */ }
+    space.classList.toggle('table-view',tableView);
+    viewToggle.setAttribute('aria-pressed',String(tableView));
+    viewToggle.textContent=tableView?'▦ Overhead':'◈ Table view';
+    fitBoard(space);
+  });
   space.addEventListener('click',event=>{
     const target=event.target as Element;
     if(target.closest('.ship-actions,[data-cat]')) return;

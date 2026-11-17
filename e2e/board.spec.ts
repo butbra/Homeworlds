@@ -32,6 +32,21 @@ test('a crowded map fits every viewport and cannot scroll, with usable action co
   const frame=(await page.locator('#space').boundingBox())!,menu=(await page.locator('.ship-actions').boundingBox())!;
   expect(menu.x).toBeGreaterThanOrEqual(frame.x);expect(menu.x+menu.width).toBeLessThanOrEqual(frame.x+frame.width);
   expect(menu.y).toBeGreaterThanOrEqual(frame.y);expect(menu.y+menu.height).toBeLessThanOrEqual(frame.y+frame.height);
+  const toggle=page.getByRole('button',{name:'Tabletop perspective'});
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('#space')).toHaveClass(/table-view/);
+  await expect(page.locator('.piece-button.picked')).toHaveCount(1);
+  await expect.poll(async()=>page.locator('#space').evaluate(space=>{
+   const frame=space.getBoundingClientRect();
+   return Array.from(space.querySelectorAll('.system')).every(card=>{const box=card.getBoundingClientRect();return box.left>=frame.left-1&&box.right<=frame.right+1&&box.top>=frame.top-1&&box.bottom<=frame.bottom+1;});
+  })).toBe(true);
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
+  await page.getByRole('button',{name:'Player 1 green ship 3 at North homeworld',exact:true}).click();
+  await expect(page.locator('.piece-button.picked')).toHaveCount(1);
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-pressed','false');
+  await expect(page.locator('#space')).not.toHaveClass(/table-view/);
   await page.getByRole('button',{name:'Cancel',exact:true}).click();
  }
 });

@@ -193,3 +193,11 @@ html,body,#app{height:100%;overflow:clip;overscroll-behavior:none}
 .learning-cue p.mentor-summary{font-size:10px;color:#9fbfac;border-left:1px solid #8eab96;padding-left:7px;line-height:1.45}
 @media(max-width:700px){.learning-cue p.mentor-summary{font-size:8px}}
 @media(max-height:550px){.learning-cue p.mentor-summary{display:none}}
+.board-overlay .view-toggle{position:absolute;bottom:14px;left:14px;pointer-events:auto;z-index:1;padding:7px 10px;font-size:11px;background:#101b29ed;color:#c5dbe9;border-color:#496276;box-shadow:0 4px 12px #0006}
+.board-overlay .view-toggle[aria-pressed="true"]{background:#243d4d;border-color:#92c8db;color:#e2f7ff}
+.space.table-view{background:radial-gradient(ellipse at 50% 44%,#21384b 0%,#0c1927 48%,#03060c 85%)}
+.space.table-view .universe{transform:translate(-50%,-50%) perspective(var(--table-distance,1800px)) rotateX(38deg) scale(calc(var(--board-scale,1) * .87));overflow:visible;border-radius:26px;background:radial-gradient(ellipse at center,#18293996,#091521d9 85%),repeating-linear-gradient(90deg,#a6d9ff09 0 1px,transparent 1px 70px),repeating-linear-gradient(0deg,#a6d9ff09 0 1px,transparent 1px 70px);border:1px solid #486377;box-shadow:0 14px 0 #080e17,0 16px 0 #2d4151,0 32px 45px #000b}
+.space.table-view .system{background:linear-gradient(145deg,#203344,#101d2c);box-shadow:0 5px 0 #0a1019,0 8px 14px #0009,inset 0 0 0 2px #ffffff08}
+.space.table-view .system.selected,.space.table-view .system.destination{box-shadow:0 5px 0 #0a1019,0 8px 14px #0009,0 0 16px #9bd9f05c}
+.space.table-view .pyramid{filter:drop-shadow(3px 7px 2px #0009)}
+@media(max-width:700px){.board-overlay .view-toggle{left:5px;bottom:5px;font-size:9px;padding:5px 6px}}
