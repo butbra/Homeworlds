@@ -1,5 +1,22 @@
 import {test,expect} from '@playwright/test';
 
+test('tabletop builds have their full layout size before the turn ends',async({page})=>{
+ const saved={version:1,opening:[{stars:[{color:'yellow',size:1},{color:'blue',size:3}],shipColor:'green'},{stars:[{color:'red',size:2},{color:'blue',size:1}],shipColor:'green'}],actions:[]};
+ await page.addInitScript(value=>{localStorage.setItem('homeworlds.session.v1',JSON.stringify(value));localStorage.setItem('homeworlds.table-view','true');},saved);
+ await page.goto('/');await page.getByRole('button',{name:'Resume saved game'}).click();
+ await expect(page.locator('#space')).toHaveClass(/table-view/);
+ await page.getByRole('button',{name:'Bank green 1',exact:true}).click();
+ const small=page.getByRole('button',{name:'Player 1 green ship 1 at North homeworld',exact:true});
+ await expect(small).toBeVisible();
+ const measure=()=>small.evaluate(button=>{
+  const icon=button.querySelector<SVGSVGElement>('.pyramid')!,map=document.querySelector<HTMLElement>('#universe')!;
+  return {transform:getComputedStyle(button).transform,ratio:icon.getBoundingClientRect().width/icon.clientWidth/(map.getBoundingClientRect().width/map.offsetWidth),layoutWidth:icon.clientWidth};
+ });
+ const before=await measure();expect(before.transform).toBe('none');expect(before.ratio).toBeCloseTo(1,1);
+ await page.getByRole('button',{name:'End turn',exact:true}).click();
+ const after=await measure();expect(after.layoutWidth).toBe(before.layoutWidth);expect(after.ratio).toBeCloseTo(1,1);
+});
+
 test('a crowded map fits every viewport and cannot scroll, with usable action controls',async({page})=>{
  const actions:Record<string,unknown>[]=[];
  const passRound=()=>actions.push({type:'end'},{type:'end'});

@@ -103,6 +103,8 @@ export function renderTableScene(space:HTMLElement):void {
   const camera=new THREE.OrthographicCamera(-view*ratio/2,view*ratio/2,view/2,-view/2,.1,180);
   camera.position.set(7,17,25);camera.lookAt(0,0,0);camera.updateMatrixWorld();
   const frame=space.getBoundingClientRect();
+  const map=space.querySelector<HTMLElement>('#universe');
+  const boardScale=map&&map.offsetWidth?map.getBoundingClientRect().width/map.offsetWidth:1;
   const ground=(x:number,y:number)=>{
    ray.setFromCamera(new THREE.Vector2((x-frame.left)/w*2-1,1-(y-frame.top)/h*2),camera);
    return ray.ray.intersectPlane(plane,new THREE.Vector3())!;
@@ -129,7 +131,10 @@ export function renderTableScene(space:HTMLElement):void {
     const minX=Math.min(...projected.map(p=>p.x)),maxX=Math.max(...projected.map(p=>p.x));
     const minY=Math.min(...projected.map(p=>p.y)),maxY=Math.max(...projected.map(p=>p.y));
     const origin=screen(new THREE.Vector3());
-    const scale=Math.min(rect.width*.94/(maxX-minX),rect.height*.98/(maxY-minY));
+    // Use the layout dimensions, not transformed screen bounds: a CSS
+    // animation, hover or rotation must never permanently resize a model.
+    const width=icon.clientWidth*boardScale,height=icon.clientHeight*boardScale;
+    const scale=Math.min(width*.94/(maxX-minX),height*.98/(maxY-minY));
     group.scale.setScalar(scale);
     const x=rect.x+rect.width/2-((maxX+minX)/2-origin.x)*scale;
     const y=rect.y+rect.height/2-((maxY+minY)/2-origin.y)*scale;
