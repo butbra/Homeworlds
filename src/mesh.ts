@@ -21,7 +21,7 @@ export function physicalPyramid(p:Piece,star:boolean,owner:number):string {
   let vertices:V[]=[[-b,0,b],[b,0,b],[b,0,-b],[-b,0,-b],[0,h,0]];
   if(!star){
     // Tip along the tabletop. Rotate until a triangular face rests on it.
-    const angle=Math.atan2(h,b)*(owner===0?1:-1);
+    const angle=(Math.PI-Math.atan2(h,b))*(owner===0?1:-1);
     const c=Math.cos(angle),s=Math.sin(angle);
     vertices=vertices.map(([x,y,z])=>[x,y*c-z*s,y*s+z*c]);
     const floor=Math.min(...vertices.map(v=>v[1]));

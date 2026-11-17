@@ -197,27 +197,42 @@ html,body,#app{height:100%;overflow:clip;overscroll-behavior:none}
 .board-overlay .view-toggle[aria-pressed="true"]{background:#243d4d;border-color:#92c8db;color:#e2f7ff}
 @media(max-width:700px){.board-overlay .view-toggle{left:5px;bottom:5px;font-size:9px;padding:5px 6px}}
 
-/* Alternate physical tabletop camera. The existing SVG and hit targets remain
-   in the DOM; only the visual meshes change when the camera is switched. */
+/* Separate 3D scene, with accessible screen-space labels and hit targets. */
 .table-mesh{display:none}
-.space.table-view{background:radial-gradient(ellipse at 50% 5%,#344654 0%,#101822 42%,#03070c 90%)}
+.space.table-view{background:radial-gradient(ellipse at 48% 48%,#163047 0%,#0a1727 43%,#040914 80%,#02050b 100%)}
 .space.table-view .universe{
- transform:translate(-50%,-50%) perspective(var(--table-distance,1200px)) rotateX(60deg) scale(calc(var(--board-scale,1) * .72));
- overflow:visible;border-radius:32px;border:12px solid #694b31;
- background:radial-gradient(ellipse at 44% 35%,#476b65 0%,#274943 55%,#193632 100%);
- box-shadow:inset 0 0 0 3px #9e8057,inset 0 0 35px #081d19aa,0 18px 0 #322415,0 22px 0 #815d3b,0 38px 35px #000d;
+ grid-template-columns:repeat(var(--map-columns),minmax(290px,max-content));
+ grid-template-rows:repeat(5,minmax(62px,max-content));gap:15px 25px;
+ padding:70px 24px;overflow:visible;z-index:3;
 }
 .space.table-view .system{
- background:radial-gradient(ellipse at center,#142d2c65,transparent 72%);
- border:1px solid #c4d5ba63;border-radius:45%;box-shadow:inset 0 0 0 2px #1c39374d;
- padding:7px 13px; 
+ min-width:290px;max-width:370px;background:none;border:1px solid transparent;
+ box-shadow:none;padding:6px 12px 12px;
 }
-.space.table-view .system.selected,.space.table-view .system.destination{border-color:#e8df9e;box-shadow:0 0 14px #e9d19a50,inset 0 0 0 2px #dfd9af26}
-.space.table-view .system-title button{color:#f6efd5;font-size:14px;text-shadow:0 2px 3px #000;transform:scaleY(1.55);transform-origin:center}
-.space.table-view .system-meta{color:#d5dfc7;transform:scaleY(1.45);text-shadow:0 1px 2px #000}
-.space.table-view .system-pieces>.stars{border-color:#c3d2bb44}
+.space.table-view .system.selected,.space.table-view .system.destination{border-color:transparent;box-shadow:none}
+.space.table-view .system-title{justify-content:center}
+.space.table-view .system-title button{color:#d7e9ff;font-size:14px;font-weight:600;text-shadow:0 2px 5px #000;letter-spacing:.25px}
+.space.table-view .system.selected .system-title button{color:#fff}
+.space.table-view .system-meta{color:#8daec9;justify-content:center;text-shadow:0 1px 3px #000;letter-spacing:1.5px}
+.space.table-view .system-pieces{min-height:100px;column-gap:7px}
+.space.table-view .system-pieces>.stars{border-color:#89b6da28}
+.space.table-view .fleet{max-width:130px}
+.space.table-view .piece-button>.pyramid.size-1{width:33px;height:46px}
+.space.table-view .piece-button>.pyramid.size-2{width:45px;height:61px}
+.space.table-view .piece-button>.pyramid.size-3{width:57px;height:76px}
 .space.table-view .piece-button>.pyramid{visibility:hidden}
-.space.table-view .piece-button>.table-mesh{display:block;position:absolute;left:50%;top:50%;width:115%;height:115%;overflow:visible;pointer-events:none;transform:translate(-50%,-50%) scaleY(1.85);transform-origin:center}
-.space.table-view .piece-button.picked{border-color:#e7dc9d;background:#f3df792c;box-shadow:0 0 14px #edd58b66}
-.space.table-view .system-catastrophe{transform:scaleY(1.3);transform-origin:center}
-@media(max-width:700px){.space.table-view .system-title button{font-size:11px}.space.table-view .system{padding:5px 8px}}
+.space.table-view .piece-button>.table-mesh{display:block;position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.space.table-view .piece-button.picked{border-color:#bfe4ff;background:#a7dcff22;box-shadow:0 0 15px #91d4ff66}
+.space.table-view .table-scene{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;display:block}
+.space.table-view.scene-ready .piece-button>.table-mesh{display:none}
+.space.table-view:not(.scene-ready) .system-pieces{background:#122337ba;border:1px solid #55799c;border-radius:50%;box-shadow:0 5px 0 #071321}
+@media(max-width:700px){
+ .space.table-view .universe{grid-template-columns:repeat(var(--map-columns),170px);padding:90px 12px 100px;column-gap:18px}
+ .space.table-view .system{min-width:148px;max-width:170px;padding:5px 8px}
+ .space.table-view .system-title button{font-size:11px}
+ .space.table-view .system-pieces{min-height:75px;column-gap:3px}
+ .space.table-view .fleet{max-width:65px}
+ .space.table-view .piece-button>.pyramid.size-1{width:22px;height:30px}
+ .space.table-view .piece-button>.pyramid.size-2{width:28px;height:38px}
+ .space.table-view .piece-button>.pyramid.size-3{width:35px;height:48px}
+}
