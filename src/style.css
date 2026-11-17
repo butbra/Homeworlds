@@ -201,7 +201,10 @@ html,body,#app{height:100%;overflow:clip;overscroll-behavior:none}
 .table-mesh{display:none}
 .space.table-view{background:radial-gradient(ellipse at 48% 48%,#0c0c0e 0%,#070709 58%,#020203 100%)}
 .space.table-view .starfield{display:none}
-.space.table-view .table-cosmos{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;display:block}
+.space.table-view .table-cosmos,.space.table-view .table-cosmos-out{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;display:block}
+.space.table-view .table-cosmos-out{z-index:1}
+::view-transition-old(root),::view-transition-new(root){animation-duration:240ms;animation-timing-function:ease-in-out}
+@media(prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none!important}.space.table-view .piece-button{transition:none}}
 .space.table-view .universe{
  grid-template-columns:repeat(var(--map-columns),minmax(290px,max-content));
  grid-template-rows:repeat(5,minmax(62px,max-content));gap:15px 25px;
@@ -219,12 +222,13 @@ html,body,#app{height:100%;overflow:clip;overscroll-behavior:none}
 .space.table-view .system-pieces{min-height:100px;column-gap:7px}
 .space.table-view .system-pieces>.stars{border-color:#89b6da28}
 .space.table-view .fleet{max-width:130px}
-.space.table-view .piece-button>.pyramid.size-1{width:33px;height:46px}
-.space.table-view .piece-button>.pyramid.size-2{width:45px;height:61px}
+.space.table-view .piece-button>.pyramid.size-1{width:39px;height:52px}
+.space.table-view .piece-button>.pyramid.size-2{width:48px;height:64px}
 .space.table-view .piece-button>.pyramid.size-3{width:57px;height:76px}
 .space.table-view .piece-button>.pyramid{visibility:hidden}
 .space.table-view .piece-button>.table-mesh{display:block;position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
-.space.table-view .piece-button.picked{border-color:#bfe4ff;background:#a7dcff22;box-shadow:0 0 15px #91d4ff66}
+.space.table-view .piece-button.picked{border-color:#7d95a9;background:#a7dcff12;box-shadow:none}
+.space.table-view .piece-button{transition:background-color .18s,border-color .18s}
 .space.table-view .table-scene{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;display:block}
 .space.table-view.scene-ready .piece-button>.table-mesh{display:none}
 .space.table-view:not(.scene-ready) .system-pieces{background:#122337ba;border:1px solid #55799c;border-radius:50%;box-shadow:0 5px 0 #071321}
@@ -234,7 +238,7 @@ html,body,#app{height:100%;overflow:clip;overscroll-behavior:none}
  .space.table-view .system-title button{font-size:11px}
  .space.table-view .system-pieces{min-height:75px;column-gap:3px}
  .space.table-view .fleet{max-width:65px}
- .space.table-view .piece-button>.pyramid.size-1{width:22px;height:30px}
- .space.table-view .piece-button>.pyramid.size-2{width:28px;height:38px}
+ .space.table-view .piece-button>.pyramid.size-1{width:26px;height:35px}
+ .space.table-view .piece-button>.pyramid.size-2{width:30px;height:41px}
  .space.table-view .piece-button>.pyramid.size-3{width:35px;height:48px}
 }

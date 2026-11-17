@@ -468,12 +468,16 @@ function bindBoard():void {
   const space=document.querySelector<HTMLElement>('#space')!;
   const viewToggle=document.querySelector<HTMLButtonElement>('#view-toggle')!;
   viewToggle.addEventListener('click',()=>{
-    tableView=!tableView;
-    try {localStorage.setItem('homeworlds.table-view',String(tableView));} catch { /* Storage optional. */ }
-    space.classList.toggle('table-view',tableView);
-    viewToggle.setAttribute('aria-pressed',String(tableView));
-    viewToggle.textContent=tableView?'▦ Overhead':'◈ Table view';
-    fitBoard(space);
+    const switchView=()=>{
+      tableView=!tableView;
+      try {localStorage.setItem('homeworlds.table-view',String(tableView));} catch { /* Storage optional. */ }
+      space.classList.toggle('table-view',tableView);
+      viewToggle.setAttribute('aria-pressed',String(tableView));
+      viewToggle.textContent=tableView?'▦ Overhead':'◈ Table view';
+      fitBoard(space);
+    };
+    if(document.startViewTransition&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)document.startViewTransition(switchView);
+    else switchView();
   });
   space.addEventListener('click',event=>{
     const target=event.target as Element;

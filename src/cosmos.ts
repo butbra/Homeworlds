@@ -20,6 +20,9 @@ function star(ctx:CanvasRenderingContext2D,x:number,y:number,r:number,light:numb
  ctx.globalAlpha=1;
 }
 
+let previousCanvas:HTMLCanvasElement|undefined,previousLayout='';
+export function clearCosmos():void {previousCanvas=undefined;previousLayout='';}
+
 export function paintCosmos(space:HTMLElement):void {
  let canvas=space.querySelector<HTMLCanvasElement>('.table-cosmos');
  if(!canvas){canvas=document.createElement('canvas');canvas.className='table-cosmos';canvas.setAttribute('aria-hidden','true');space.append(canvas);}
@@ -38,15 +41,17 @@ export function paintCosmos(space:HTMLElement):void {
  // Individual systems are soft elliptical fields of starlight, not disks
  // with hard outlines. Their outer edges disappear into the global sky.
  const frame=space.getBoundingClientRect();
- for(const [i,card] of Array.from(space.querySelectorAll<HTMLElement>('.system')).entries()){
+ const cards=Array.from(space.querySelectorAll<HTMLElement>('.system'));
+ const layout=cards.map(card=>{const r=card.querySelector<HTMLElement>('.system-pieces')!.getBoundingClientRect();return `${card.dataset.system}:${Math.round(r.x-frame.x)}:${Math.round(r.y-frame.y)}:${Math.round(r.width)}:${Math.round(r.height)}:${card.classList.contains('destination')}`;}).join('|');
+ for(const [i,card] of cards.entries()){
   const r=card.querySelector<HTMLElement>('.system-pieces')!.getBoundingClientRect();
   const x=r.x-frame.x+r.width*.5,y=r.y-frame.y+r.height*.61,rx=r.width*.59,ry=r.height*.68;
-  const selected=card.classList.contains('selected'),destination=card.classList.contains('destination');
+  const destination=card.classList.contains('destination');
   ctx.save();ctx.translate(x,y);ctx.scale(rx,ry);
   const halo=ctx.createRadialGradient(0,0,0,0,0,1);
   halo.addColorStop(0,'rgba(40,40,44,.83)');
   halo.addColorStop(.50,'rgba(30,30,34,.74)');
-  halo.addColorStop(.72,destination?'rgba(64,132,107,.40)':selected?'rgba(117,126,139,.45)':'rgba(49,48,55,.46)');
+  halo.addColorStop(.72,destination?'rgba(64,92,76,.30)':'rgba(49,48,55,.46)');
   halo.addColorStop(.88,'rgba(33,33,37,.16)');halo.addColorStop(1,'rgba(0,0,0,0)');
   ctx.fillStyle=halo;ctx.fillRect(-1,-1,2,2);ctx.restore();
   const local=randomSource(1321+i*433),n=Math.floor(Math.max(42,r.width*.58));
@@ -57,4 +62,12 @@ export function paintCosmos(space:HTMLElement):void {
    star(ctx,lx,ly,size,(1-d)*(.38+bright*.65),tint,bright>.985);
   }
  }
+ // Crossfade the old cluster field when system positions change, keeping the
+ // stationary background and the moving 3D pieces independent.
+ if(previousCanvas&&previousCanvas!==canvas&&previousLayout!==layout&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+  const old=previousCanvas;old.className='table-cosmos-out';space.append(old);
+  const fade=old.animate([{opacity:1},{opacity:0}],{duration:260,easing:'ease-out',fill:'forwards'});
+  fade.finished.then(()=>old.remove()).catch(()=>old.remove());
+ }
+ previousCanvas=canvas;previousLayout=layout;
 }
