@@ -242,3 +242,22 @@ html,body,#app{height:100%;overflow:clip;overscroll-behavior:none}
  .space.table-view .piece-button>.pyramid.size-2{width:30px;height:41px}
  .space.table-view .piece-button>.pyramid.size-3{width:35px;height:48px}
 }
+
+/* Space has no dividers. Let the entire system expand before a fleet wraps. */
+.space .system-pieces>.stars{border:0;padding:0 4px}
+.space .system,.space.table-view .system{width:max-content;max-width:none}
+.space .system-pieces{grid-template-columns:auto auto auto;justify-content:center}
+.space .fleet,.space.table-view .fleet{width:max-content;max-width:320px;min-width:0;gap:4px;flex-wrap:wrap}
+.space .fleet:empty{width:0;min-height:0}
+.space .universe{grid-template-columns:repeat(var(--map-columns),minmax(240px,max-content))}
+.space.table-view .universe{grid-template-columns:repeat(var(--map-columns),minmax(290px,max-content))}
+.board-region:has(#last-move) .map-label{display:none}
+.board-overlay #last-move{position:absolute;top:14px;left:14px;pointer-events:auto;z-index:2;padding:7px 10px;font-size:11px;background:#10151d;color:#d9e3ef;border-color:#465267}
+.board-overlay #last-move[aria-pressed=true]{border-color:#ffe49b;color:#ffe49b}
+.space .previous-move{outline:2px solid #ffe49b;outline-offset:3px;border-radius:6px}
+.space .system.previous-move{outline:2px dashed #ffe49b;border-radius:18px}
+@media(max-width:700px){
+ .space .universe,.space.table-view .universe{grid-template-columns:repeat(var(--map-columns),minmax(170px,max-content))}
+ .space .fleet,.space.table-view .fleet{max-width:200px;gap:2px}
+ .board-overlay #last-move{top:5px;left:5px;padding:5px 6px;font-size:9px}
+}
