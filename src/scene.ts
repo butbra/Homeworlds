@@ -53,7 +53,7 @@ export function pieceModel(color:Color,size:number,star:boolean,owner:number):{g
  if(!star){
   // Keep the north-facing profile. Pitch away-facing ships up a little so
   // their pointed nose is visible rather than only the square rear face.
-  body.rotation.x=owner===0?Math.PI-Math.atan2(1.25,.48):-Math.PI*.4;
+  body.rotation.x=owner===0?Math.PI-Math.atan2(1.25,.48):-Math.PI*75/180;
   const floor=Math.min(...vertices.map(v=>v.clone().applyEuler(body.rotation).y));
   body.position.y=-floor;
   // Face straight along the board's depth, in opposing directions.
@@ -112,8 +112,6 @@ export function renderTableScene(space:HTMLElement):void {
   key.shadow.camera.far=100;key.shadow.mapSize.set(2048,2048);
   key.shadow.bias=-.0004;key.shadow.normalBias=.025;scene.add(key);
   const rim=new THREE.DirectionalLight(0x7ca9ff,gpu?1.35:.45);rim.position.set(12,8,-16);scene.add(rim);
-  const grid=new THREE.GridHelper(150,100,0x3c5975,0x273e58);
-  grid.position.y=-.35;grid.material.transparent=true;grid.material.opacity=.15;grid.renderOrder=-1;scene.add(grid);
   if(gpu){
    const floor=new THREE.Mesh(new THREE.PlaneGeometry(150,150),new THREE.ShadowMaterial({opacity:.36}));
    floor.rotation.x=-Math.PI/2;floor.position.y=-.25;floor.receiveShadow=true;scene.add(floor);
