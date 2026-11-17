@@ -6,10 +6,10 @@ export function fitBoard(space:HTMLElement):void {
  const scale=Math.min(1,space.clientWidth/map.offsetWidth,space.clientHeight/map.offsetHeight);
  map.style.setProperty('--board-scale',String(scale));
  // The camera distance scales with the viewport, keeping its perspective stable.
- map.style.setProperty('--table-distance',`${space.clientHeight*3}px`);
+ map.style.setProperty('--table-distance',`${space.clientHeight*2}px`);
  // Spread the rows over the available height even when width limits the scale.
  map.style.minWidth=`${space.clientWidth/scale}px`;
- map.style.minHeight=`${space.clientHeight/scale}px`;
+ map.style.minHeight=`${space.clientHeight/scale*(space.classList.contains('table-view')?1.8:1)}px`;
 
  // Keep action controls at their normal size, anchored to the scaled system.
  const board=space.parentElement!,menu=board.querySelector<HTMLElement>('.ship-actions');

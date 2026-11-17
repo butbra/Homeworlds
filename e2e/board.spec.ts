@@ -36,6 +36,8 @@ test('a crowded map fits every viewport and cannot scroll, with usable action co
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('#space')).toHaveClass(/table-view/);
+  await expect(page.locator('.system .table-mesh').first()).toBeVisible();
+  await expect(page.locator('.system .table-mesh polygon').first()).toBeVisible();
   await expect(page.locator('.piece-button.picked')).toHaveCount(1);
   await expect.poll(async()=>page.locator('#space').evaluate(space=>{
    const frame=space.getBoundingClientRect();
@@ -47,6 +49,7 @@ test('a crowded map fits every viewport and cannot scroll, with usable action co
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-pressed','false');
   await expect(page.locator('#space')).not.toHaveClass(/table-view/);
+  await expect(page.locator('.system .table-mesh').first()).toBeHidden();
   await page.getByRole('button',{name:'Cancel',exact:true}).click();
  }
 });

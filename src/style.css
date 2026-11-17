@@ -195,9 +195,29 @@ html,body,#app{height:100%;overflow:clip;overscroll-behavior:none}
 @media(max-height:550px){.learning-cue p.mentor-summary{display:none}}
 .board-overlay .view-toggle{position:absolute;bottom:14px;left:14px;pointer-events:auto;z-index:1;padding:7px 10px;font-size:11px;background:#101b29ed;color:#c5dbe9;border-color:#496276;box-shadow:0 4px 12px #0006}
 .board-overlay .view-toggle[aria-pressed="true"]{background:#243d4d;border-color:#92c8db;color:#e2f7ff}
-.space.table-view{background:radial-gradient(ellipse at 50% 44%,#21384b 0%,#0c1927 48%,#03060c 85%)}
-.space.table-view .universe{transform:translate(-50%,-50%) perspective(var(--table-distance,1800px)) rotateX(38deg) scale(calc(var(--board-scale,1) * .87));overflow:visible;border-radius:26px;background:radial-gradient(ellipse at center,#18293996,#091521d9 85%),repeating-linear-gradient(90deg,#a6d9ff09 0 1px,transparent 1px 70px),repeating-linear-gradient(0deg,#a6d9ff09 0 1px,transparent 1px 70px);border:1px solid #486377;box-shadow:0 14px 0 #080e17,0 16px 0 #2d4151,0 32px 45px #000b}
-.space.table-view .system{background:linear-gradient(145deg,#203344,#101d2c);box-shadow:0 5px 0 #0a1019,0 8px 14px #0009,inset 0 0 0 2px #ffffff08}
-.space.table-view .system.selected,.space.table-view .system.destination{box-shadow:0 5px 0 #0a1019,0 8px 14px #0009,0 0 16px #9bd9f05c}
-.space.table-view .pyramid{filter:drop-shadow(3px 7px 2px #0009)}
 @media(max-width:700px){.board-overlay .view-toggle{left:5px;bottom:5px;font-size:9px;padding:5px 6px}}
+
+/* Alternate physical tabletop camera. The existing SVG and hit targets remain
+   in the DOM; only the visual meshes change when the camera is switched. */
+.table-mesh{display:none}
+.space.table-view{background:radial-gradient(ellipse at 50% 5%,#344654 0%,#101822 42%,#03070c 90%)}
+.space.table-view .universe{
+ transform:translate(-50%,-50%) perspective(var(--table-distance,1200px)) rotateX(60deg) scale(calc(var(--board-scale,1) * .72));
+ overflow:visible;border-radius:32px;border:12px solid #694b31;
+ background:radial-gradient(ellipse at 44% 35%,#476b65 0%,#274943 55%,#193632 100%);
+ box-shadow:inset 0 0 0 3px #9e8057,inset 0 0 35px #081d19aa,0 18px 0 #322415,0 22px 0 #815d3b,0 38px 35px #000d;
+}
+.space.table-view .system{
+ background:radial-gradient(ellipse at center,#142d2c65,transparent 72%);
+ border:1px solid #c4d5ba63;border-radius:45%;box-shadow:inset 0 0 0 2px #1c39374d;
+ padding:7px 13px; 
+}
+.space.table-view .system.selected,.space.table-view .system.destination{border-color:#e8df9e;box-shadow:0 0 14px #e9d19a50,inset 0 0 0 2px #dfd9af26}
+.space.table-view .system-title button{color:#f6efd5;font-size:14px;text-shadow:0 2px 3px #000;transform:scaleY(1.55);transform-origin:center}
+.space.table-view .system-meta{color:#d5dfc7;transform:scaleY(1.45);text-shadow:0 1px 2px #000}
+.space.table-view .system-pieces>.stars{border-color:#c3d2bb44}
+.space.table-view .piece-button>.pyramid{visibility:hidden}
+.space.table-view .piece-button>.table-mesh{display:block;position:absolute;left:50%;top:50%;width:115%;height:115%;overflow:visible;pointer-events:none;transform:translate(-50%,-50%) scaleY(1.85);transform-origin:center}
+.space.table-view .piece-button.picked{border-color:#e7dc9d;background:#f3df792c;box-shadow:0 0 14px #edd58b66}
+.space.table-view .system-catastrophe{transform:scaleY(1.3);transform-origin:center}
+@media(max-width:700px){.space.table-view .system-title button{font-size:11px}.space.table-view .system{padding:5px 8px}}
