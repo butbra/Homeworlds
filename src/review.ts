@@ -23,15 +23,20 @@ export function applyReviewCache(review:GameReview,cache:ReadonlyMap<string,numb
 
 /** Reconstruct exact board and map snapshots without changing the saved game. */
 export function createGameReview(session:Session):GameReview {
- let state=createInitialState(session.opening,session.starter),layout=createLayout(session.opening),turnStart=state,completedTurns=0;
+ let state=createInitialState(session.opening,session.starter),layout=createLayout(session.opening),turnStart=state,completedTurns=0,turnHasAction=false;
  const frames:ReplayFrame[]=[{state,layout,action:null,actor:null,description:'Starting position — both homeworlds confirmed.',completedTurns}];
  const points:ReviewPoint[]=[{frame:0,label:'Start',north:50}];
  for(const action of session.actions){
   const actor=state.player,after=applyAction(state,action);
-  const description=action.type==='end'?'Ended turn.':action.type==='resign'?'Resigned.':action.type==='draw'?'Agreed to a draw.':describeTurn(state,[action])[0];
+  const description=action.type==='end'?'Passed turn.':action.type==='resign'?'Resigned.':action.type==='draw'?'Agreed to a draw.':describeTurn(state,[action])[0];
   if(action.type==='end')completedTurns++;
   layout=layoutAfter(layout,state,action,after);state=after;
-  frames.push({state,layout,action,actor,description,completedTurns});
+  if(action.type==='end'&&turnHasAction){
+   // Confirmation is part of the last actual move, not a second replay step.
+   // Retain that move's identity and description but use the confirmed board.
+   frames[frames.length-1]={...frames[frames.length-1],state,layout,completedTurns};
+  }else frames.push({state,layout,action,actor,description,completedTurns});
+  turnHasAction=action.type!=='end'&&action.type!=='resign'&&action.type!=='draw';
   if(state.outcome!=='playing'){
    points.push({frame:frames.length-1,label:action.type==='end'?`Turn ${completedTurns}`:'Result',north:state.outcome==='draw'?50:state.outcome===0?100:0});
   }else if(action.type==='end'){

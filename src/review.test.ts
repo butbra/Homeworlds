@@ -10,18 +10,29 @@ const game=()=>{
  return session;
 };
 describe('post-game review',()=>{
- it('retains every action, exact board states and discovered system layout without mutating the session',()=>{
+ it('retains every actual move, folding confirmations into the preceding move',()=>{
   const session=game(),before=structuredClone(session),review=createGameReview(session);
-  expect(review.frames).toHaveLength(session.actions.length+1);
+  expect(review.frames.map(f=>f.action?.type??'start')).toEqual(['start','build','build','discover','resign']);
   expect(review.frames[0].state.systems).toHaveLength(2);
   expect(review.frames[1].state.systems[0].ships).toHaveLength(2);
-  expect(review.frames[5].state.systems).toHaveLength(3);
-  expect(review.frames[5].layout.slots['system-1']).toBeDefined();
-  expect(review.frames[4].layout.slots['system-1']).toBeUndefined();
+  expect(review.frames[3].state.systems).toHaveLength(3);
+  expect(review.frames[3].layout.slots['system-1']).toBeDefined();
+  expect(review.frames[2].layout.slots['system-1']).toBeUndefined();
   expect(review.frames.at(-1)!.state).toEqual(replay(session));
-  expect(review.points.map(p=>p.frame)).toEqual([0,2,4,6,7]);
+  expect(review.points.map(p=>p.frame)).toEqual([0,1,2,3,4]);
+  expect(review.frames[1].state.turn).toBe(2);
+  expect(review.frames[1].description).toContain('Build');
   expect(review.points[0].north).toBe(50);expect(review.points.at(-1)!.north).toBe(100);
   expect(session).toEqual(before);
+ });
+ it('keeps separate moves within a sacrifice turn and recognizes actual passes',()=>{
+  const session=game();session.actions.splice(4,2,{type:'sacrifice',system:'north',ship:0},{type:'build',system:'north',color:'green'},{type:'build',system:'north',color:'green'},{type:'end'},{type:'end'});
+  const review=createGameReview(session);
+  expect(review.frames.map(f=>f.action?.type??'start')).toEqual(['start','build','build','sacrifice','build','build','end','resign']);
+  expect(review.frames[4].state.turn).toBe(3);expect(review.frames[5].state.turn).toBe(4);
+  expect(review.frames[6].description).toBe('Passed turn.');
+  expect(review.points.map(p=>p.frame)).toEqual([0,1,2,5,6,7]);
+  expect(review.frames.at(-1)!.state).toEqual(replay(session));
  });
  it('converts scores from either player perspective and recognizes immediate winning replies',()=>{
   const review={score:160,outcome:-1 as const,losesNext:false,winningReply:''};

@@ -74,7 +74,7 @@ function reviewChart():string {
 function replayOdds():string {
  if(!review||replayIndex===null)return '';
  const last=review.points.filter(p=>p.frame<=replayIndex!).at(-1)!;
- return last.north===null?`<span>${last.error?'Evaluation unavailable':'Quux evaluating…'}</span>`:`<span class="review-north">${escape(playerName(0))} ${last.north}%</span><span class="review-south">${escape(playerName(1))} ${100-last.north}%</span><small>${last.label} estimate</small>`;
+ return last.north===null?`<span>${last.error?'Evaluation unavailable':'Quux evaluating…'}</span><div class="replay-odds-bar pending" aria-hidden="true"></div>`:`<div class="replay-odds-labels"><span class="review-north">${escape(playerName(0))} ${last.north}%</span><span class="review-south">${escape(playerName(1))} ${100-last.north}%</span></div><div class="replay-odds-bar" role="img" aria-label="${escape(playerName(0))} ${last.north}% versus ${escape(playerName(1))} ${100-last.north}%"><span class="replay-odds-north" style="width:${last.north}%"></span><span class="replay-odds-south" style="width:${100-last.north}%"></span></div><small>${last.label} estimate</small>`;
 }
 function updateReview():void {
  const chart=document.querySelector('#result-chart');if(chart&&state.outcome!=='playing'){const expanded=chart.querySelector('details')?.open;chart.innerHTML=reviewChart();if(expanded)chart.querySelector('details')!.open=true;}
