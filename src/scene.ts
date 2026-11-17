@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {SVGRenderer} from 'three/addons/renderers/SVGRenderer.js';
+import {paintCosmos} from './cosmos';
 import type {Color} from './game';
 
 /** The board's HTML remains the source of truth for layout, actions and
@@ -65,12 +66,13 @@ export function pieceModel(color:Color,size:number,star:boolean,owner:number):{g
 
 export function renderTableScene(space:HTMLElement):void {
  if(!space.classList.contains('table-view')){
-  renderer?.domElement.remove();release();space.classList.remove('scene-ready');return;
+  renderer?.domElement.remove();space.querySelector('.table-cosmos')?.remove();release();space.classList.remove('scene-ready');return;
  }
  if(unavailable)return;
  const w=space.clientWidth,h=space.clientHeight;
  if(!w||!h)return;
  try{
+  paintCosmos(space);
   if(!renderer){
    try{
     const gpu=new THREE.WebGLRenderer({alpha:true,antialias:true});
@@ -116,36 +118,8 @@ export function renderTableScene(space:HTMLElement):void {
    const floor=new THREE.Mesh(new THREE.PlaneGeometry(150,150),new THREE.ShadowMaterial({opacity:.36}));
    floor.rotation.x=-Math.PI/2;floor.position.y=-.25;floor.receiveShadow=true;scene.add(floor);
   }
-  const right=camera.getWorldDirection(new THREE.Vector3()).cross(new THREE.Vector3(0,1,0)).normalize();
-  const yaw=Math.atan2(-right.z,right.x);
   for(const card of space.querySelectorAll<HTMLElement>('.system')){
    const area=card.querySelector<HTMLElement>('.system-pieces')!;
-   const r=area.getBoundingClientRect();
-   // A dark gravitational well with a luminous, layered accretion disk.
-   // Keep its geometry planar so it doesn't read like a physical platform.
-   const center=ground(r.x+r.width/2,r.y+r.height*.62);
-   const width=view/h*r.width*.53,depth=view/h*r.height*.52/Math.sin(Math.atan2(17,Math.hypot(7,25)));
-   const selected=card.classList.contains('selected'),destination=card.classList.contains('destination');
-   const well=new THREE.Group();well.position.copy(center);well.position.y=-.15;well.rotation.y=yaw;well.scale.set(width,1,depth);scene.add(well);
-   const disk=new THREE.Mesh(new THREE.CircleGeometry(.94,96),new THREE.MeshBasicMaterial({color:0x02040c}));
-   disk.rotation.x=-Math.PI/2;disk.renderOrder=0;well.add(disk);
-   let ringLayer=0;
-   const ring=(inner:number,outer:number,color:number,opacity:number,start=0,length=Math.PI*2)=>{
-    const mesh=new THREE.Mesh(new THREE.RingGeometry(inner,outer,96,1,start,length),new THREE.MeshBasicMaterial({color,transparent:true,opacity,depthWrite:false,side:THREE.DoubleSide}));
-    mesh.rotation.x=-Math.PI/2;mesh.position.y=.01;mesh.renderOrder=1+ringLayer++*.01;well.add(mesh);
-   };
-   // Diffuse blue-violet outer glow and a narrow, hot inner photon ring.
-   const accent=destination?0x77ffca:selected?0xc5e6ff:0x8e87ff;
-   ring(.78,1.14,0x526fff,.055);
-   ring(.79,1.08,0x7356f6,.09);
-   ring(.82,1.025,0x748aff,.13);
-   ring(.84,.99,0x49358e,.5);
-   ring(.86,.965,0x667ce3,.45);
-   ring(.88,.936,0x9ba7f7,.6);
-   ring(.89,.91,accent,.85);
-   ring(.88,.96,0xffbb88,.34,Math.PI*.1,Math.PI*.72);
-   ring(.89,.925,0xffe5b7,.82,Math.PI*.22,Math.PI*.43);
-   ring(.93,1.035,accent,selected||destination?.54:.22,Math.PI*1.05,Math.PI*.68);
    for(const button of area.querySelectorAll<HTMLElement>('.piece-button')){
     const icon=button.querySelector<SVGElement>('.pyramid');if(!icon)continue;
     const color=icon.dataset.meshColor as Color;
