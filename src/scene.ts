@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {SVGRenderer} from 'three/addons/renderers/SVGRenderer.js';
-import {paintCosmos} from './cosmos';
+import {paintCosmos,clearCosmos} from './cosmos';
 import type {Color} from './game';
 
 /** The board's HTML remains the source of truth for layout, actions and
@@ -17,6 +17,10 @@ const ray=new THREE.Raycaster();
 let renderer:THREE.WebGLRenderer|SVGRenderer|undefined;
 let scene:THREE.Scene|undefined;
 let unavailable=false;
+type VisualPiece={key:string;signature:string;color:Color;size:number;star:boolean;owner:number;position:THREE.Vector3;scale:number};
+type AnimatedPiece={piece:VisualPiece;group:THREE.Group;from:THREE.Vector3;fromScale:number;leaving:boolean};
+let lastPieces=new Map<string,VisualPiece>();
+let animationFrame=0,hasRendered=false;
 
 function release():void {
  scene?.traverse(object=>{
@@ -36,7 +40,7 @@ export function pieceModel(color:Color,size:number,star:boolean,owner:number):{g
  geometry.computeVertexNormals();
  const material=new THREE.MeshStandardMaterial({color:palette[color],roughness:.27,metalness:.15});
  const mesh=new THREE.Mesh(geometry,material);
- mesh.castShadow=true;mesh.receiveShadow=true;body.add(mesh);
+ body.add(mesh);
  const border=new THREE.LineSegments(new THREE.EdgesGeometry(geometry),new THREE.LineBasicMaterial({color:palette[color],transparent:true,opacity:.45}));
  body.add(border);
  // Pips lie on the real triangular faces, rather than an icon painted in screen space.
@@ -65,8 +69,9 @@ export function pieceModel(color:Color,size:number,star:boolean,owner:number):{g
 }
 
 export function renderTableScene(space:HTMLElement):void {
+ if(animationFrame)cancelAnimationFrame(animationFrame);animationFrame=0;
  if(!space.classList.contains('table-view')){
-  renderer?.domElement.remove();space.querySelector('.table-cosmos')?.remove();release();space.classList.remove('scene-ready');return;
+  renderer?.domElement.remove();space.querySelector('.table-cosmos')?.remove();space.querySelector('.table-cosmos-out')?.remove();clearCosmos();release();lastPieces.clear();hasRendered=false;space.classList.remove('scene-ready');return;
  }
  if(unavailable)return;
  const w=space.clientWidth,h=space.clientHeight;
@@ -77,7 +82,6 @@ export function renderTableScene(space:HTMLElement):void {
    try{
     const gpu=new THREE.WebGLRenderer({alpha:true,antialias:true});
     gpu.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
-    gpu.shadowMap.enabled=true;gpu.shadowMap.type=THREE.PCFSoftShadowMap;
     gpu.toneMapping=THREE.ACESFilmicToneMapping;gpu.toneMappingExposure=1.1;
     renderer=gpu;
    }catch{
@@ -107,17 +111,10 @@ export function renderTableScene(space:HTMLElement):void {
   const gpu=renderer instanceof THREE.WebGLRenderer;
   if(gpu)scene.add(new THREE.HemisphereLight(0xcce6ff,0x18283d,1.7));
   else scene.add(new THREE.AmbientLight(0x6c7d99,1));
-  const key=new THREE.DirectionalLight(0xfff3df,gpu?2.5:1.1);key.position.set(-9,19,10);key.castShadow=true;
-  const span=Math.max(22,view*ratio*1.3);
-  key.shadow.camera.left=-span;key.shadow.camera.right=span;
-  key.shadow.camera.top=span;key.shadow.camera.bottom=-span;
-  key.shadow.camera.far=100;key.shadow.mapSize.set(2048,2048);
-  key.shadow.bias=-.0004;key.shadow.normalBias=.025;scene.add(key);
+  const key=new THREE.DirectionalLight(0xfff3df,gpu?2.5:1.1);key.position.set(-9,19,10);scene.add(key);
   const rim=new THREE.DirectionalLight(0x7ca9ff,gpu?1.35:.45);rim.position.set(12,8,-16);scene.add(rim);
-  if(gpu){
-   const floor=new THREE.Mesh(new THREE.PlaneGeometry(150,150),new THREE.ShadowMaterial({opacity:.36}));
-   floor.rotation.x=-Math.PI/2;floor.position.y=-.25;floor.receiveShadow=true;scene.add(floor);
-  }
+  const incoming:{piece:VisualPiece;group:THREE.Group}[]=[];
+  const occurrences=new Map<string,number>();
   for(const card of space.querySelectorAll<HTMLElement>('.system')){
    const area=card.querySelector<HTMLElement>('.system-pieces')!;
    for(const button of area.querySelectorAll<HTMLElement>('.piece-button')){
@@ -137,18 +134,49 @@ export function renderTableScene(space:HTMLElement):void {
     const x=rect.x+rect.width/2-((maxX+minX)/2-origin.x)*scale;
     const y=rect.y+rect.height/2-((maxY+minY)/2-origin.y)*scale;
     group.position.copy(ground(x,y));
-    // Contact shadows also make the software renderer's pieces feel grounded.
-    const shadow=new THREE.Mesh(new THREE.CircleGeometry(1,28),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.36,depthWrite:false}));
-    shadow.rotation.x=-Math.PI/2;shadow.position.copy(group.position);shadow.position.y=-.052;
-    shadow.scale.set(scale*.57,scale*(star?.55:.8),1);shadow.renderOrder=2;scene.add(shadow);
+    const signature=`${star?'star':'ship'}:${owner}:${color}:${size}`;
+    const base=`${card.dataset.system}:${signature}`,occurrence=occurrences.get(base)??0;
+    occurrences.set(base,occurrence+1);
+    incoming.push({group,piece:{key:`${base}:${occurrence}`,signature,color,size,star,owner,position:group.position.clone(),scale}});
     group.traverse(o=>{o.renderOrder=o.userData.pip?4:3;});scene.add(group);
    }
   }
+  // Preserve identities at existing systems, then pair matching pieces that
+  // changed systems so travel visibly glides to the next destination.
+  const remaining=new Map(lastPieces),animations:AnimatedPiece[]=[];
+  const matched=new Map<string,VisualPiece>();
+  for(const {piece} of incoming){const old=remaining.get(piece.key);if(old){matched.set(piece.key,old);remaining.delete(piece.key);}}
+  for(const {piece,group} of incoming){
+   let old=matched.get(piece.key);
+   if(!old&&!piece.star){old=[...remaining.values()].find(p=>p.signature===piece.signature);if(old)remaining.delete(old.key);}
+   animations.push({piece,group,from:old?.position.clone()??piece.position.clone(),fromScale:old?.scale??piece.scale*(hasRendered?.88:1),leaving:false});
+  }
+  for(const old of remaining.values()){
+   const {group}=pieceModel(old.color,old.size,old.star,old.owner);group.traverse(o=>{o.renderOrder=o.userData.pip?4:3;});scene.add(group);
+   animations.push({piece:{...old,scale:0},group,from:old.position.clone(),fromScale:old.scale,leaving:true});
+  }
   if(gpu)renderer.setSize(w,h,false);else renderer.setSize(w,h);
   space.append(renderer.domElement);
-  renderer.render(scene,camera);
   if(!gpu)renderer.domElement.style.backgroundColor='transparent';
   space.classList.add('scene-ready');
+  const activeScene=scene,activeRenderer=renderer;
+  const animate=hasRendered&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches&&animations.some(a=>a.from.distanceTo(a.piece.position)>.001||Math.abs(a.fromScale-a.piece.scale)>.001);
+  hasRendered=true;
+  const draw=(progress:number)=>{
+   const eased=progress*progress*(3-2*progress),next=new Map<string,VisualPiece>();
+   for(const a of animations){
+    a.group.position.lerpVectors(a.from,a.piece.position,eased);
+    const scale=THREE.MathUtils.lerp(a.fromScale,a.piece.scale,eased);a.group.scale.setScalar(Math.max(.0001,scale));
+    a.group.visible=scale>.001;
+    if(!a.leaving)next.set(a.piece.key,{...a.piece,position:a.group.position.clone(),scale});
+   }
+   lastPieces=next;activeRenderer.render(activeScene,camera);
+  };
+  if(animate){
+   const start=performance.now();draw(0);
+   const tick=(now:number)=>{const progress=Math.min(1,(now-start)/260);draw(progress);animationFrame=progress<1?requestAnimationFrame(tick):0;};
+   animationFrame=requestAnimationFrame(tick);
+  }else draw(1);
  }catch(error){
   // A GPU-disabled browser still has a usable perspective view.
   console.warn('Tabletop renderer unavailable',error);unavailable=true;
