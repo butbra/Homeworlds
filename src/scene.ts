@@ -157,7 +157,6 @@ export function renderTableScene(space:HTMLElement):void {
   }
   if(gpu)renderer.setSize(w,h,false);else renderer.setSize(w,h);
   space.append(renderer.domElement);
-  if(!gpu)renderer.domElement.style.backgroundColor='transparent';
   space.classList.add('scene-ready');
   const activeScene=scene,activeRenderer=renderer;
   const animate=hasRendered&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches&&animations.some(a=>a.from.distanceTo(a.piece.position)>.001||Math.abs(a.fromScale-a.piece.scale)>.001);
@@ -171,6 +170,7 @@ export function renderTableScene(space:HTMLElement):void {
     if(!a.leaving)next.set(a.piece.key,{...a.piece,position:a.group.position.clone(),scale});
    }
    lastPieces=next;activeRenderer.render(activeScene,camera);
+   if(!gpu)activeRenderer.domElement.style.backgroundColor='transparent';
   };
   if(animate){
    const start=performance.now();draw(0);
