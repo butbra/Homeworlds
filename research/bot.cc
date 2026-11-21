@@ -212,6 +212,23 @@ struct Search {
         }
         result.interrupted=!complete || (result.depth<options.max_depth && result.score!=win && stop());
         reassignPlanetNames(&result.move,st);
+        // The upstream generator may attach more actions after a winning
+        // catastrophe. When a defeated homeworld has no ships, native
+        // application may release its surviving stars earlier than the
+        // browser's Rules13 reducer. Never execute superfluous suffixes:
+        // take the earliest complete, native-legal winning prefix.
+        if (result.score==win) {
+            WholeMove prefix;
+            for (const auto& action: result.move.actions) {
+                prefix += action;
+                GameState next=st;
+                if (ApplyMove::Whole(next,p,prefix)==ApplyMove::SUCCESS
+                        && next.hasLost(1-p) && !next.hasLost(p)) {
+                    result.move=prefix;
+                    break;
+                }
+            }
+        }
         if (!ApplyMove::isValidMove(st,p,result.move))
             throw std::runtime_error("selected turn failed rules validation");
         result.elapsed_ms=std::chrono::duration<double,std::milli>(Clock::now()-start).count();

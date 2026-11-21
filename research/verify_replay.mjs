@@ -1,7 +1,7 @@
 // Independent replay using the website's rules reducer (Node >=24).
 import {registerHooks} from 'node:module';
 import fs from 'node:fs';
-import {gunzipSync} from 'node:zlib';
+import {gunzipSync, zstdDecompressSync} from 'node:zlib';
 registerHooks({resolve(specifier, context, nextResolve) {
   if (specifier === './game' && context.parentURL?.endsWith('/src/quux.ts')) {
     return nextResolve('./game.ts', context);
@@ -55,11 +55,11 @@ function fingerprint(state,terminal) {
 }
 const args=process.argv.slice(2);
 const report=args[0]==='--report'?args.splice(0,2)[1]:null;
-if (!args.length) throw Error('Usage: node verify_replay.mjs [--report result.json] games.jsonl[.gz] ...');
+if (!args.length) throw Error('Usage: node verify_replay.mjs [--report result.json] games.jsonl[.gz|.zst] ...');
 const result={files:[],games:0,verified_turns:0,terminal_outcomes:0,failures:[]};
 for (const path of args) {
   const buf = fs.readFileSync(path);
-  const raw=(path.endsWith('.gz')?gunzipSync(buf):buf).toString();
+  const raw=(path.endsWith('.gz')?gunzipSync(buf):path.endsWith('.zst')?zstdDecompressSync(buf):buf).toString();
   result.files.push(path);
   for (const line of raw.trim().split('\n').filter(Boolean)) {
     const game=JSON.parse(line); result.games++;

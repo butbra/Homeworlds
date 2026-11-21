@@ -148,6 +148,11 @@ This replays every complete native turn using the TypeScript translator
 and reducer, independently checking the side to move, full board and
 bank, and natural winner/draw. It compares cosmetic-name-independent
 positions; only terminal empty-homeworld cleanup is normalized.
+Large run transcripts may be archived as losslessly recompressed
+`.jsonl.zst` files (also accepted by the verifier). A winning move from
+the candidate is shortened to its earliest legal winning prefix; the
+edge case motivating this change and a separate recheck are recorded
+in the progress log.
 
 ## Next research milestones
 

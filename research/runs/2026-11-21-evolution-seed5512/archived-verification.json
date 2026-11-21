@@ -1,0 +1,23 @@
+{
+  "files": [
+    "research/runs/2026-11-21-evolution-seed5512/generation-000/training.jsonl.zst",
+    "research/runs/2026-11-21-evolution-seed5512/generation-000/validation.jsonl.zst",
+    "research/runs/2026-11-21-evolution-seed5512/generation-001/training.jsonl.zst",
+    "research/runs/2026-11-21-evolution-seed5512/generation-001/validation.jsonl.zst",
+    "research/runs/2026-11-21-evolution-seed5512/generation-002/training.jsonl.zst",
+    "research/runs/2026-11-21-evolution-seed5512/generation-002/validation.jsonl.zst",
+    "research/runs/2026-11-21-evolution-seed5512/generation-003/training.jsonl.zst",
+    "research/runs/2026-11-21-evolution-seed5512/generation-003/validation.jsonl.zst"
+  ],
+  "games": 944,
+  "verified_turns": 49123,
+  "terminal_outcomes": 533,
+  "failures": [
+    {
+      "path": "research/runs/2026-11-21-evolution-seed5512/generation-000/training.jsonl.zst",
+      "game": 137,
+      "turn": 26,
+      "error": "That piece is unavailable in the bank."
+    }
+  ]
+}

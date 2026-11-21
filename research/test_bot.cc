@@ -60,6 +60,15 @@ int main() {
     assert(after.hasLost(1) && !after.hasLost(0));
     assert(research::evaluate(after,0,research::baseline_weights)==1e6);
     assert(research::evaluate(after,1,research::baseline_weights)==-1e6);
+    // Regression: a blue catastrophe eliminates Alpha's last ships. Its
+    // surviving r1 star is not returned to the browser bank until turn end;
+    // never append the native generator's unnecessary r1 discovery.
+    const auto catastrophe=position("Alpha (0, r1g2) b1b2b2b3-\n"
+                                    "Beta (1, g3b2) -r1r1r3y1y1y2g1g1b1b1\n");
+    r=research::choose_move(catastrophe,1,research::baseline_weights,opts);
+    assert(r.move.toString()=="catastrophe blue at Alpha");
+    after=catastrophe;
+    assert(ApplyMove::Whole(after,1,r.move)==ApplyMove::SUCCESS && after.hasLost(0));
     research::Options tiny;
     tiny.time_ms=0; tiny.node_limit=1; tiny.max_depth=5;
     r=research::choose_move(opening,0,research::baseline_weights,tiny);
