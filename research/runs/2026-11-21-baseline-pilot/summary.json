@@ -1,0 +1,81 @@
+{
+  "scheduled_games": 4,
+  "statuses": {
+    "turn_limit": 3,
+    "repetition": 1
+  },
+  "player_stats": [
+    {
+      "player": 0,
+      "wins": 0,
+      "successful_turns": 79,
+      "average_search_ms": 101.70282301265823,
+      "average_depth": 2.0126582278481013,
+      "average_nodes": 3791.8987341772154
+    },
+    {
+      "player": 1,
+      "wins": 0,
+      "successful_turns": 79,
+      "average_search_ms": 28.382593088607596,
+      "average_depth": null,
+      "average_nodes": null
+    }
+  ],
+  "average_length": 39.5,
+  "wall_seconds": 6.253498180000065,
+  "per_game": [
+    {
+      "game": 1,
+      "opening": "Alpha (0, r1b2) g3-\nBeta (1, r2b3) -g3\n",
+      "first": 0,
+      "engines": [
+        "10,5,12,8,18,2,1,14,4,3",
+        "quux"
+      ],
+      "status": "turn_limit",
+      "winner": null,
+      "error": null,
+      "length": 40
+    },
+    {
+      "game": 2,
+      "opening": "Alpha (0, r1b2) g3-\nBeta (1, r2b3) -g3\n",
+      "first": 1,
+      "engines": [
+        "10,5,12,8,18,2,1,14,4,3",
+        "quux"
+      ],
+      "status": "turn_limit",
+      "winner": null,
+      "error": null,
+      "length": 40
+    },
+    {
+      "game": 3,
+      "opening": "Alpha (0, b1y3) g3-\nBeta (1, r1b2) -g3\n",
+      "first": 0,
+      "engines": [
+        "10,5,12,8,18,2,1,14,4,3",
+        "quux"
+      ],
+      "status": "repetition",
+      "winner": null,
+      "error": null,
+      "length": 38
+    },
+    {
+      "game": 4,
+      "opening": "Alpha (0, b1y3) g3-\nBeta (1, r1b2) -g3\n",
+      "first": 1,
+      "engines": [
+        "10,5,12,8,18,2,1,14,4,3",
+        "quux"
+      ],
+      "status": "turn_limit",
+      "winner": null,
+      "error": null,
+      "length": 40
+    }
+  ]
+}
