@@ -71,3 +71,61 @@ emit two compiler warnings in existing code; neither is from the new bot.
 reran four two-turn games after the streaming-log change (10 ms candidate
 budget, 250 ms outer timeout). All 8 turns completed; all four games stopped
 at the intentionally tiny cap. The executable hash and records were saved.
+
+## 2026-11-21 — Evolutionary training pipeline and development pilot
+
+**Purpose:** Add a reproducible evolutionary optimization loop, verify
+candidate games independently, establish disjoint opening sets, and test
+the training pipeline before a larger multi-seed experiment.
+
+**Implementation:** `evolve.py`, `make_openings.py`, `verify_replay.mjs`,
+and regression tests. C++ now accepts a deterministic generated-successor
+budget in addition to the existing clock limit. A fixed count controls
+actual search effort more reproducibly than concurrent wall-time searches.
+All candidates share the same budget and features.
+
+**Independent validation:** The previous two pilots' 166 complete turns
+also passed the website's TypeScript reducer. The new replay verifier
+checks complete board and inventory plus natural outcome after every turn,
+normalizing terminal empty-homeworld cleanup only.
+
+**Opening splits:** 24 training, 8 validation, and 50 held-out final
+positions with seed 20261121. Seat-reversed and reordered-star duplicates
+are excluded across splits, as are historical October self-play and original
+pilot positions. Training never reads the final file.
+
+**Pilot protocol:** [`runs/2026-11-21-evolution-pilot`](runs/2026-11-21-evolution-pilot).
+Seed 5511, population 4, 3 generations, 2 elites, 20% per-weight mutation,
+0.4 log-scale mutation standard deviation, one training opening per
+pairing and two fixed validation openings, 1,500 generated successors
+per turn, depth 8 ceiling, 120-turn cap, six workers. Baseline plus peer
+round-robin and prior generation winner. Each pairing covers both engine
+seats and both starting players.
+
+| Gen | Training winner fitness | Validation W-L | Repetition / cap | Validation fitness |
+|---:|---:|---:|---:|---:|
+| 0 | 0.594 | 6–0 | 2 / 0 | 0.875 |
+| 1 | 0.550 | 6–0 | 2 / 0 | 0.875 |
+| 2 | 0.600 | 1–3 | 3 / 1 | 0.375 |
+
+The first-generation random candidate g000-c003 remained the validation
+champion. Gen 1 retained exactly the same genome; gen 2's different
+training winner had lower validation performance. This pilot demonstrates
+that the infrastructure works; it **does not demonstrate improvement due
+to crossover or mutation**. Validation has only eight scheduled games
+per generation, and further model selection on more openings is required.
+
+| Overall pilot metric | Result |
+|---|---:|
+| Games | 176 |
+| Natural wins | 117 |
+| Repetition stops | 45 |
+| Turn-limit stops | 14 |
+| Timeouts / errors | 0 |
+| Independent replayed turns | 9,467 |
+| Independent replay disagreements | 0 |
+| Wall time | 13.69 s |
+
+All exact genomes, ancestry, scores, trial configurations and compressed
+per-turn transcripts are preserved. The final opening split was not used.
+Native tests and all four Python experimental-design tests passed.

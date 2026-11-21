@@ -108,7 +108,8 @@ struct Search {
     bool stop() {
         return (options.time_ms > 0 && Clock::now()-start >=
                 std::chrono::milliseconds(options.time_ms)) ||
-               (options.node_limit && result.nodes >= options.node_limit);
+               (options.node_limit && result.nodes >= options.node_limit) ||
+               (options.generated_limit && result.generated >= options.generated_limit);
     }
     std::vector<Child> generate(const GameState& st,int p,bool& complete) {
         std::vector<Child> moves;

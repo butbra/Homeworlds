@@ -33,7 +33,7 @@ printf 'Alpha (0, r1b2) g3-\nBeta (1, r2b3) -g3\n' |
   build/hwbot quux 0
 ```
 
-`choose PLAYER TIME_MS DEPTH [WEIGHTS_CSV]` accepts ten adjustable weights.
+`choose PLAYER TIME_MS DEPTH [WEIGHTS_CSV [GENERATED_LIMIT]]` accepts ten adjustable weights.
 Additional CLI commands: `features PLAYER`, `key PLAYER`, and
 `apply PLAYER "complete move"`. Output is JSON.
 
@@ -88,15 +88,73 @@ and side to move), turn-limit stops, timeouts, and engine failures are separate
 from natural wins/losses/draws. No failure is awarded to the opposing bot.
 Time-limited searches can vary across runs even with identical inputs.
 
+## Evolutionary training and reproducibility
+
+The fixed, seeded opening splits in `openings/split-20261121` contain 24
+training, 8 validation, and 50 final openings. They are disjoint even after
+reversing seats or reordering a binary star's pieces. They exclude both
+development openings and the archived October Quux self-play openings.
+The generator selects strategically plausible legal starts (two distinct
+star sizes, large ship, three distinct colors including green). This is
+a restricted sample of the possible legal setups, not an exhaustive set.
+
+The training search uses a deterministic count of generated/evaluated
+successors rather than wall time (`TIME_MS=0`); all candidates receive the
+same count limit and depth ceiling, with a separate process safety timeout.
+This makes the evolution repeatable without expecting identical CPU times.
+
+```sh
+cd research
+python3 -m unittest -v test_research.py
+python3 evolve.py --train openings/split-20261121/train.json \
+  --validation openings/split-20261121/validation.json \
+  --output runs/my-evolution --seed 5511 --population 4 --generations 3 \
+  --elites 2 --generated-limit 1500 --max-turns 120 --workers 6
+```
+
+The initial population consists of independent lognormal perturbations
+of the hand-weighted baseline. Positive weights are normalized to the
+same total, because multiplying all weights by a common positive factor
+does not change evaluation ordering in the normal score range. Each
+generation plays round-robin, against the hand-weighted baseline, and
+against the previous generation's champion. For each opening/engine
+pairing, four games cover both seats and both starting players. The
+training opening sample changes each generation. Elite survival, uniform
+crossover and Gaussian log-scale mutation create the next population.
+
+Fitness uses 1 for win, 0 for loss, 0.5 for nondecisive games (natural
+draw, repetition stop, turn-limit stop). This is a training reward, not
+a claim that adjudications are rulebook draws. Errors and timeouts are
+recorded separately; a generation with any such failure halts before
+ranking. Select the best training candidate each generation, evaluate on
+a fixed validation opening set against the original weights, and retain
+the highest validation fitness (earlier generation wins a tie).
+
+Each generation stores every genome, ancestry, exact opening IDs,
+per-candidate fitness, compressed raw match records, validation results
+and the RNG/next population checkpoint. `champion.json` records the
+validation-selected candidate; it is **not** the final project bot until
+the full training protocol is complete and its weights are frozen.
+
+Independent website-rule replay:
+
+```sh
+# from repository root; requires Node 24
+node research/verify_replay.mjs \
+  research/runs/2026-11-21-evolution-pilot/generation-*/*.jsonl.gz
+```
+
+This replays every complete native turn using the TypeScript translator
+and reducer, independently checking the side to move, full board and
+bank, and natural winner/draw. It compares cosmetic-name-independent
+positions; only terminal empty-homeworld cleanup is normalized.
+
 ## Next research milestones
 
-1. Validate game replays against the independent TypeScript rules engine and
-   improve time-budget behavior in high-branching positions.
-2. Generate disjoint seeded training, validation, and final-test opening sets.
-3. Python evolutionary training: population, paired games, elite selection,
-   crossover, mutation, hall of fame, fixed validation and per-generation logs.
-4. Freeze a champion before testing, then measure against baseline and Quux on
-   held-out paired openings. Repeat training across seeds.
-5. Human vs. champion and report analysis.
+1. Run larger training experiments across multiple independent random seeds;
+   compare validation progress and inspect failures or overfitting.
+2. Freeze a champion before testing, then measure against baseline and Quux on
+   held-out paired openings under a controlled common per-turn time ceiling.
+3. Human vs. champion and report analysis.
 
 See [research progress log](PROGRESS.md) for actual measured results.

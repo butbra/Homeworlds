@@ -1,0 +1,14 @@
+{
+  "files": [
+    "research/runs/2026-11-21-evolution-pilot/generation-000/training.jsonl.gz",
+    "research/runs/2026-11-21-evolution-pilot/generation-000/validation.jsonl.gz",
+    "research/runs/2026-11-21-evolution-pilot/generation-001/training.jsonl.gz",
+    "research/runs/2026-11-21-evolution-pilot/generation-001/validation.jsonl.gz",
+    "research/runs/2026-11-21-evolution-pilot/generation-002/training.jsonl.gz",
+    "research/runs/2026-11-21-evolution-pilot/generation-002/validation.jsonl.gz"
+  ],
+  "games": 176,
+  "verified_turns": 9467,
+  "terminal_outcomes": 117,
+  "failures": []
+}

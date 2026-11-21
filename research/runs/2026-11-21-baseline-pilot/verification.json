@@ -1,0 +1,10 @@
+{
+  "files": [
+    "research/runs/2026-11-21-baseline-pilot/games.jsonl",
+    "research/runs/2026-11-21-runner-smoke/games.jsonl"
+  ],
+  "games": 8,
+  "verified_turns": 166,
+  "terminal_outcomes": 0,
+  "failures": []
+}

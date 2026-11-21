@@ -64,6 +64,12 @@ int main() {
     tiny.time_ms=0; tiny.node_limit=1; tiny.max_depth=5;
     r=research::choose_move(opening,0,research::baseline_weights,tiny);
     assert(r.interrupted && r.depth==1 && ApplyMove::isValidMove(opening,0,r.move));
+    tiny.node_limit=0; tiny.generated_limit=200;
+    r=research::choose_move(midgame,0,research::baseline_weights,tiny);
+    const auto again=research::choose_move(midgame,0,research::baseline_weights,tiny);
+    assert(r.generated<=200 && r.generated==again.generated);
+    assert(r.move.toString()==again.move.toString() && r.depth==again.depth && r.score==again.score);
+    assert(ApplyMove::isValidMove(midgame,0,r.move));
     std::cout<<"PASS: canonical position key, zero-sum features, exact minimax, "
              <<"terminal win, legal fallback under interrupted search.\n";
 }

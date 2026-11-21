@@ -35,6 +35,8 @@ def game(index, state, first, engines, config):
         engine = engines[player]
         args = ["quux", player] if engine == "quux" else [
             "choose", player, config["search_ms"], config["max_depth"], engine]
+        if engine != "quux" and config.get("generated_limit", 0):
+            args.append(config["generated_limit"])
         try:
             data, wall_ms = invoke(args, state, config["hard_timeout_ms"] / 1000)
         except subprocess.TimeoutExpired:
@@ -42,6 +44,8 @@ def game(index, state, first, engines, config):
             break
         except (subprocess.CalledProcessError, ValueError, KeyError) as exc:
             status, error = "engine_error", f"player {player}: {exc}"
+            if isinstance(exc, subprocess.CalledProcessError):
+                error += f"; stderr: {exc.stderr}"
             break
         turns.append({"turn": len(turns)+1, "player": player,
                       "engine": engine, "wall_ms": wall_ms, **data})

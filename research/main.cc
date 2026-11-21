@@ -85,11 +85,12 @@ int main(int argc,char** argv) {
             r.elapsed_ms=std::chrono::duration<double,std::milli>(
                 std::chrono::steady_clock::now()-start).count();
         } else if (cmd=="choose") {
-            if (argc<5 || argc>6) throw std::invalid_argument("choose requires time_ms depth [weights_csv]");
+            if (argc<5 || argc>7) throw std::invalid_argument("choose requires time_ms depth [weights_csv [generated_limit]]");
             research::Options opt;
             opt.time_ms=std::stoi(argv[3]);
             opt.max_depth=std::stoi(argv[4]);
-            const auto weights=argc==6?parse_weights(argv[5]):research::baseline_weights;
+            const auto weights=argc>=6?parse_weights(argv[5]):research::baseline_weights;
+            if (argc==7) opt.generated_limit=std::stoull(argv[6]);
             r=research::choose_move(st,p,weights,opt);
         } else throw std::invalid_argument("unknown command");
         GameState next=st;

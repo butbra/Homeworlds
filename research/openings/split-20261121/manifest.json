@@ -1,0 +1,15 @@
+{
+  "seed": 20261121,
+  "counts": {
+    "train": 24,
+    "validation": 8,
+    "final": 50
+  },
+  "excluded_historical_and_pilot_keys": 51,
+  "method": "uniform shuffled sample without replacement; canonicalize reversed seats and star order; three different colors incl. green per home, distinct star sizes, large ship",
+  "excluded_sources": [
+    "openings/pilot.json",
+    "../tournaments/2026-10-25-quux-selfplay/protocol.json"
+  ],
+  "final_use": "held out until a candidate's weights are frozen"
+}

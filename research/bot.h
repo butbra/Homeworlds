@@ -19,6 +19,7 @@ struct Options {
     int time_ms = 1000;
     int max_depth = 8;
     std::uint64_t node_limit = 0; // 0 = unlimited; useful for reproducible tests.
+    std::uint64_t generated_limit = 0; // 0 = unlimited; deterministic training budget.
     bool transpositions = true;
     bool move_ordering = true;
 };
