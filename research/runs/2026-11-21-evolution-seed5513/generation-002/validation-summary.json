@@ -1,0 +1,43 @@
+{
+  "candidate": {
+    "id": "g002-c003",
+    "weights": [
+      0.897807,
+      4.233307,
+      12.002379,
+      17.279442,
+      3.410694,
+      1.176797,
+      0.219993,
+      27.469119,
+      8.369353,
+      1.94111
+    ],
+    "parents": [
+      "g001-c002",
+      "g001-c001"
+    ]
+  },
+  "fitness": {
+    "scheduled": 32,
+    "wins": 19,
+    "losses": 9,
+    "draw": 0,
+    "repetition": 4,
+    "turn_limit": 0,
+    "timeout": 0,
+    "engine_error": 0,
+    "points": 21.0,
+    "valid": 32,
+    "fitness": 0.65625
+  },
+  "summary": {
+    "games": 32,
+    "outcomes": {
+      "win": 28,
+      "repetition": 4
+    },
+    "turns": 1272,
+    "average_length": 39.75
+  }
+}

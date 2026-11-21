@@ -1,0 +1,14 @@
+{
+  "original_source": "runs/2026-11-21-evolution-seed5512/generation-000/training.jsonl.zst",
+  "game": 137,
+  "original_status": "win",
+  "original_winner": 1,
+  "rechecked_status": "win",
+  "rechecked_winner": 1,
+  "original_length": 26,
+  "rechecked_length": 26,
+  "unchanged_prior_moves": true,
+  "original_last_move": "catastrophe blue at Alpha; move r1 from Beta to Delos (r1)",
+  "rechecked_last_move": "catastrophe blue at Alpha",
+  "binary_sha256": "a955a63bfb86ee35bbe31dc03c1f7fa226d8b54c9350c8b8f6bb05c170b5ce3d"
+}

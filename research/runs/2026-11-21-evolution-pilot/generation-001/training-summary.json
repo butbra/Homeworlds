@@ -1,0 +1,66 @@
+{
+  "fitness": {
+    "g001-c000": {
+      "scheduled": 20,
+      "wins": 8,
+      "losses": 6,
+      "draw": 0,
+      "repetition": 0,
+      "turn_limit": 6,
+      "timeout": 0,
+      "engine_error": 0,
+      "points": 11.0,
+      "valid": 20,
+      "fitness": 0.55
+    },
+    "g001-c001": {
+      "scheduled": 20,
+      "wins": 8,
+      "losses": 12,
+      "draw": 0,
+      "repetition": 0,
+      "turn_limit": 0,
+      "timeout": 0,
+      "engine_error": 0,
+      "points": 8.0,
+      "valid": 20,
+      "fitness": 0.4
+    },
+    "g001-c002": {
+      "scheduled": 20,
+      "wins": 4,
+      "losses": 14,
+      "draw": 0,
+      "repetition": 2,
+      "turn_limit": 0,
+      "timeout": 0,
+      "engine_error": 0,
+      "points": 5.0,
+      "valid": 20,
+      "fitness": 0.25
+    },
+    "g001-c003": {
+      "scheduled": 20,
+      "wins": 8,
+      "losses": 12,
+      "draw": 0,
+      "repetition": 0,
+      "turn_limit": 0,
+      "timeout": 0,
+      "engine_error": 0,
+      "points": 8.0,
+      "valid": 20,
+      "fitness": 0.4
+    }
+  },
+  "summary": {
+    "games": 56,
+    "outcomes": {
+      "win": 48,
+      "turn_limit": 6,
+      "repetition": 2
+    },
+    "turns": 2661,
+    "average_length": 47.517857142857146
+  }
+}

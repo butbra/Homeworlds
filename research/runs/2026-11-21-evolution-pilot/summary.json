@@ -1,0 +1,242 @@
+{
+  "history": [
+    {
+      "generation": 0,
+      "winner": {
+        "id": "g000-c003",
+        "weights": [
+          18.227513,
+          4.480802,
+          9.958357,
+          3.159019,
+          10.347986,
+          3.868725,
+          0.507895,
+          20.55632,
+          3.751239,
+          2.142145
+        ],
+        "parents": []
+      },
+      "training": {
+        "scheduled": 16,
+        "wins": 4,
+        "losses": 1,
+        "draw": 0,
+        "repetition": 11,
+        "turn_limit": 0,
+        "timeout": 0,
+        "engine_error": 0,
+        "points": 9.5,
+        "valid": 16,
+        "fitness": 0.59375
+      },
+      "training_summary": {
+        "games": 40,
+        "outcomes": {
+          "win": 14,
+          "repetition": 23,
+          "turn_limit": 3
+        },
+        "turns": 1549,
+        "average_length": 38.725
+      },
+      "validation": {
+        "scheduled": 8,
+        "wins": 6,
+        "losses": 0,
+        "draw": 0,
+        "repetition": 2,
+        "turn_limit": 0,
+        "timeout": 0,
+        "engine_error": 0,
+        "points": 7.0,
+        "valid": 8,
+        "fitness": 0.875
+      },
+      "validation_summary": {
+        "games": 8,
+        "outcomes": {
+          "win": 6,
+          "repetition": 2
+        },
+        "turns": 365,
+        "average_length": 45.625
+      },
+      "best_validation_fitness": 0.875,
+      "wall_seconds": 2.5014532659999986
+    },
+    {
+      "generation": 1,
+      "winner": {
+        "id": "g001-c000",
+        "weights": [
+          18.227513,
+          4.480802,
+          9.958357,
+          3.159019,
+          10.347986,
+          3.868725,
+          0.507895,
+          20.55632,
+          3.751239,
+          2.142145
+        ],
+        "parents": [
+          "g000-c003"
+        ]
+      },
+      "training": {
+        "scheduled": 20,
+        "wins": 8,
+        "losses": 6,
+        "draw": 0,
+        "repetition": 0,
+        "turn_limit": 6,
+        "timeout": 0,
+        "engine_error": 0,
+        "points": 11.0,
+        "valid": 20,
+        "fitness": 0.55
+      },
+      "training_summary": {
+        "games": 56,
+        "outcomes": {
+          "win": 48,
+          "turn_limit": 6,
+          "repetition": 2
+        },
+        "turns": 2661,
+        "average_length": 47.517857142857146
+      },
+      "validation": {
+        "scheduled": 8,
+        "wins": 6,
+        "losses": 0,
+        "draw": 0,
+        "repetition": 2,
+        "turn_limit": 0,
+        "timeout": 0,
+        "engine_error": 0,
+        "points": 7.0,
+        "valid": 8,
+        "fitness": 0.875
+      },
+      "validation_summary": {
+        "games": 8,
+        "outcomes": {
+          "win": 6,
+          "repetition": 2
+        },
+        "turns": 365,
+        "average_length": 45.625
+      },
+      "best_validation_fitness": 0.875,
+      "wall_seconds": 4.7200833769999235
+    },
+    {
+      "generation": 2,
+      "winner": {
+        "id": "g002-c001",
+        "weights": [
+          14.453831,
+          5.069956,
+          1.955999,
+          0.871692,
+          8.997991,
+          1.75822,
+          0.34492,
+          29.847325,
+          12.079422,
+          1.620645
+        ],
+        "parents": [
+          "g001-c001"
+        ]
+      },
+      "training": {
+        "scheduled": 20,
+        "wins": 9,
+        "losses": 5,
+        "draw": 0,
+        "repetition": 5,
+        "turn_limit": 1,
+        "timeout": 0,
+        "engine_error": 0,
+        "points": 12.0,
+        "valid": 20,
+        "fitness": 0.6
+      },
+      "training_summary": {
+        "games": 56,
+        "outcomes": {
+          "repetition": 13,
+          "win": 39,
+          "turn_limit": 4
+        },
+        "turns": 4042,
+        "average_length": 72.17857142857143
+      },
+      "validation": {
+        "scheduled": 8,
+        "wins": 1,
+        "losses": 3,
+        "draw": 0,
+        "repetition": 3,
+        "turn_limit": 1,
+        "timeout": 0,
+        "engine_error": 0,
+        "points": 3.0,
+        "valid": 8,
+        "fitness": 0.375
+      },
+      "validation_summary": {
+        "games": 8,
+        "outcomes": {
+          "turn_limit": 1,
+          "win": 4,
+          "repetition": 3
+        },
+        "turns": 485,
+        "average_length": 60.625
+      },
+      "best_validation_fitness": 0.875,
+      "wall_seconds": 6.466476112999999
+    }
+  ],
+  "champion": {
+    "generation": 0,
+    "candidate": {
+      "id": "g000-c003",
+      "weights": [
+        18.227513,
+        4.480802,
+        9.958357,
+        3.159019,
+        10.347986,
+        3.868725,
+        0.507895,
+        20.55632,
+        3.751239,
+        2.142145
+      ],
+      "parents": []
+    },
+    "validation": {
+      "scheduled": 8,
+      "wins": 6,
+      "losses": 0,
+      "draw": 0,
+      "repetition": 2,
+      "turn_limit": 0,
+      "timeout": 0,
+      "engine_error": 0,
+      "points": 7.0,
+      "valid": 8,
+      "fitness": 0.875
+    }
+  },
+  "wall_seconds": 13.690666367000063,
+  "completed_generations": 3,
+  "note": "Development training; validation is not a held-out final test."
+}

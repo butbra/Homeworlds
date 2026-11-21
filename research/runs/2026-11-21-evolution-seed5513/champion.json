@@ -1,0 +1,32 @@
+{
+  "generation": 0,
+  "candidate": {
+    "id": "g000-c002",
+    "weights": [
+      11.159082,
+      11.338431,
+      2.253732,
+      7.622222,
+      5.322135,
+      1.984336,
+      0.207192,
+      32.545682,
+      2.648196,
+      1.918991
+    ],
+    "parents": []
+  },
+  "validation": {
+    "scheduled": 32,
+    "wins": 17,
+    "losses": 4,
+    "draw": 0,
+    "repetition": 11,
+    "turn_limit": 0,
+    "timeout": 0,
+    "engine_error": 0,
+    "points": 22.5,
+    "valid": 32,
+    "fitness": 0.703125
+  }
+}

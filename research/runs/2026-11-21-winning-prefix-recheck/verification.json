@@ -1,0 +1,9 @@
+{
+  "files": [
+    "research/runs/2026-11-21-winning-prefix-recheck/game.jsonl"
+  ],
+  "games": 1,
+  "verified_turns": 26,
+  "terminal_outcomes": 1,
+  "failures": []
+}

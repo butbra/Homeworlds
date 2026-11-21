@@ -1,0 +1,20 @@
+{
+  "search_ms": 100,
+  "hard_timeout_ms": 250,
+  "max_depth": 8,
+  "max_turns": 40,
+  "workers": 2,
+  "engines": [
+    "10,5,12,8,18,2,1,14,4,3",
+    "quux"
+  ],
+  "opening_file": "openings/pilot.json",
+  "repetition": 3,
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "python": "3.12.14",
+  "referee": "native Quux ApplyMove::Whole; not independently replayed yet",
+  "openings": [
+    "Alpha (0, r1b2) g3-\nBeta (1, r2b3) -g3\n",
+    "Alpha (0, b1y3) g3-\nBeta (1, r1b2) -g3\n"
+  ]
+}
